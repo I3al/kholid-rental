@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="body" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#1e3a5f"/>
+      <stop offset="100%" style="stop-color:#0f1d3a"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="220" rx="150" ry="12" fill="#0a1628" opacity="0.4"/>
+  <!-- SUV body - taller, boxier -->
+  <path d="M50 150 L65 110 L85 90 L315 90 L335 110 L350 150 Z" fill="url(#body)" stroke="#1e3a5f" stroke-width="2"/>
+  <rect x="50" y="150" width="300" height="50" rx="8" fill="url(#body)" stroke="#1e3a5f" stroke-width="2"/>
+  <path d="M95 95 L115 145 L175 145 L175 95 Z" fill="#94a3b8" opacity="0.4"/>
+  <path d="M305 95 L285 145 L225 145 L225 95 Z" fill="#94a3b8" opacity="0.3"/>
+  <path d="M115 98 L130 142 L170 142 L170 98 Z" fill="#1e293b" opacity="0.6"/>
+  <path d="M230 98 L215 142 L180 142 L180 98 Z" fill="#1e293b" opacity="0.6"/>
+  <path d="M240 98 L255 142 L275 142 L295 98 Z" fill="#1e293b" opacity="0.6"/>
+  <!-- Bigger wheels for SUV -->
+  <circle cx="110" cy="200" r="26" fill="#1e293b" stroke="#0f172a" stroke-width="3"/>
+  <circle cx="110" cy="200" r="12" fill="#64748b"/>
+  <circle cx="110" cy="200" r="4" fill="#1e293b"/>
+  <circle cx="290" cy="200" r="26" fill="#1e293b" stroke="#0f172a" stroke-width="3"/>
+  <circle cx="290" cy="200" r="12" fill="#64748b"/>
+  <circle cx="290" cy="200" r="4" fill="#1e293b"/>
+  <ellipse cx="47" cy="135" rx="5" ry="10" fill="#fbbf24" opacity="0.8"/>
+  <ellipse cx="353" cy="135" rx="5" ry="6" fill="#ef4444" opacity="0.7"/>
+  <rect x="60" y="118" width="55" height="6" rx="3" fill="#1e293b" opacity="0.5"/>
+  <rect x="60" y="128" width="55" height="6" rx="3" fill="#1e293b" opacity="0.5"/>
+  <!-- Roof rails -->
+  <rect x="100" y="88" width="200" height="3" rx="1.5" fill="#64748b" opacity="0.4"/>
+  <rect x="100" y="78" width="3" height="10" rx="1.5" fill="#64748b" opacity="0.4"/>
+  <rect x="297" y="78" width="3" height="10" rx="1.5" fill="#64748b" opacity="0.4"/>
+  <path d="M85 90 L315 90" stroke="#94a3b8" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="200" cy="120" r="9" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.5"/>
+  <text x="200" y="123" font-family="Arial" font-size="6" fill="#94a3b8" text-anchor="middle" opacity="0.5">P</text>
+  <text x="200" y="240" font-family="Arial" font-size="12" fill="#64748b" text-anchor="middle" opacity="0.6">Mitsubishi Pajero — SUV</text>
+</svg>

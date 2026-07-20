@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="250" viewBox="0 0 400 250">
+  <defs>
+    <linearGradient id="body" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#475569"/>
+      <stop offset="100%" style="stop-color:#1e293b"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="200" cy="220" rx="145" ry="12" fill="#0a1628" opacity="0.4"/>
+  <path d="M55 155 L75 115 L95 95 L305 95 L325 115 L345 155 Z" fill="url(#body)" stroke="#334155" stroke-width="2"/>
+  <rect x="55" y="155" width="290" height="45" rx="8" fill="url(#body)" stroke="#334155" stroke-width="2"/>
+  <path d="M105 100 L125 150 L180 150 L180 100 Z" fill="#94a3b8" opacity="0.4"/>
+  <path d="M295 100 L275 150 L220 150 L220 100 Z" fill="#94a3b8" opacity="0.3"/>
+  <path d="M125 103 L140 147 L175 147 L175 103 Z" fill="#1e293b" opacity="0.6"/>
+  <path d="M225 103 L210 147 L180 147 L180 103 Z" fill="#1e293b" opacity="0.6"/>
+  <path d="M235 103 L250 147 L268 147 L283 103 Z" fill="#1e293b" opacity="0.6"/>
+  <circle cx="115" cy="200" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="3"/>
+  <circle cx="115" cy="200" r="11" fill="#64748b"/>
+  <circle cx="115" cy="200" r="4" fill="#1e293b"/>
+  <circle cx="285" cy="200" r="24" fill="#1e293b" stroke="#0f172a" stroke-width="3"/>
+  <circle cx="285" cy="200" r="11" fill="#64748b"/>
+  <circle cx="285" cy="200" r="4" fill="#1e293b"/>
+  <ellipse cx="52" cy="140" rx="5" ry="9" fill="#fbbf24" opacity="0.8"/>
+  <ellipse cx="348" cy="140" rx="5" ry="6" fill="#ef4444" opacity="0.7"/>
+  <rect x="65" y="120" width="55" height="7" rx="3" fill="#1e293b" opacity="0.5"/>
+  <rect x="65" y="130" width="55" height="7" rx="3" fill="#1e293b" opacity="0.5"/>
+  <path d="M95 95 L305 95" stroke="#94a3b8" stroke-width="1.5" opacity="0.3"/>
+  <circle cx="200" cy="125" r="9" fill="none" stroke="#94a3b8" stroke-width="1.5" opacity="0.5"/>
+  <text x="200" y="128" font-family="Arial" font-size="7" fill="#94a3b8" text-anchor="middle" opacity="0.5">I</text>
+  <text x="200" y="240" font-family="Arial" font-size="12" fill="#64748b" text-anchor="middle" opacity="0.6">Toyota Innova — MPV</text>
+</svg>

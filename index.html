@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KHOLID RENTAL — Sewa Mobil Profesional di Lombok</title>
+    <meta name="description" content="Sewa mobil Lombok lepas kunci & dengan sopir. Armada terawat, antar-jemput bandara, harga transparan. Booking mudah via WhatsApp." />
+    <meta name="author" content="KHOLID RENTAL" />
+    <meta property="og:title" content="KHOLID RENTAL — Sewa Mobil Profesional di Lombok" />
+    <meta property="og:description" content="Armada terawat, harga transparan, antar-jemput bandara. Booking via WhatsApp." />
+    <meta property="og:image" content="images/hero-lombok.jpg" />
+    <meta name="theme-color" content="#1C1C1A" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="index.css" />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='0' fill='%23B5893E'/%3E%3Ctext x='16' y='23' font-size='16' text-anchor='middle' fill='%23EDE8DD' font-family='Georgia' font-weight='bold'%3EKR%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+    <div id="cursorGlow"></div>
+    <a href="#main" class="skip-link">Langsung ke konten utama</a>
+
+    <!-- TOP BAR -->
+    <div class="top-bar">
+        <div class="container top-bar-inner">
+            <div class="top-bar-left">
+                <a href="https://wa.me/6287731992067" class="top-link">+62 877-3199-2067</a>
+                <span class="top-sep"></span>
+                <a href="mailto:hello@kholidrental.com" class="top-link">hello@kholidrental.com</a>
+            </div>
+            <div class="top-bar-right">Lombok Car Rental — Self Drive &amp; With Driver</div>
+        </div>
+    </div>
+
+    <!-- HEADER -->
+    <header id="header">
+        <div class="container header-inner">
+            <a href="#" class="logo-text">KHOLID <span class="logo-accent">RENTAL</span></a>
+            <nav class="nav-main" id="navMain">
+                <a href="#fleet" class="nav-item" data-section="fleet">Armada</a>
+                <a href="#services" class="nav-item" data-section="services">Layanan</a>
+                <a href="#why" class="nav-item" data-section="why">Tentang</a>
+                <a href="#how" class="nav-item" data-section="how">Cara Pesan</a>
+                <a href="#faq" class="nav-item" data-section="faq">FAQ</a>
+                <a href="#contact" class="nav-item" data-section="contact">Kontak</a>
+                <div class="nav-lang">
+                    <a href="#" class="lang-link active" data-lang="id">ID</a>
+                    <span class="lang-sep">|</span>
+                    <a href="#" class="lang-link" data-lang="en">EN</a>
+                </div>
+                <a href="https://wa.me/6287731992067?text=Halo%20KHOLID%20RENTAL%2C%20saya%20mau%20booking" target="_blank" rel="noopener" class="btn-primary nav-cta">Booking WA</a>
+            </nav>
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </header>
+
+    <!-- HERO -->
+    <section class="hero" style="background-image:url('images/hero-lombok.jpg')">
+        <div class="hero-overlay"></div>
+        <div class="container hero-inner">
+            <div class="hero-text" id="heroText">
+                <p class="hero-meta" data-i18n="hero.meta">RENTAL MOBIL LOMBOK</p>
+                <h1 class="hero-title" data-i18n="hero.title">Jelajahi Lombok <span class="text-brass">Tanpa Batas</span></h1>
+                <p class="hero-sub" data-i18n="hero.sub">Lepas kunci atau dengan sopir. Armada terawat, harga transparan, antar-jemput bandara. Pengalaman perjalanan yang berbeda di Lombok.</p>
+                <div class="hero-actions">
+                    <a href="#fleet" class="btn-primary">Lihat Armada</a>
+                    <a href="https://wa.me/6287731992067?text=Halo%20KHOLID%20RENTAL%2C%20saya%20mau%20booking" target="_blank" rel="noopener" class="btn-outline">Booking via WhatsApp</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <main id="main">
+
+    <!-- FLEET -->
+    <section id="fleet" class="section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="fleet.tag">ARMADA</span>
+                <h2 class="section-title" data-i18n="fleet.title">Pilih Mobil <span class="text-brass">Kepercayaan</span></h2>
+                <p class="section-desc" data-i18n="fleet.sub">Setiap unit dirawat rutin. Anda pilih yang cocok.</p>
+                <span class="brand-line"></span>
+            </div>
+            <div class="fleet-filters reveal">
+                <button class="filter-btn active" data-filter="all">Semua</button>
+                <button class="filter-btn" data-filter="city">City Car</button>
+                <button class="filter-btn" data-filter="mpv">MPV</button>
+                <button class="filter-btn" data-filter="suv">SUV</button>
+            </div>
+            <div class="fleet-grid" id="fleetGrid" role="list"></div>
+        </div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </section>
+
+    <!-- DIVIDER (animated wave) -->
+    <div class="section-divider" aria-hidden="true">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="overflow:visible">
+            <defs><linearGradient id="w1" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#1E2D3D" stop-opacity="0.4"/><stop offset="50%" stop-color="#162230"/><stop offset="100%" stop-color="#1E2D3D" stop-opacity="0.4"/></linearGradient></defs>
+            <path class="divider-fill-alt animated-wave" fill="url(#w1)" d="M0,0L1440,0L1440,40C1000,60 800,20 0,60Z"/>
+            <path class="divider-fill-alt animated-wave" fill="url(#w1)" opacity="0.4" d="M0,0L1440,0L1440,50C1000,30 800,55 0,30Z" style="animation-duration:12s;animation-direction:reverse"/>
+        </svg>
+    </div>
+
+    <!-- SERVICES -->
+    <section id="services" class="section section-alt">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="services.tag">LAYANAN</span>
+                <h2 class="section-title" data-i18n="services.title">Empat Cara <span class="text-brass">Sewa</span></h2>
+                <p class="section-desc" data-i18n="services.sub">Sesuaikan dengan rencana perjalanan Anda.</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card reveal-left">
+                    <span class="sc-num">01</span>
+                    <h3 class="sc-title">Lepas Kunci</h3>
+                    <p class="sc-desc">Mobil diantar ke bandara atau hotel. Bawa sendiri, bebas atur rute. Cocok untuk eksplorasi mandiri.</p>
+                </div>
+                <div class="service-card reveal-right">
+                    <span class="sc-num">02</span>
+                    <h3 class="sc-title">Dengan Sopir</h3>
+                    <p class="sc-desc">Sopir profesional kenal medan Lombok — dari jalur Sembalun sampai pesisir selatan. Anda duduk santai.</p>
+                </div>
+                <div class="service-card reveal-left">
+                    <span class="sc-num">03</span>
+                    <h3 class="sc-title">Antar-Jemput</h3>
+                    <p class="sc-desc">Jemput di terminal kedatangan Bandara Lombok (LOP). Bantu bagasi, antar ke tujuan mana pun.</p>
+                </div>
+                <div class="service-card reveal-right">
+                    <span class="sc-num">04</span>
+                    <h3 class="sc-title">Paket Wisata</h3>
+                    <p class="sc-desc">Mobil + sopir + itinerary pilihan. Gili, Sembalun, Mandalika — atur semuanya, termasuk kuliner.</p>
+                </div>
+            </div>
+        </div>
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </section>
+
+    <!-- DIVIDER (animated wave) -->
+    <div class="section-divider" aria-hidden="true">
+        <svg viewBox="0 0 1440 60" preserveAspectRatio="none" style="overflow:visible">
+            <defs><linearGradient id="w2" x1="0" x2="1" y1="0" y2="0"><stop offset="0%" stop-color="#EDE8DD" stop-opacity="0"/><stop offset="50%" stop-color="#EDE8DD"/><stop offset="100%" stop-color="#EDE8DD" stop-opacity="0"/></linearGradient></defs>
+            <path class="divider-fill animated-wave" fill="url(#w2)" d="M1440,0L0,0L0,40C440,60 640,20 1440,60Z"/>
+            <path class="divider-fill animated-wave" fill="url(#w2)" opacity="0.3" d="M1440,0L0,0L0,50C440,30 640,55 1440,30Z" style="animation-duration:12s;animation-direction:reverse"/>
+        </svg>
+    </div>
+
+    <!-- STATS -->
+    <section id="stats" class="section section-alt">
+        <div class="container">
+            <div class="stats-grid reveal-scale" id="statsGrid">
+                <div class="stat-item"><span class="stat-num" data-target="10">0</span><span class="stat-label">Armada Siap</span></div>
+                <div class="stat-item"><span class="stat-num" data-target="500">0</span><span class="stat-label">Pelanggan Puas</span></div>
+                <div class="stat-item"><span class="stat-num" data-target="4.9">0</span><span class="stat-label">Rating Google</span></div>
+                <div class="stat-item"><span class="stat-num" data-target="24">0</span><span class="stat-label">Jam Layanan</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- WHY -->
+    <section id="why" class="section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="why.tag">ALASAN</span>
+                <h2 class="section-title" data-i18n="why.title">Mengapa <span class="text-brass">KHOLID RENTAL</span></h2>
+                <p class="section-desc" data-i18n="why.sub">Bukan sekadar sewa mobil. Ini tentang perjalanan yang tenang.</p>
+            </div>
+            <div class="why-grid reveal-scale">
+                <div class="why-item"><span class="wi-num">01</span><span class="wi-title">Asuransi All Risk</span><span class="wi-desc">Setiap unit terlindungi asuransi komprehensif.</span></div>
+                <div class="why-item"><span class="wi-num">02</span><span class="wi-title">Layanan 24/7</span><span class="wi-desc">Bantuan darurat kapan pun Anda butuh.</span></div>
+                <div class="why-item"><span class="wi-num">03</span><span class="wi-title">Armada Terawat</span><span class="wi-desc">Service rutin berkala, kondisi prima.</span></div>
+                <div class="why-item"><span class="wi-num">04</span><span class="wi-title">Seluruh Lombok</span><span class="wi-desc">Melayani Mataram, Senggigi, Mandalika, Kuta, Sembalun.</span></div>
+                <div class="why-item"><span class="wi-num">05</span><span class="wi-title">Rating 4.9</span><span class="wi-desc">Ratusan pelanggan puas, review positif.</span></div>
+                <div class="why-item"><span class="wi-num">06</span><span class="wi-title">Harga Transparan</span><span class="wi-desc">Tanpa biaya tersembunyi. Sesuai deal.</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section id="testimonials" class="section section-alt">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag">TESTIMONIALS</span>
+                <h2 class="section-title">Apa Kata <span class="text-brass">Mereka</span></h2>
+                <p class="section-desc">Pengalaman tamu yang sudah menjelajahi Lombok bersama kami.</p>
+            </div>
+            <div class="testi-carousel-wrap reveal">
+                <div class="testi-carousel" id="testiCarousel"></div>
+            </div>
+            <div class="testi-dots" id="testiDots"></div>
+        </div>
+    </section>
+
+    <!-- CTA STRIP -->
+    <div class="cta-strip reveal">
+        <div class="container">
+            <div class="cta-strip-title">Siap menjelajahi Lombok?</div>
+            <p class="cta-strip-sub">Booking sekarang via WhatsApp. Respon cepat, mobil siap diantar ke lokasi Anda.</p>
+            <a href="https://wa.me/6287731992067?text=Halo%20KHOLID%20RENTAL%2C%20saya%20mau%20booking%20sekarang" target="_blank" rel="noopener" class="btn-primary">Booking Sekarang</a>
+        </div>
+    </div>
+
+    <!-- HOW -->
+    <section id="how" class="section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="how.tag">CARA PESAN</span>
+                <h2 class="section-title" data-i18n="how.title">Empat Langkah <span class="text-brass">Mudah</span></h2>
+                <p class="section-desc" data-i18n="how.sub">Dari chat sampai mobil di depan Anda.</p>
+            </div>
+            <div class="steps-grid">
+                <div class="step-item reveal" data-step="01">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="step-body">
+                        <span class="step-num">Langkah 01</span>
+                        <h3 class="step-title" data-i18n="how.s1">Chat WhatsApp</h3>
+                        <p class="step-desc" data-i18n="how.s1d">Bilang mau sewa mobil apa, tanggal, lepas kunci atau pakai sopir.</p>
+                    </div>
+                </div>
+                <div class="step-item reveal" data-step="02">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                    <div class="step-body">
+                        <span class="step-num">Langkah 02</span>
+                        <h3 class="step-title" data-i18n="how.s2">Kami Konfirmasi</h3>
+                        <p class="step-desc" data-i18n="how.s2d">Ketersediaan dicek, rincian harga dikirim — transparan.</p>
+                    </div>
+                </div>
+                <div class="step-item reveal" data-step="03">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><path d="M1 10h22"/></svg>
+                    </div>
+                    <div class="step-body">
+                        <span class="step-num">Langkah 03</span>
+                        <h3 class="step-title" data-i18n="how.s3">DP & Persiapan</h3>
+                        <p class="step-desc" data-i18n="how.s3d">DP 50% via transfer. Mobil disiapkan, full bensin.</p>
+                    </div>
+                </div>
+                <div class="step-item reveal" data-step="04">
+                    <div class="step-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="step-body">
+                        <span class="step-num">Langkah 04</span>
+                        <h3 class="step-title" data-i18n="how.s4">Mobil Diantar</h3>
+                        <p class="step-desc" data-i18n="how.s4d">Diantar ke bandara atau hotel. Langsung jalan!</p>
+                    </div>
+                </div>
+            </div>
+            <div class="steps-connector" aria-hidden="true"></div>
+        </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="section section-alt">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="faq.tag">FAQ</span>
+                <h2 class="section-title" data-i18n="faq.title">Pertanyaan <span class="text-brass">Umum</span></h2>
+            </div>
+            <div class="faq-list reveal" id="faqList"></div>
+        </div>
+    </section>
+
+    <!-- CONTACT -->
+    <section id="contact" class="section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="section-tag" data-i18n="contact.tag">KONTAK</span>
+                <h2 class="section-title" data-i18n="contact.title">Hubungi <span class="text-brass">Kami</span></h2>
+                <p class="section-desc" data-i18n="contact.sub">Lebih cepat lewat WhatsApp. Atau mampir.</p>
+                <span class="brand-line"></span>
+            </div>
+            <div class="contact-grid reveal-scale" id="contactGrid">
+                <div class="contact-card">
+                    <span class="cc-label">WhatsApp</span>
+                    <span class="cc-value"><a href="https://wa.me/6287731992067">+62 877-3199-2067</a></span>
+                    <a href="https://wa.me/6287731992067?text=Halo%20KHOLID%20RENTAL%2C%20saya%20ada%20pertanyaan" target="_blank" rel="noopener" class="btn-primary btn-sm" style="margin-top:10px;">Chat Sekarang</a>
+                </div>
+                <div class="contact-card">
+                    <span class="cc-label">Alamat</span>
+                    <span class="cc-value">Jl. Raya Senggigi, Lombok Barat, NTB</span>
+                </div>
+                <div class="contact-card">
+                    <span class="cc-label">Jam Operasional</span>
+                    <span class="cc-value">Senin — Minggu, 24 Jam</span>
+                </div>
+                <div class="contact-card contact-map">
+                    <div class="map-wrap">
+                        <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d252580.2721176907!2d116.01736445!3d-8.57203915!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dcdb7d23e8e7457%3A0x5e6b0f1e7b0e0b0!2sLombok!5e0!3m2!1sid!2sid!4v1" width="100%" height="100%" style="border:0;" allowfullscreen="" loading="lazy" title="Peta lokasi KHOLID RENTAL"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="container footer-inner">
+            <div class="footer-brand">
+                <div class="logo-text">KHOLID <span class="logo-accent">RENTAL</span></div>
+                <p class="footer-desc">Rental mobil Lombok. Lepas kunci & sopir. Armada terawat, harga transparan. Melayani seluruh Lombok.</p>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Navigasi</h4>
+                <a href="#fleet" class="footer-link">Armada</a>
+                <a href="#services" class="footer-link">Layanan</a>
+                <a href="#why" class="footer-link">Tentang</a>
+                <a href="#faq" class="footer-link">FAQ</a>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Layanan</h4>
+                <span class="footer-link">Lepas Kunci</span>
+                <span class="footer-link">Dengan Sopir</span>
+                <span class="footer-link">Antar-Jemput</span>
+                <span class="footer-link">Paket Wisata</span>
+            </div>
+            <div class="footer-col">
+                <h4 class="footer-title">Kontak</h4>
+                <a href="https://wa.me/6287731992067" class="footer-link">+62 877-3199-2067</a>
+                <a href="mailto:hello@kholidrental.com" class="footer-link">hello@kholidrental.com</a>
+                <span class="footer-link">Lombok, NTB</span>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">&copy; 2026 KHOLID RENTAL. Dari Lombok untuk Lombok.</div>
+        </div>
+    </footer>
+
+    <!-- Back to Top -->
+    <button class="back-to-top" id="backToTop" aria-label="Kembali ke atas">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 15l-6-6-6 6"/></svg>
+    </button>
+
+    <!-- Floating WA -->
+    <div class="wa-float-group">
+        <a href="https://wa.me/6287731992067?text=Halo%20KHOLID%20RENTAL%2C%20saya%20mau%20tanya%20sewa%20mobil" target="_blank" rel="noopener" class="wa-float" aria-label="Chat WhatsApp">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+            <span class="wa-tooltip">Ada yang bisa dibantu?</span>
+        </a>
+    </div>
+
+    <script src="index.js"></script>
+</body>
+</html>

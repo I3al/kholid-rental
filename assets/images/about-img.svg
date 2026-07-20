@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#111d35"/>
+      <stop offset="100%" style="stop-color:#1a2a4a"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="400" fill="url(#bg)"/>
+  <!-- Cars row -->
+  <g transform="translate(50, 180)">
+    <rect x="0" y="20" width="100" height="30" rx="5" fill="#334155"/>
+    <rect x="15" y="5" width="65" height="20" rx="5" fill="#475569"/>
+    <circle cx="20" cy="52" r="10" fill="#1e293b"/>
+    <circle cx="80" cy="52" r="10" fill="#1e293b"/>
+  </g>
+  <g transform="translate(180, 170)">
+    <rect x="0" y="20" width="110" height="32" rx="5" fill="#1e293b"/>
+    <rect x="18" y="5" width="70" height="20" rx="5" fill="#334155"/>
+    <circle cx="22" cy="55" r="10" fill="#0f172a"/>
+    <circle cx="88" cy="55" r="10" fill="#0f172a"/>
+  </g>
+  <g transform="translate(330, 175)">
+    <rect x="0" y="20" width="95" height="28" rx="5" fill="#334155"/>
+    <rect x="14" y="5" width="60" height="20" rx="5" fill="#475569"/>
+    <circle cx="18" cy="50" r="10" fill="#1e293b"/>
+    <circle cx="76" cy="50" r="10" fill="#1e293b"/>
+  </g>
+  <!-- People silhouettes -->
+  <g transform="translate(250, 80)">
+    <circle cx="0" cy="0" r="12" fill="#64748b"/>
+    <rect x="-10" y="12" width="20" height="25" rx="4" fill="#64748b"/>
+  </g>
+  <g transform="translate(300, 75)">
+    <circle cx="0" cy="0" r="12" fill="#94a3b8"/>
+    <rect x="-10" y="12" width="20" height="25" rx="4" fill="#94a3b8"/>
+  </g>
+  <g transform="translate(200, 85)">
+    <circle cx="0" cy="0" r="11" fill="#475569"/>
+    <rect x="-9" y="11" width="18" height="22" rx="4" fill="#475569"/>
+  </g>
+  <!-- Palm tree silhouettes -->
+  <g transform="translate(500, 250)" opacity="0.3">
+    <rect x="-3" y="-80" width="6" height="100" rx="3" fill="#064e3b"/>
+    <ellipse cx="-20" cy="-85" rx="25" ry="8" fill="#065f46" transform="rotate(-30 -20 -85)"/>
+    <ellipse cx="15" cy="-90" rx="22" ry="7" fill="#065f46" transform="rotate(20 15 -90)"/>
+  </g>
+  <g transform="translate(530, 260)" opacity="0.2">
+    <rect x="-2" y="-60" width="4" height="70" rx="2" fill="#064e3b"/>
+    <ellipse cx="-15" cy="-65" rx="18" ry="6" fill="#065f46" transform="rotate(-25 -15 -65)"/>
+    <ellipse cx="12" cy="-68" rx="16" ry="5" fill="#065f46" transform="rotate(25 12 -68)"/>
+  </g>
+  <!-- Badge -->
+  <g transform="translate(60, 280)">
+    <rect x="0" y="0" width="120" height="50" rx="10" fill="#0a1628" opacity="0.9"/>
+    <rect x="0" y="0" width="120" height="50" rx="10" fill="none" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="60" y="22" font-family="Arial" font-size="20" fill="#f59e0b" font-weight="bold" text-anchor="middle">12+</text>
+    <text x="60" y="40" font-family="Arial" font-size="10" fill="#94a3b8" text-anchor="middle">Tahun Pengalaman</text>
+  </g>
+  <text x="300" y="360" font-family="Arial" font-size="14" fill="#64748b" text-anchor="middle">Lombok RentCar Team &amp; Fleet</text>
+</svg>

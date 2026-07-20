@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="675" viewBox="0 0 1200 675">
+  <defs>
+    <linearGradient id="sky" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a1628"/>
+      <stop offset="40%" style="stop-color:#1a2a4a"/>
+      <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:0.3"/>
+    </linearGradient>
+    <linearGradient id="ocean" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:0.6"/>
+      <stop offset="100%" style="stop-color:#0284c7;stop-opacity:0.3"/>
+    </linearGradient>
+  </defs>
+  <!-- Sky base -->
+  <rect width="1200" height="675" fill="url(#sky)"/>
+  <!-- Ocean -->
+  <path d="M0 350 Q200 330 400 350 Q600 370 800 345 Q1000 325 1200 350 L1200 675 L0 675 Z" fill="url(#ocean)"/>
+  <!-- Road -->
+  <path d="M0 480 Q300 450 600 460 Q900 470 1200 450 L1200 520 Q900 540 600 530 Q300 520 0 550 Z" fill="#1e293b"/>
+  <path d="M0 490 Q300 465 600 475 Q900 485 1200 470 L1200 475 Q900 490 600 480 Q300 470 0 495 Z" fill="#f59e0b" opacity="0.5"/>
+  <!-- Hills -->
+  <path d="M0 300 Q150 220 300 280 Q450 340 600 260 Q750 190 900 270 Q1050 340 1200 250 L1200 480 L0 480 Z" fill="#064e3b" opacity="0.6"/>
+  <!-- Sun -->
+  <circle cx="950" cy="200" r="60" fill="#f59e0b" opacity="0.4"/>
+  <circle cx="950" cy="200" r="40" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="950" cy="200" r="25" fill="#fde68a" opacity="0.8"/>
+  <!-- Car silhouette -->
+  <g transform="translate(300, 440)">
+    <rect x="0" y="10" width="80" height="25" rx="5" fill="#334155"/>
+    <rect x="15" y="0" width="50" height="15" rx="5" fill="#475569"/>
+    <circle cx="18" cy="38" r="8" fill="#1e293b"/>
+    <circle cx="62" cy="38" r="8" fill="#1e293b"/>
+    <circle cx="18" cy="38" r="4" fill="#64748b"/>
+    <circle cx="62" cy="38" r="4" fill="#64748b"/>
+    <rect x="20" y="8" width="10" height="8" rx="2" fill="#94a3b8" opacity="0.5"/>
+    <rect x="55" y="8" width="10" height="8" rx="2" fill="#94a3b8" opacity="0.5"/>
+  </g>
+  <!-- Light rays -->
+  <g opacity="0.15">
+    <line x1="950" y1="200" x2="0" y2="400" stroke="#f59e0b" stroke-width="2"/>
+    <line x1="950" y1="200" x2="200" y2="350" stroke="#f59e0b" stroke-width="1.5"/>
+    <line x1="950" y1="200" x2="400" y2="300" stroke="#f59e0b" stroke-width="1"/>
+  </g>
+  <!-- Text overlay -->
+  <text x="600" y="580" font-family="Arial, sans-serif" font-size="24" fill="#94a3b8" text-anchor="middle" opacity="0.6">Lombok RentCar — Hero Background</text>
+</svg>
