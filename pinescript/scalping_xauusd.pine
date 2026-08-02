@@ -1,0 +1,132 @@
+//@version=5
+// =============================================================
+//  SCALPING XAUUSD — Zona OB / SL / TP Otomatis  [Kholid]
+//  Menandai chart otomatis: EMA, S/R, Order Block, Entry/SL/TP.
+//  Tujuan: disiplin, anti asal-entry. BUKAN nasihat keuangan.
+// =============================================================
+indicator("Scalping XAUUSD - OB SL TP [Kholid]", overlay=true, max_boxes_count=200, max_lines_count=200, max_labels_count=200)
+
+// ================= INPUT =================
+gT = "Tren (EMA)"
+emaFastLen = input.int(9,  "EMA Cepat",  group=gT)
+emaMidLen  = input.int(21, "EMA Tengah", group=gT)
+emaSlowLen = input.int(50, "EMA Lambat", group=gT)
+
+gS = "Zona S/R & Order Block"
+pivotLen = input.int(10,  "Sensitivitas Swing", minval=2, group=gS)
+showOB   = input.bool(true, "Tampilkan Order Block", group=gS)
+
+gR = "RSI"
+rsiLen = input.int(14, "RSI Length", group=gR)
+
+gK = "Manajemen Risiko (SL/TP)"
+slBuffer = input.float(1.5, "Buffer SL ($)", step=0.1, group=gK)
+rr1 = input.float(1.5, "Risk:Reward TP1", step=0.1, group=gK)
+rr2 = input.float(3.0, "Risk:Reward TP2", step=0.1, group=gK)
+cooldown = input.int(8, "Jeda antar sinyal (bar)", group=gK)
+
+gE = "Sesi Trading"
+useSession = input.bool(true, "Hanya sinyal sesi London/NY", group=gE)
+sess = input.session("0700-2100", "Jam sesi (UTC)", group=gE)
+
+// ================= HITUNG =================
+emaFast = ta.ema(close, emaFastLen)
+emaMid  = ta.ema(close, emaMidLen)
+emaSlow = ta.ema(close, emaSlowLen)
+rsi     = ta.rsi(close, rsiLen)
+
+plot(emaFast, "EMA9",  color=color.new(color.aqua,   0), linewidth=1)
+plot(emaMid,  "EMA21", color=color.new(color.orange, 0), linewidth=1)
+plot(emaSlow, "EMA50", color=color.new(color.red,    0), linewidth=2)
+
+inSession = not useSession or not na(time(timeframe.period, sess))
+
+bullTrend = emaFast > emaMid and emaMid > emaSlow
+bearTrend = emaFast < emaMid and emaMid < emaSlow
+
+// ---- Swing / S-R otomatis ----
+ph = ta.pivothigh(high, pivotLen, pivotLen)
+pl = ta.pivotlow(low,  pivotLen, pivotLen)
+
+var float swHigh = na
+var float swLow  = na
+swHigh := na(ph) ? swHigh : ph
+swLow  := na(pl) ? swLow  : pl
+
+var line resLine = na
+var line supLine = na
+if not na(ph)
+    line.delete(resLine)
+    resLine := line.new(bar_index[pivotLen], ph, bar_index, ph, extend=extend.right, color=color.new(color.red,20),   width=1, style=line.style_dashed)
+if not na(pl)
+    line.delete(supLine)
+    supLine := line.new(bar_index[pivotLen], pl, bar_index, pl, extend=extend.right, color=color.new(color.green,20), width=1, style=line.style_dashed)
+
+// ---- Order Block sederhana (displacement) ----
+bullOB = close[1] < open[1] and close > high[1]   // candle turun lalu ditembus naik kuat
+bearOB = close[1] > open[1] and close < low[1]    // candle naik lalu ditembus turun kuat
+if showOB and bullOB
+    box.new(bar_index[1], high[1], bar_index + 6, low[1], border_color=color.new(color.green,40), bgcolor=color.new(color.green,88), text="Bull OB", text_size=size.tiny, text_color=color.new(color.green,0))
+if showOB and bearOB
+    box.new(bar_index[1], high[1], bar_index + 6, low[1], border_color=color.new(color.red,40),   bgcolor=color.new(color.red,88),   text="Bear OB", text_size=size.tiny, text_color=color.new(color.red,0))
+
+// ================= SINYAL ENTRY (confluence) =================
+// LONG : tren naik + pullback ke EMA21 + RSI sehat + sesi aktif
+// SHORT: tren turun + pullback ke EMA21 + RSI sehat + sesi aktif
+longRaw  = bullTrend and inSession and low  <= emaMid and close > emaMid and rsi > 40 and rsi < 70
+shortRaw = bearTrend and inSession and high >= emaMid and close < emaMid and rsi < 60 and rsi > 30
+
+var int lastSig = na
+canFire = na(lastSig) or (bar_index - lastSig) > cooldown
+
+longSig  = longRaw  and canFire
+shortSig = shortRaw and canFire
+if longSig or shortSig
+    lastSig := bar_index
+
+// ---- Gambar Entry / SL / TP saat sinyal ----
+drawSetup(bool isLong) =>
+    entry = close
+    sl    = isLong ? math.min(low, nz(swLow,  low))  - slBuffer : math.max(high, nz(swHigh, high)) + slBuffer
+    risk  = math.abs(entry - sl)
+    tp1   = isLong ? entry + rr1 * risk : entry - rr1 * risk
+    tp2   = isLong ? entry + rr2 * risk : entry - rr2 * risk
+    col   = isLong ? color.green : color.red
+    x2    = bar_index + 12
+    line.new(bar_index, entry, x2, entry, color=color.new(color.blue,0),  width=2)
+    line.new(bar_index, sl,    x2, sl,    color=color.new(color.red,0),   width=2)
+    line.new(bar_index, tp1,   x2, tp1,   color=color.new(color.teal,0),  width=1, style=line.style_dashed)
+    line.new(bar_index, tp2,   x2, tp2,   color=color.new(color.teal,0),  width=1, style=line.style_dashed)
+    label.new(x2, entry, "ENTRY " + str.tostring(entry, "#.##"), style=label.style_label_left, color=color.new(color.blue,0),  textcolor=color.white, size=size.small)
+    label.new(x2, sl,    "SL "    + str.tostring(sl,    "#.##"), style=label.style_label_left, color=color.new(color.red,0),   textcolor=color.white, size=size.small)
+    label.new(x2, tp1,   "TP1 "   + str.tostring(tp1,   "#.##") + " (1:" + str.tostring(rr1,"#.#") + ")", style=label.style_label_left, color=color.new(color.teal,0), textcolor=color.white, size=size.small)
+    label.new(x2, tp2,   "TP2 "   + str.tostring(tp2,   "#.##") + " (1:" + str.tostring(rr2,"#.#") + ")", style=label.style_label_left, color=color.new(color.teal,0), textcolor=color.white, size=size.small)
+    label.new(bar_index, isLong ? low : high, isLong ? "▲ BUY" : "▼ SELL", style=isLong ? label.style_label_up : label.style_label_down, color=col, textcolor=color.white, size=size.normal)
+
+if longSig
+    drawSetup(true)
+if shortSig
+    drawSetup(false)
+
+// ================= DASHBOARD =================
+var table t = table.new(position.top_right, 2, 5, border_width=1, frame_color=color.gray, frame_width=1)
+if barstate.islast
+    trendTxt = bullTrend ? "NAIK ▲" : bearTrend ? "TURUN ▼" : "SIDEWAYS ~"
+    trendCol = bullTrend ? color.green : bearTrend ? color.red : color.gray
+    table.cell(t, 0, 0, "SCALP XAUUSD", text_color=color.white, bgcolor=color.new(color.blue,0), text_size=size.small)
+    table.cell(t, 1, 0, timeframe.period, text_color=color.white, bgcolor=color.new(color.blue,0), text_size=size.small)
+    table.cell(t, 0, 1, "Tren", text_size=size.small)
+    table.cell(t, 1, 1, trendTxt, text_color=color.white, bgcolor=trendCol, text_size=size.small)
+    table.cell(t, 0, 2, "RSI",  text_size=size.small)
+    table.cell(t, 1, 2, str.tostring(rsi, "#.#"), text_size=size.small)
+    table.cell(t, 0, 3, "Sesi", text_size=size.small)
+    table.cell(t, 1, 3, inSession ? "AKTIF" : "TUTUP", text_color=color.white, bgcolor=inSession ? color.new(color.green,0) : color.new(color.gray,0), text_size=size.small)
+    table.cell(t, 0, 4, "Bias", text_size=size.small)
+    biasTxt = bullTrend ? "Cari BUY" : bearTrend ? "Cari SELL" : "WAIT"
+    table.cell(t, 1, 4, biasTxt, text_size=size.small)
+
+// ================= ALERT =================
+alertcondition(longSig,  title="Sinyal BUY XAUUSD",  message="BUY XAUUSD — pullback EMA21 searah tren naik. Cek SL/TP di chart.")
+alertcondition(shortSig, title="Sinyal SELL XAUUSD", message="SELL XAUUSD — pullback EMA21 searah tren turun. Cek SL/TP di chart.")
+plotshape(longSig,  title="BUY",  style=shape.triangleup,   location=location.belowbar, color=color.green, size=size.tiny)
+plotshape(shortSig, title="SELL", style=shape.triangledown, location=location.abovebar, color=color.red,   size=size.tiny)
