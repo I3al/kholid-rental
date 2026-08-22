@@ -117,6 +117,11 @@
       <label class="chk"><input type="checkbox" id="alarm" checked> 🔔 Alarm sinyal</label>
       <label class="chk"><input type="checkbox" id="news"> ⚠️ Ada berita &lt;30 mnt (paksa NO TRADE)</label>
     </div>
+    <details style="margin-top:12px">
+      <summary style="cursor:pointer;color:var(--brass);font-weight:700;font-size:13px">⚙️ Setel bobot skor (gaya trading Anda)</summary>
+      <div id="weights" style="margin-top:10px"></div>
+      <button class="ghost" id="wReset" style="margin-top:8px;padding:6px 12px;font-size:12px">Reset ke default</button>
+    </details>
     <div id="errBox"></div>
   </div>
 
@@ -162,6 +167,19 @@
     <div class="mtf" id="mtf"></div>
     <div class="ind-grid" id="indGrid" style="margin-top:12px"></div>
     <table id="structTable" style="margin-top:12px"></table>
+  </div>
+
+  <div class="card" id="journalCard">
+    <h2><span class="bar"></span> 📝 Jurnal Trade (otomatis)</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
+      <button id="btnLog">+ Catat sinyal aktif</button>
+      <button class="ghost" id="btnCloseNow">Tutup posisi terbuka @harga skrg</button>
+      <button class="ghost" id="btnClear">Hapus semua</button>
+    </div>
+    <div id="jstats"></div>
+    <div style="overflow-x:auto"><table id="jtable"></table></div>
+    <div id="jbest" style="margin-top:12px"></div>
+    <div class="hint">Trade otomatis ditutup saat harga menyentuh SL/TP (dicek tiap refresh). Data tersimpan lokal di browser Anda.</div>
   </div>
 
   <div class="disclaimer">
@@ -337,6 +355,8 @@ function analyze(d5,d15,d1h){
     add(inOB&&OB.type==='bear',16,'Harga di Bearish Order Block');
     return f;}
   const fb=scoreBull(),fs=scoreBear();
+  const W=loadW(),scaleF=arr=>arr.forEach(f=>{f.w=Math.round(f.w*(W[categoryOf(f.name)]??1));});
+  scaleF(fb);scaleF(fs);
   const sB=fb.reduce((s,x)=>s+x.w,0), sS=fs.reduce((s,x)=>s+x.w,0);
 
   // ---- gates ----
@@ -516,7 +536,7 @@ function drawChart(d,a){
 }
 
 /* ---------- run ---------- */
-let timer=null,cache={d15:null,d1h:null,cycle:0};
+let timer=null,cache={d15:null,d1h:null,cycle:0},lastA=null,lastRaw=null;
 async function run(){
   const err=$('errBox');err.innerHTML='';$('status').innerHTML='<span class="dotlive"></span> mengambil data…';
   try{
@@ -528,13 +548,98 @@ async function run(){
     cache.cycle++;
     const a=analyze(d5,cache.d15,cache.d1h);
     render(a,d5);
+    lastRaw={d5,d15:cache.d15,d1h:cache.d1h};lastA={a,d5};
+    evalOpen(a.price,d5.h[d5.h.length-1],d5.l[d5.l.length-1]);renderJournal();
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800`;
   }catch(e){$('status').textContent='— error —';err.innerHTML=`<div class="err"><b>Gagal:</b> ${e.message}</div>`;}
 }
 function setupAuto(){if(timer){clearInterval(timer);timer=null;}const s=+$('auto').value;if(s>0)timer=setInterval(run,s*1000);}
+/* ---------- weights ---------- */
+const WKEYS=['trend','fib','structure','ob','momentum','sweep'];
+const WLABEL={trend:'Tren MTF',fib:'Fibonacci',structure:'BOS / CHoCH',ob:'Order Block',momentum:'Momentum (RSI/Stoch/CCI/ADX)',sweep:'Sweep & Candle'};
+function loadW(){const d={trend:1,fib:1,structure:1,ob:1,momentum:1,sweep:1};try{return Object.assign(d,JSON.parse(localStorage.getItem('xau_w')||'{}'));}catch(e){return d;}}
+function saveW(w){try{localStorage.setItem('xau_w',JSON.stringify(w));}catch(e){}}
+function categoryOf(name){const n=name.toLowerCase();
+  if(n.includes('tren'))return 'trend';
+  if(n.includes('fibonacci')||n.includes('golden'))return 'fib';
+  if(n.includes('order block'))return 'ob';
+  if(n.includes('bos')||n.includes('choch')||n.includes('structure'))return 'structure';
+  if(n.includes('sweep')||n.includes('rejection')||n.includes('candle'))return 'sweep';
+  return 'momentum';}
+function buildWeights(){const w=loadW();$('weights').innerHTML=WKEYS.map(k=>`
+  <div style="display:flex;align-items:center;gap:10px;margin:6px 0">
+    <span style="flex:1;font-size:13px">${WLABEL[k]}</span>
+    <input type="range" min="0" max="200" step="10" value="${Math.round(w[k]*100)}" data-wk="${k}" style="flex:1;accent-color:var(--brass)">
+    <span class="mono" style="width:44px;text-align:right;font-size:12px" id="wv_${k}">${Math.round(w[k]*100)}%</span>
+  </div>`).join('');
+  $('weights').querySelectorAll('input[data-wk]').forEach(inp=>inp.addEventListener('input',()=>{
+    const w=loadW();w[inp.dataset.wk]=+inp.value/100;saveW(w);$('wv_'+inp.dataset.wk).textContent=inp.value+'%';
+    if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);} // re-score instan dari data cache
+  }));}
+$('wReset').addEventListener('click',()=>{saveW({trend:1,fib:1,structure:1,ob:1,momentum:1,sweep:1});buildWeights();if($('apiKey').value.trim())run();});
+
+/* ---------- journal ---------- */
+function loadJ(){try{return JSON.parse(localStorage.getItem('xau_journal')||'[]');}catch(e){return [];}}
+function saveJ(j){try{localStorage.setItem('xau_journal',JSON.stringify(j));}catch(e){}}
+function setupTag(a){const n=a.factors.map(f=>f.name.toLowerCase());
+  if(n.some(x=>x.includes('order block')))return 'Order Block';
+  if(n.some(x=>x.includes('choch')))return 'CHoCH';
+  if(n.some(x=>x.includes('sweep')))return 'Liquidity Sweep';
+  if(n.some(x=>x.includes('golden')))return 'Fibo Golden';
+  if(n.some(x=>x.includes('bos')))return 'BOS';
+  return 'S/R + Momentum';}
+function logTrade(a){if(!a||a.side==='NONE'){alert('Tidak ada sinyal aktif untuk dicatat.');return;}
+  const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null});
+  saveJ(j);renderJournal();}
+function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sp=3;
+  j.forEach(t=>{if(t.status!=='open')return;
+    if(t.side==='BUY'){
+      if(lo<=t.sl){t.status='SL';t.net=+((t.sl-t.entry)-sp).toFixed(1);ch=true;}
+      else if(hi>=t.tp2){t.status='TP2';t.net=+((t.tp2-t.entry)-sp).toFixed(1);ch=true;}
+      else if(hi>=t.tp1){t.status='TP1';t.net=+((t.tp1-t.entry)-sp).toFixed(1);ch=true;}
+    }else{
+      if(hi>=t.sl){t.status='SL';t.net=+((t.entry-t.sl)-sp).toFixed(1);ch=true;}
+      else if(lo<=t.tp2){t.status='TP2';t.net=+((t.entry-t.tp2)-sp).toFixed(1);ch=true;}
+      else if(lo<=t.tp1){t.status='TP1';t.net=+((t.entry-t.tp1)-sp).toFixed(1);ch=true;}
+    }
+    if(ch&&t.status!=='open')t.closeTs=new Date().toISOString();
+  });
+  if(ch)saveJ(j);return ch;}
+function closeNow(price){const j=loadJ();let ch=false;const sp=3;
+  j.forEach(t=>{if(t.status!=='open')return;t.status='manual';t.net=+((t.side==='BUY'?price-t.entry:t.entry-price)-sp).toFixed(1);t.closeTs=new Date().toISOString();ch=true;});
+  if(ch){saveJ(j);renderJournal();}}
+function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='open');
+  const wins=closed.filter(t=>t.status==='TP1'||t.status==='TP2'||(t.status==='manual'&&t.net>0)).length;
+  const losses=closed.filter(t=>t.status==='SL'||(t.status==='manual'&&t.net<=0)).length;
+  const wr=(wins+losses)?Math.round(wins/(wins+losses)*100):0;
+  const nets=closed.map(t=>t.net||0),tot=nets.reduce((a,b)=>a+b,0);
+  const wNets=closed.filter(t=>t.net>0).map(t=>t.net),lNets=closed.filter(t=>t.net<=0).map(t=>t.net);
+  const avgW=wNets.length?(wNets.reduce((a,b)=>a+b,0)/wNets.length):0, avgL=lNets.length?(lNets.reduce((a,b)=>a+b,0)/lNets.length):0;
+  $('jstats').innerHTML=`<div class="ind-grid">
+    <div class="ind"><div class="n">Total</div><div class="val">${closed.length}</div></div>
+    <div class="ind"><div class="n">Win rate</div><div class="val" style="color:${wr>=50?'var(--green2)':'var(--red)'}">${wr}%</div></div>
+    <div class="ind"><div class="n">W / L</div><div class="val">${wins}/${losses}</div></div>
+    <div class="ind"><div class="n">Net poin</div><div class="val" style="color:${tot>=0?'var(--green2)':'var(--red)'}">${tot>=0?'+':''}${tot.toFixed(1)}</div></div>
+    <div class="ind"><div class="n">Avg W</div><div class="val" style="color:var(--green2)">+${avgW.toFixed(1)}</div></div>
+    <div class="ind"><div class="n">Avg L</div><div class="val" style="color:var(--red)">${avgL.toFixed(1)}</div></div>
+  </div>`;
+  // best setup
+  const byS={};closed.forEach(t=>{(byS[t.setup]=byS[t.setup]||[]).push(t);});
+  const rows=Object.entries(byS).map(([s,ts])=>{const w=ts.filter(t=>t.net>0).length,n=ts.length,net=ts.reduce((a,b)=>a+(b.net||0),0);return {s,w,n,wr:Math.round(w/n*100),net};}).sort((a,b)=>b.wr-a.wr||b.net-a.net);
+  $('jbest').innerHTML=rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'';
+  // list
+  $('jtable').innerHTML=`<tr><th>Waktu</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
+    (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';
+      return `<tr><td class="mono" style="font-size:11px">${new Date(t.ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${t.side==='BUY'?'var(--green2)':'var(--red)'};font-weight:700">${t.side}</td><td class="mono">${fmt(t.entry)}</td><td style="font-size:12px">${t.setup}</td><td style="color:${stC};font-weight:700">${t.status==='open'?'⏳ open':t.status}</td><td class="mono" style="color:${stC}">${t.net==null?'—':(t.net>=0?'+':'')+t.net}</td><td><span data-del="${t.id}" style="cursor:pointer;color:var(--muted)">✕</span></td></tr>`;}).join(''):'<tr><td colspan="7" class="muted">Belum ada trade dicatat.</td></tr>');
+  $('jtable').querySelectorAll('[data-del]').forEach(x=>x.addEventListener('click',()=>{saveJ(loadJ().filter(t=>t.id!=x.dataset.del));renderJournal();}));}
+$('btnLog').addEventListener('click',()=>logTrade(lastA?lastA.a:null));
+$('btnCloseNow').addEventListener('click',()=>{if(lastA)closeNow(lastA.a.price);});
+$('btnClear').addEventListener('click',()=>{if(confirm('Hapus semua jurnal trade?')){saveJ([]);renderJournal();}});
+
 $('btnAnalyze').addEventListener('click',()=>{cache.cycle=0;run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
+buildWeights();renderJournal();
 setupAuto();
 if($('apiKey').value.trim())run();
 </script>
