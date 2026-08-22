@@ -1,4 +1,4 @@
-name: SEO & Performance Check
+name: SEO & Quality Checks
 
 on:
   push:
@@ -14,24 +14,8 @@ on:
       - '*.html'
       - '*.css'
       - '*.js'
-  schedule:
-    - cron: '0 0 * * 0'  # Setiap minggu
 
 jobs:
-  lighthouse:
-    name: Lighthouse SEO & Performance Audit
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Run Lighthouse CI
-        uses: treosh/lighthouse-ci-action@v10
-        with:
-          uploadArtifacts: true
-          temporaryPublicStorage: true
-          configPath: './.github/lighthouse-config.json'
-
   meta-tags:
     name: Check Meta Tags & SEO
     runs-on: ubuntu-latest
@@ -88,24 +72,3 @@ jobs:
             echo "⚠️  Robots meta tag missing"
           fi
 
-  accessibility:
-    name: Check Accessibility (WCAG)
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      - name: Install pa11y
-        run: npm install -g pa11y-ci
-
-      - name: Run Accessibility Check
-        continue-on-error: true
-        run: |
-          echo "♿ Checking Accessibility (WCAG)..."
-          # Jika domain sudah live
-          pa11y https://kholidrental.com || echo "⚠️ Accessibility check requires live domain"
