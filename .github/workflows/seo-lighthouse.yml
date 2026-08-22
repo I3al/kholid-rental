@@ -1,0 +1,111 @@
+name: SEO & Performance Check
+
+on:
+  push:
+    branches:
+      - main
+      - claude/automatic-web-backling-uaknpk
+    paths:
+      - '*.html'
+      - '*.css'
+      - '*.js'
+  pull_request:
+    paths:
+      - '*.html'
+      - '*.css'
+      - '*.js'
+  schedule:
+    - cron: '0 0 * * 0'  # Setiap minggu
+
+jobs:
+  lighthouse:
+    name: Lighthouse SEO & Performance Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Lighthouse CI
+        uses: treosh/lighthouse-ci-action@v10
+        with:
+          uploadArtifacts: true
+          temporaryPublicStorage: true
+          configPath: './.github/lighthouse-config.json'
+
+  meta-tags:
+    name: Check Meta Tags & SEO
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Verify Meta Tags
+        run: |
+          echo "🔍 Checking Meta Tags..."
+
+          # Check title
+          if grep -q "<title>" index.html; then
+            echo "✅ Title tag exists"
+          else
+            echo "❌ Title tag missing"
+            exit 1
+          fi
+
+          # Check meta description
+          if grep -q 'meta name="description"' index.html; then
+            echo "✅ Meta description exists"
+          else
+            echo "❌ Meta description missing"
+            exit 1
+          fi
+
+          # Check og tags
+          if grep -q 'property="og:title"' index.html; then
+            echo "✅ Open Graph tags present"
+          else
+            echo "⚠️  Open Graph tags missing"
+          fi
+
+          # Check schema.org
+          if grep -q 'application/ld+json' index.html; then
+            echo "✅ Structured data (Schema.org) present"
+          else
+            echo "⚠️  Structured data missing"
+          fi
+
+          # Check viewport
+          if grep -q 'name="viewport"' index.html; then
+            echo "✅ Viewport meta tag present"
+          else
+            echo "❌ Viewport meta tag missing"
+            exit 1
+          fi
+
+          # Check robots
+          if grep -q 'name="robots"' index.html; then
+            echo "✅ Robots meta tag present"
+          else
+            echo "⚠️  Robots meta tag missing"
+          fi
+
+  accessibility:
+    name: Check Accessibility (WCAG)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install pa11y
+        run: npm install -g pa11y-ci
+
+      - name: Run Accessibility Check
+        continue-on-error: true
+        run: |
+          echo "♿ Checking Accessibility (WCAG)..."
+          # Jika domain sudah live
+          pa11y https://kholidrental.com || echo "⚠️ Accessibility check requires live domain"

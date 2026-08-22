@@ -1,0 +1,17 @@
+# robots.txt - KHOLID RENTAL
+# Membantu Google crawl website Anda
+
+User-agent: *
+Allow: /
+Allow: /images/
+Allow: /assets/
+
+Disallow: /admin/
+Disallow: /.git/
+Disallow: /.env
+
+# Sitemap
+Sitemap: https://kholidrental.com/sitemap.xml
+
+# Crawl-delay
+Crawl-delay: 1
