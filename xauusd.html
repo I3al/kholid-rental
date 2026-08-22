@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>XAUUSD Scalp Dashboard</title>
+<style>
+  :root{
+    --bg:#0d1117; --panel:#161b22; --panel2:#1c2230; --line:#2a3140;
+    --text:#e6edf3; --muted:#8b98a9; --brass:#d4a418;
+    --green:#26a269; --green2:#3fb950; --red:#e5484d; --amber:#e3a008; --blue:#388bfd;
+    --up:#3fb950; --down:#e5484d;
+    --radius:14px; --mono:'SF Mono',ui-monospace,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);
+    -webkit-font-smoothing:antialiased;font-size:15px;line-height:1.5}
+  .wrap{max-width:1080px;margin:0 auto;padding:16px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:.3px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--brass);box-shadow:0 0 12px var(--brass)}
+  .brand small{color:var(--muted);font-weight:600;font-size:12px;letter-spacing:.5px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .row>*{flex:1;min-width:0}
+  label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:600;letter-spacing:.3px}
+  input,select,button{font-family:inherit;font-size:14px}
+  input[type=text],input[type=password],input[type=number],select{
+    width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;
+    color:var(--text);padding:10px 12px;outline:none}
+  input:focus,select:focus{border-color:var(--brass)}
+  button{cursor:pointer;border:none;border-radius:9px;padding:10px 16px;font-weight:700;color:#fff;background:var(--brass);color:#1a1400}
+  button.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+  button.ghost:hover{border-color:var(--brass)}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .toolbar{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+  .toolbar .grow{flex:1}
+  .price-hero{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+  .price-hero .big{font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:-1px}
+  .chg{font-family:var(--mono);font-weight:700;font-size:16px;padding:3px 9px;border-radius:8px}
+  .chg.up{color:var(--up);background:rgba(63,185,80,.12)}
+  .chg.down{color:var(--down);background:rgba(229,72,77,.12)}
+  .meta-line{color:var(--muted);font-size:12px;font-family:var(--mono);margin-top:4px}
+  canvas{width:100%;display:block;border-radius:10px;background:var(--panel2)}
+  .signal-badge{display:inline-flex;align-items:center;gap:8px;font-weight:800;font-size:20px;padding:10px 18px;border-radius:11px}
+  .sig-buy{color:#fff;background:linear-gradient(135deg,#1a7f4b,#26a269)}
+  .sig-sell{color:#fff;background:linear-gradient(135deg,#b32b30,#e5484d)}
+  .sig-none{color:var(--text);background:var(--panel2);border:1px solid var(--line)}
+  .conf{font-size:12px;font-weight:700;padding:3px 8px;border-radius:6px;background:var(--panel2);color:var(--muted);margin-left:6px}
+  .levels{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-top:14px}
+  .lv{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .lv .k{font-size:11px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+  .lv .v{font-family:var(--mono);font-size:18px;font-weight:700;margin-top:2px}
+  .lv.sl .v{color:var(--red)} .lv.tp .v{color:var(--green2)} .lv.entry .v{color:var(--brass)}
+  table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.4px;text-transform:uppercase}
+  td.mono,th.mono{font-family:var(--mono)}
+  .ind-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:10px}
+  .ind{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px}
+  .ind .n{font-size:11px;color:var(--muted);font-weight:600}
+  .ind .val{font-family:var(--mono);font-size:16px;font-weight:700;margin-top:2px}
+  .pill{font-size:10px;padding:2px 6px;border-radius:5px;font-weight:700;margin-left:5px;vertical-align:middle}
+  .p-hot{background:rgba(229,72,77,.15);color:var(--red)}
+  .p-cold{background:rgba(56,139,253,.15);color:var(--blue)}
+  .p-neu{background:var(--line);color:var(--muted)}
+  .checklist li{list-style:none;padding:6px 0;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;gap:10px}
+  .checklist{margin:0;padding:0}
+  .yes{color:var(--green2);font-weight:700} .no{color:var(--red);font-weight:700}
+  .gate{padding:10px 12px;border-radius:9px;margin-bottom:8px;font-size:13px;font-weight:600}
+  .gate.block{background:rgba(229,72,77,.12);border:1px solid rgba(229,72,77,.4);color:#ff9ea0}
+  .gate.warn{background:rgba(227,160,8,.1);border:1px solid rgba(227,160,8,.35);color:#f0c65a}
+  .gate.ok{background:rgba(63,185,80,.08);border:1px solid rgba(63,185,80,.25);color:#7ee2a0}
+  h2{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  h2 .bar{width:3px;height:15px;background:var(--brass);border-radius:2px}
+  .muted{color:var(--muted)}
+  .reason{background:var(--panel2);border-left:3px solid var(--brass);border-radius:6px;padding:10px 12px;font-size:13.5px;margin-top:10px}
+  .disclaimer{font-size:11.5px;color:var(--muted);text-align:center;padding:14px;line-height:1.6}
+  .status{font-size:12px;font-family:var(--mono);color:var(--muted)}
+  .status .dotlive{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--green2);margin-right:5px;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .err{background:rgba(229,72,77,.1);border:1px solid rgba(229,72,77,.4);color:#ff9ea0;padding:10px 12px;border-radius:9px;font-size:13px;margin-top:10px}
+  .hint{font-size:12px;color:var(--muted);margin-top:6px}
+  a{color:var(--brass)}
+  .tabs{display:flex;gap:6px;margin-bottom:10px}
+  .tabs button{background:var(--panel2);color:var(--muted);border:1px solid var(--line);padding:7px 14px;font-size:13px}
+  .tabs button.active{background:var(--brass);color:#1a1400;border-color:var(--brass)}
+  @media(max-width:560px){.price-hero .big{font-size:34px}.wrap{padding:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="brand"><span class="dot"></span> XAUUSD SCALP <small>real-time signal dashboard</small></div>
+    <div class="status" id="status">— idle —</div>
+  </header>
+
+  <!-- SETTINGS -->
+  <div class="card">
+    <div class="toolbar">
+      <div class="grow">
+        <label>Twelve Data API Key (gratis — twelvedata.com)</label>
+        <input type="password" id="apiKey" placeholder="Tempel API key di sini lalu Simpan" autocomplete="off" />
+        <div class="hint">Key disimpan lokal di browser Anda (localStorage), tidak dikirim ke mana pun selain Twelve Data. <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Ambil key gratis →</a> (800 request/hari)</div>
+      </div>
+      <div style="min-width:110px;flex:0 0 auto">
+        <label>Timeframe</label>
+        <select id="tf">
+          <option value="1min">1 menit</option>
+          <option value="5min" selected>5 menit</option>
+          <option value="15min">15 menit</option>
+        </select>
+      </div>
+      <div style="flex:0 0 auto">
+        <label>&nbsp;</label>
+        <button id="btnAnalyze">Analisa</button>
+      </div>
+      <div style="flex:0 0 auto">
+        <label>Auto-refresh</label>
+        <select id="auto">
+          <option value="0">Off</option>
+          <option value="60" selected>60 detik</option>
+          <option value="120">2 menit</option>
+          <option value="300">5 menit</option>
+        </select>
+      </div>
+    </div>
+    <div id="errBox"></div>
+  </div>
+
+  <!-- PRICE + CHART -->
+  <div class="card">
+    <div class="price-hero">
+      <div class="big" id="price">—</div>
+      <div class="chg" id="chg">—</div>
+      <div>
+        <div class="meta-line" id="sub">Belum ada data</div>
+      </div>
+    </div>
+    <canvas id="chart" height="300" style="margin-top:14px"></canvas>
+    <div class="hint" id="chartLegend"></div>
+  </div>
+
+  <!-- SIGNAL -->
+  <div class="card" id="signalCard" style="display:none">
+    <div>
+      <span class="signal-badge" id="sigBadge">⚪ NO TRADE</span>
+      <span class="conf" id="sigConf"></span>
+    </div>
+
+    <div id="gates"></div>
+
+    <div class="levels" id="levels"></div>
+
+    <div class="reason" id="reason"></div>
+
+    <div class="row" style="margin-top:16px">
+      <div>
+        <h2><span class="bar"></span> Skenario &amp; Probabilitas</h2>
+        <table id="probTable"></table>
+        <div class="hint">Probabilitas ini <b>heuristik</b> (perkiraan dari struktur), bukan model statistik. Net = setelah spread ±3 poin.</div>
+      </div>
+    </div>
+
+    <div class="row" style="margin-top:16px">
+      <div>
+        <h2><span class="bar"></span> Checklist Pra-Entry</h2>
+        <ul class="checklist" id="checklist"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- INDICATORS -->
+  <div class="card" id="indCard" style="display:none">
+    <h2><span class="bar"></span> Indikator &amp; Struktur</h2>
+    <div class="ind-grid" id="indGrid"></div>
+    <div style="margin-top:14px">
+      <table id="structTable"></table>
+    </div>
+  </div>
+
+  <div class="disclaimer">
+    ⚠️ Ini alat bantu analisis berbasis aturan, <b>bukan nasihat keuangan</b> dan bukan jaminan profit.
+    Scalping dengan SL ketat punya tingkat gagal tinggi. Selalu cek kalender ekonomi (CPI, NFP, FOMC) sebelum entry
+    — 1 rilis berita bisa gerakkan emas 30–50 poin dalam hitungan detik. Gunakan untuk belajar &amp; disiplin, bukan asal ikut.
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ---------------- Persistence ---------------- */
+const LS = { key:'xau_api_key', tf:'xau_tf', auto:'xau_auto', reqDay:'xau_req_day', reqCount:'xau_req_count' };
+const DEFAULT_KEY = ''; // tidak ditanam demi keamanan link publik — tempel sekali, tersimpan lokal
+const $ = id => document.getElementById(id);
+try {
+  $('apiKey').value = localStorage.getItem(LS.key) || DEFAULT_KEY;
+  if(localStorage.getItem(LS.tf)) $('tf').value = localStorage.getItem(LS.tf);
+  if(localStorage.getItem(LS.auto)) $('auto').value = localStorage.getItem(LS.auto);
+}catch(e){}
+
+/* ---------------- Indicator math ---------------- */
+const sma=(a,p)=>{if(a.length<p)return null;let s=0;for(let i=a.length-p;i<a.length;i++)s+=a[i];return s/p;};
+function ema(a,p){if(a.length<p)return null;const k=2/(p+1);let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;for(let i=p;i<a.length;i++)e=a[i]*k+e*(1-k);return e;}
+function emaSeries(a,p){if(a.length<p)return [];const k=2/(p+1);const out=new Array(a.length).fill(null);let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;out[p-1]=e;for(let i=p;i<a.length;i++){e=a[i]*k+e*(1-k);out[i]=e;}return out;}
+function rsi(cl,p=14){if(cl.length<p+1)return null;let g=0,l=0;for(let i=cl.length-p;i<cl.length;i++){const d=cl[i]-cl[i-1];if(d>=0)g+=d;else l-=d;}const ag=g/p,al=l/p;if(al===0)return 100;return 100-100/(1+ag/al);}
+function stoch(h,l,c,p=14,d=3){if(c.length<p+d)return null;const ks=[];for(let i=c.length-d;i<c.length;i++){let hh=-1e9,ll=1e9;for(let j=i-p+1;j<=i;j++){hh=Math.max(hh,h[j]);ll=Math.min(ll,l[j]);}ks.push(hh===ll?50:100*(c[i]-ll)/(hh-ll));}const k=ks[ks.length-1];const dv=ks.reduce((x,y)=>x+y,0)/ks.length;return {k,d:dv};}
+function atr(h,l,c,p=14){if(c.length<p+1)return null;const tr=[];for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));let a=tr.slice(0,p).reduce((x,y)=>x+y,0)/p;for(let i=p;i<tr.length;i++)a=(a*(p-1)+tr[i])/p;return a;}
+function macd(cl){const e12=ema(cl,12),e26=ema(cl,26);if(e12==null||e26==null)return null;const m=e12-e26;const line=emaSeries(cl,12).map((v,i)=>{const s=emaSeries(cl,26)[i];return (v==null||s==null)?null:v-s;}).filter(v=>v!=null);const sig=ema(line,9);return {macd:m,signal:sig,hist:sig==null?null:m-sig};}
+function cci(h,l,c,p=20){if(c.length<p)return null;const tp=[];for(let i=0;i<c.length;i++)tp.push((h[i]+l[i]+c[i])/3);const s=sma(tp,p);const slice=tp.slice(-p);const md=slice.reduce((x,y)=>x+Math.abs(y-s),0)/p;return md===0?0:(tp[tp.length-1]-s)/(0.015*md);}
+
+/* swing points: pivot if extreme among +-w neighbors */
+function swings(h,l,w=2){const hi=[],lo=[];for(let i=w;i<h.length-w;i++){let ph=true,pl=true;for(let j=i-w;j<=i+w;j++){if(j===i)continue;if(h[j]>=h[i])ph=false;if(l[j]<=l[i])pl=false;}if(ph)hi.push({i,p:h[i]});if(pl)lo.push({i,p:l[i]});}return {hi,lo};}
+
+/* ---------------- Data fetch ---------------- */
+async function fetchSeries(interval,size){
+  const key=$('apiKey').value.trim();
+  if(!key) throw new Error('API key kosong. Ambil gratis di twelvedata.com lalu tempel di atas.');
+  bumpReq();
+  const url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${interval}&outputsize=${size}&apikey=${encodeURIComponent(key)}`;
+  const r=await fetch(url);
+  const j=await r.json();
+  if(j.status==='error' || j.code) throw new Error(j.message||'Twelve Data error');
+  if(!j.values) throw new Error('Tidak ada data (symbol/plan tidak didukung?)');
+  const v=j.values.slice().reverse(); // oldest->newest
+  return {
+    t:v.map(x=>x.datetime),
+    o:v.map(x=>+x.open), h:v.map(x=>+x.high),
+    l:v.map(x=>+x.low),  c:v.map(x=>+x.close)
+  };
+}
+function bumpReq(){try{const today=new Date().toISOString().slice(0,10);if(localStorage.getItem(LS.reqDay)!==today){localStorage.setItem(LS.reqDay,today);localStorage.setItem(LS.reqCount,'0');}localStorage.setItem(LS.reqCount,String((+localStorage.getItem(LS.reqCount)||0)+1));}catch(e){}}
+function reqUsed(){try{return +localStorage.getItem(LS.reqCount)||0;}catch(e){return 0;}}
+
+/* ---------------- Signal engine ---------------- */
+function analyze(d5, d15){
+  const c=d5.c,h=d5.h,l=d5.l,o=d5.o;
+  const n=c.length, price=c[n-1];
+  const ind={
+    rsi:rsi(c), stoch:stoch(h,l,c), atr:atr(h,l,c),
+    cci:cci(h,l,c), macd:macd(c),
+    ema9:ema(c,9), ema21:ema(c,21), ema50:ema(c,50)
+  };
+  // structure
+  const sw=swings(h,l,2);
+  const resAbove=sw.hi.filter(x=>x.p>price).map(x=>x.p);
+  const supBelow=sw.lo.filter(x=>x.p<price).map(x=>x.p);
+  const resistance=resAbove.length?Math.min(...resAbove):Math.max(...h.slice(-20));
+  const support=supBelow.length?Math.max(...supBelow):Math.min(...l.slice(-20));
+  const distR=resistance-price, distS=price-support;
+  // last candle character
+  const body=c[n-1]-o[n-1], rng=h[n-1]-l[n-1]||1;
+  const upWick=h[n-1]-Math.max(c[n-1],o[n-1]), dnWick=Math.min(c[n-1],o[n-1])-l[n-1];
+  const rejUp = dnWick> rng*0.5 && body>0;      // long lower wick + close up
+  const rejDown = upWick> rng*0.5 && body<0;    // long upper wick + close down
+  // 15m trend
+  let trend='netral';
+  if(d15 && d15.c.length>50){const e21=ema(d15.c,21),e50=ema(d15.c,50);if(e21&&e50){trend=e21>e50?'naik':(e21<e50?'turun':'netral');}}
+  else if(ind.ema21&&ind.ema50){trend=ind.ema21>ind.ema50?'naik':(ind.ema21<ind.ema50?'turun':'netral');}
+
+  // ---- gates ----
+  const gates=[]; let hardBlock=false;
+  const nowUTC=new Date();
+  const utcH=nowUTC.getUTCHours();
+  if(ind.atr!=null && ind.atr>8){gates.push({t:'block',m:`ATR 5m ${ind.atr.toFixed(1)} > 8 poin — volatilitas terlalu tinggi untuk SL 5 poin. SKIP.`});hardBlock=true;}
+  if(utcH===21){gates.push({t:'block',m:'Jam rollover (21:00–22:00 UTC). Stop-hunt sangat sering di sini. SKIP (atau pakai SL ≥8 poin).'});hardBlock=true;}
+  // session timing
+  if(utcH>=13&&utcH<17)gates.push({t:'ok',m:'Sesi London–NY overlap (13–17 UTC) — likuiditas terbaik, spread paling ketat.'});
+  else if((utcH>=8&&utcH<13)||(utcH>=17&&utcH<21))gates.push({t:'ok',m:'Sesi London/NY aktif — kondisi oke untuk scalping.'});
+  else gates.push({t:'warn',m:'Sesi Asia / di luar overlap — spread lebih lebar, hati-hati.'});
+  gates.push({t:'warn',m:'Selalu cek kalender ekonomi (CPI/NFP/FOMC). Alat ini tidak bisa deteksi berita otomatis.'});
+
+  // ---- direction ----
+  const nearZone = Math.min(distR,distS) <= Math.max(3, (ind.atr||3)*0.8); // "at a level"
+  let side='NONE', score=0, reasons=[];
+  const st=ind.stoch?ind.stoch.k:50;
+  // bullish confluence at support
+  if(distS<=Math.max(3,(ind.atr||3)) ){
+    let b=0;
+    if(rejUp){b++;reasons.push('candle rejection dari support (lower wick + close naik)');}
+    if(st<20){b++;reasons.push('Stochastic oversold (<20)');}
+    if(ind.cci!=null&&ind.cci<-100){b++;reasons.push('CCI ekstrem (<-100)');}
+    if(ind.rsi!=null&&ind.rsi<35){b++;reasons.push('RSI rendah (<35)');}
+    if(trend!=='turun'){b++;reasons.push('tren 15m tidak melawan (naik/netral)');}
+    if(b>=2){side='BUY';score=b;}
+  }
+  // bearish confluence at resistance
+  if(side==='NONE' && distR<=Math.max(3,(ind.atr||3)) ){
+    let b=0;let rs=[];
+    if(rejDown){b++;rs.push('candle rejection dari resistance (upper wick + close turun)');}
+    if(st>80){b++;rs.push('Stochastic overbought (>80)');}
+    if(ind.cci!=null&&ind.cci>100){b++;rs.push('CCI ekstrem (>+100)');}
+    if(ind.rsi!=null&&ind.rsi>65){b++;rs.push('RSI tinggi (>65)');}
+    if(trend!=='naik'){b++;rs.push('tren 15m tidak melawan (turun/netral)');}
+    if(b>=2){side='SELL';score=b;reasons=rs;}
+  }
+  if(!nearZone) { side='NONE'; reasons=['Harga di tengah range, tidak dekat level jelas — tunggu harga menyentuh support/resistance.']; }
+  if(hardBlock) side='NONE';
+
+  // ---- levels ----
+  const SLpts=5, TP1pts=5, TP2pts=10, spread=3;
+  let entry=null,sl=null,tp1=null,tp2=null;
+  if(side==='BUY'){entry=price; sl=Math.min(price-SLpts, support-1); tp1=price+TP1pts; tp2=price+TP2pts;}
+  if(side==='SELL'){entry=price; sl=Math.max(price+SLpts, resistance+1); tp1=price-TP1pts; tp2=price-TP2pts;}
+  const riskPts = entry!=null? Math.abs(entry-sl):SLpts;
+
+  // ---- probabilities (heuristic from confluence) ----
+  let conf='Low', pSL,pTP1,pTP2;
+  if(side==='NONE'){pSL=[0,0];pTP1=[0,0];pTP2=[0,0];}
+  else if(score>=4){conf='High'; pSL=[30,38]; pTP1=[48,58]; pTP2=[30,40];}
+  else if(score===3){conf='Medium'; pSL=[38,46]; pTP1=[42,50]; pTP2=[24,32];}
+  else {conf='Low'; pSL=[45,55]; pTP1=[35,45]; pTP2=[18,26];}
+
+  // checklist
+  const checks=[
+    ['Harga dekat level jelas?', nearZone && side!=='NONE'],
+    ['ATR 5m wajar (≤8)?', ind.atr!=null && ind.atr<=8],
+    ['Ada candle/momentum konfirmasi?', (side==='BUY'&&rejUp)||(side==='SELL'&&rejDown)],
+    ['Tren 15m sejalan?', (side==='BUY'&&trend!=='turun')||(side==='SELL'&&trend!=='naik')],
+    ['SL di belakang struktur?', side!=='NONE'],
+    ['Bukan jam rollover (21 UTC)?', utcH!==21]
+  ];
+
+  return {price,ind,support,resistance,distR,distS,trend,side,conf,score,
+    entry,sl,tp1,tp2,riskPts,spread,pSL,pTP1,pTP2,gates,reasons,checks,
+    rejUp,rejDown,atrv:ind.atr};
+}
+
+/* ---------------- Rendering ---------------- */
+function fmt(x,dp=2){return x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});}
+function render(a, d5){
+  // price hero
+  const c=d5.c,n=c.length;
+  const prev=c[n-2]||c[n-1];
+  const chg=a.price-prev, chgPct=prev?chg/prev*100:0;
+  $('price').textContent='$'+fmt(a.price);
+  const chgEl=$('chg');chgEl.className='chg '+(chg>=0?'up':'down');
+  chgEl.textContent=(chg>=0?'+':'')+fmt(chg)+' ('+(chg>=0?'+':'')+fmt(chgPct,2)+'%)';
+  $('sub').innerHTML=`Support <b>$${fmt(a.support)}</b> · Resistance <b>$${fmt(a.resistance)}</b> · Tren 15m: <b>${a.trend}</b>`;
+
+  // signal card
+  $('signalCard').style.display='block';
+  $('indCard').style.display='block';
+  const badge=$('sigBadge');
+  if(a.side==='BUY'){badge.className='signal-badge sig-buy';badge.textContent='🟢 BUY (Long)';}
+  else if(a.side==='SELL'){badge.className='signal-badge sig-sell';badge.textContent='🔴 SELL (Short)';}
+  else{badge.className='signal-badge sig-none';badge.textContent='⚪ NO TRADE';}
+  $('sigConf').textContent=a.side==='NONE'?'tunggu setup':('Confidence: '+a.conf);
+
+  // gates
+  $('gates').innerHTML=a.gates.map(g=>`<div class="gate ${g.t}">${g.t==='block'?'⛔':g.t==='warn'?'⚠️':'✅'} ${g.m}</div>`).join('');
+
+  // levels
+  if(a.side!=='NONE'){
+    $('levels').style.display='grid';
+    $('levels').innerHTML=`
+      <div class="lv entry"><div class="k">ENTRY</div><div class="v">$${fmt(a.entry)}</div></div>
+      <div class="lv sl"><div class="k">STOP LOSS (${a.riskPts.toFixed(1)} pt)</div><div class="v">$${fmt(a.sl)}</div></div>
+      <div class="lv tp"><div class="k">TP1 (+5 pt)</div><div class="v">$${fmt(a.tp1)}</div></div>
+      <div class="lv tp"><div class="k">TP2 (+10 pt)</div><div class="v">$${fmt(a.tp2)}</div></div>
+      <div class="lv"><div class="k">R:R (ke TP2)</div><div class="v">1:${(10/a.riskPts).toFixed(1)}</div></div>`;
+  } else { $('levels').innerHTML=''; }
+
+  // reason
+  $('reason').innerHTML = a.side==='NONE'
+    ? `<b>Kenapa tidak entry:</b> ${a.reasons.join('; ')}.`
+    : `<b>Alasan setup:</b> ${a.reasons.join('; ')}. Net setelah spread ±${a.spread} poin — TP1 ≈ +${(5-a.spread)} poin, TP2 ≈ +${(10-a.spread)} poin. SL efektif ≈ ${(a.riskPts+a.spread).toFixed(0)} poin.`;
+
+  // prob table
+  if(a.side!=='NONE'){
+    const netSL=-(a.riskPts+a.spread), netTP1=5-a.spread, netTP2=10-a.spread;
+    const mid=r=>(r[0]+r[1])/2/100;
+    const ev1=(mid(a.pTP1)*netTP1 + mid(a.pSL)*netSL).toFixed(1);
+    const ev2=(mid(a.pTP2)*netTP2 + mid(a.pSL)*netSL).toFixed(1);
+    $('probTable').innerHTML=`
+      <tr><th>Skenario</th><th class="mono">Gross</th><th class="mono">Net</th><th class="mono">Prob</th></tr>
+      <tr><td>SL Hit</td><td class="mono">-${a.riskPts.toFixed(0)}</td><td class="mono" style="color:var(--red)">${netSL.toFixed(0)}</td><td class="mono">${a.pSL[0]}–${a.pSL[1]}%</td></tr>
+      <tr><td>TP1 Hit</td><td class="mono">+5</td><td class="mono" style="color:var(--green2)">+${netTP1}</td><td class="mono">${a.pTP1[0]}–${a.pTP1[1]}%</td></tr>
+      <tr><td>TP2 Hit</td><td class="mono">+10</td><td class="mono" style="color:var(--green2)">+${netTP2}</td><td class="mono">${a.pTP2[0]}–${a.pTP2[1]}%</td></tr>
+      <tr><td colspan="4" class="muted" style="padding-top:10px">Expected Value — main TP1: <b>${ev1} pt</b> · main TP2: <b>${ev2} pt</b> &nbsp; <b>${(+ev1>0||+ev2>0)?'✅ ada edge':'⚠️ edge tipis/negatif'}</b></td></tr>`;
+  } else { $('probTable').innerHTML='<tr><td class="muted">Tidak ada sinyal aktif.</td></tr>'; }
+
+  // checklist
+  $('checklist').innerHTML=a.checks.map(([q,ok])=>`<li><span>${q}</span><span class="${ok?'yes':'no'}">${ok?'✓ Ya':'✗ Tidak'}</span></li>`).join('');
+
+  // indicators
+  const I=a.ind;
+  const pill=(cond,txt,cls)=>cond?`<span class="pill ${cls}">${txt}</span>`:'';
+  $('indGrid').innerHTML=`
+    <div class="ind"><div class="n">RSI(14)</div><div class="val">${fmt(I.rsi,1)}${pill(I.rsi>70,'OB','p-hot')}${pill(I.rsi<30,'OS','p-cold')}</div></div>
+    <div class="ind"><div class="n">Stoch %K</div><div class="val">${I.stoch?fmt(I.stoch.k,1):'—'}${I.stoch?pill(I.stoch.k>90,'OB','p-hot'):''}${I.stoch?pill(I.stoch.k<10,'OS','p-cold'):''}</div></div>
+    <div class="ind"><div class="n">CCI(20)</div><div class="val">${fmt(I.cci,0)}${pill(I.cci>100,'+','p-hot')}${pill(I.cci<-100,'−','p-cold')}</div></div>
+    <div class="ind"><div class="n">ATR(14)</div><div class="val">${fmt(I.atr,1)}${pill(I.atr>8,'HI','p-hot')}</div></div>
+    <div class="ind"><div class="n">MACD hist</div><div class="val">${I.macd&&I.macd.hist!=null?fmt(I.macd.hist,2):'—'}</div></div>
+    <div class="ind"><div class="n">EMA 9/21</div><div class="val">${fmt(I.ema9,1)}<span class="pill p-neu">${I.ema9>I.ema21?'▲':'▼'}</span></div></div>`;
+
+  $('structTable').innerHTML=`
+    <tr><th>Struktur</th><th class="mono">Nilai</th><th>Jarak dari harga</th></tr>
+    <tr><td>Resistance terdekat</td><td class="mono">$${fmt(a.resistance)}</td><td class="mono">${fmt(a.distR,1)} pt</td></tr>
+    <tr><td>Harga sekarang</td><td class="mono">$${fmt(a.price)}</td><td class="mono">—</td></tr>
+    <tr><td>Support terdekat</td><td class="mono">$${fmt(a.support)}</td><td class="mono">${fmt(a.distS,1)} pt</td></tr>`;
+
+  drawChart(d5,a);
+}
+
+/* ---------------- Candlestick chart ---------------- */
+function drawChart(d,a){
+  const cv=$('chart'),ctx=cv.getContext('2d');
+  const DPR=window.devicePixelRatio||1;
+  const W=cv.clientWidth, H=300;
+  cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.clearRect(0,0,W,H);
+  const N=Math.min(60,d.c.length);
+  const so=d.o.slice(-N),sh=d.h.slice(-N),sl=d.l.slice(-N),sc=d.c.slice(-N);
+  let hi=Math.max(...sh,a.resistance),lo=Math.min(...sl,a.support);
+  if(a.side!=='NONE'){hi=Math.max(hi,a.tp1,a.tp2,a.sl,a.entry);lo=Math.min(lo,a.tp1,a.tp2,a.sl,a.entry);}
+  const pad=(hi-lo)*0.08||1;hi+=pad;lo-=pad;
+  const padR=64,padT=10,padB=18;
+  const y=p=>padT+(hi-p)/(hi-lo)*(H-padT-padB);
+  const cw=(W-padR)/N;
+  // grid + price axis
+  ctx.font='10px monospace';ctx.textAlign='left';
+  for(let i=0;i<=4;i++){const p=hi-(hi-lo)*i/4;const yy=y(p);ctx.strokeStyle='rgba(255,255,255,.05)';ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(W-padR,yy);ctx.stroke();ctx.fillStyle='#8b98a9';ctx.fillText('$'+p.toFixed(1),W-padR+4,yy+3);}
+  // level lines
+  const line=(p,col,dash,lbl)=>{if(p==null)return;ctx.strokeStyle=col;ctx.setLineDash(dash);ctx.beginPath();ctx.moveTo(0,y(p));ctx.lineTo(W-padR,y(p));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle=col;ctx.fillText(lbl,4,y(p)-3);};
+  line(a.resistance,'rgba(229,72,77,.55)',[4,3],'R');
+  line(a.support,'rgba(63,185,80,.55)',[4,3],'S');
+  if(a.side!=='NONE'){line(a.entry,'rgba(212,164,24,.9)',[2,2],'Entry');line(a.sl,'rgba(229,72,77,.9)',[2,2],'SL');line(a.tp1,'rgba(63,185,80,.9)',[2,2],'TP1');line(a.tp2,'rgba(63,185,80,.6)',[2,2],'TP2');}
+  // candles
+  for(let i=0;i<N;i++){const x=i*cw+cw/2;const up=sc[i]>=so[i];ctx.strokeStyle=up?'#3fb950':'#e5484d';ctx.fillStyle=up?'#3fb950':'#e5484d';ctx.beginPath();ctx.moveTo(x,y(sh[i]));ctx.lineTo(x,y(sl[i]));ctx.stroke();const bw=Math.max(cw*0.6,1);const yo=y(so[i]),yc=y(sc[i]);ctx.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
+  // EMA9 overlay
+  const es=emaSeries(d.c,9).slice(-N);ctx.strokeStyle='rgba(56,139,253,.8)';ctx.lineWidth=1.2;ctx.beginPath();let started=false;for(let i=0;i<N;i++){if(es[i]==null)continue;const x=i*cw+cw/2;if(!started){ctx.moveTo(x,y(es[i]));started=true;}else ctx.lineTo(x,y(es[i]));}ctx.stroke();ctx.lineWidth=1;
+  $('chartLegend').innerHTML=`Candle 5m terakhir · <span style="color:#388bfd">━ EMA9</span> · <span style="color:#e5484d">┈ Resistance</span> · <span style="color:#3fb950">┈ Support</span>`;
+}
+
+/* ---------------- Run ---------------- */
+let timer=null;
+async function run(){
+  const err=$('errBox');err.innerHTML='';
+  const st=$('status');st.innerHTML='<span class="dotlive"></span> mengambil data…';
+  try{
+    localStorage.setItem(LS.key,$('apiKey').value.trim());
+    localStorage.setItem(LS.tf,$('tf').value);
+    localStorage.setItem(LS.auto,$('auto').value);
+    const tf=$('tf').value;
+    const d5=await fetchSeries(tf,120);
+    let d15=null;
+    try{ d15=await fetchSeries(tf==='15min'?'30min':'15min',120); }catch(e){ /* trend optional */ }
+    const a=analyze(d5,d15);
+    render(a,d5);
+    const now=new Date().toLocaleTimeString('id-ID');
+    st.innerHTML=`<span class="dotlive"></span> update ${now} · req hari ini: ${reqUsed()}/800`;
+  }catch(e){
+    st.textContent='— error —';
+    err.innerHTML=`<div class="err"><b>Gagal:</b> ${e.message}</div>`;
+  }
+}
+function setupAuto(){
+  if(timer){clearInterval(timer);timer=null;}
+  const s=+$('auto').value;
+  if(s>0){timer=setInterval(run,s*1000);}
+}
+$('btnAnalyze').addEventListener('click',run);
+$('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
+$('tf').addEventListener('change',()=>localStorage.setItem(LS.tf,$('tf').value));
+window.addEventListener('resize',()=>{ /* redraw handled on next run */ });
+setupAuto();
+// auto-run if key already present
+if($('apiKey').value.trim()) run();
+</script>
+</body>
+</html>
