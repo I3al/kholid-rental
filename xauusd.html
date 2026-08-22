@@ -255,6 +255,25 @@ function detectBOS(h,l,c){
   if(rL!=null&&last<rL)return {dir:'bear',level:rL};
   return {dir:'none',level:null};
 }
+/* Structure: BOS (continuation) + CHoCH (reversal) dari urutan swing HH/HL/LH/LL */
+function detectStructure(h,l,c){
+  const w=2,H=[],L=[];
+  for(let i=w;i<h.length-w;i++){let ph=true,pl=true;for(let j=i-w;j<=i+w;j++){if(j===i)continue;if(h[j]>=h[i])ph=false;if(l[j]<=l[i])pl=false;}if(ph)H.push({i,p:h[i]});if(pl)L.push({i,p:l[i]});}
+  const last=c[c.length-1];
+  const H1=H[H.length-1],H2=H[H.length-2],L1=L[L.length-1],L2=L[L.length-2];
+  let trend='none';
+  if(H1&&H2&&L1&&L2){ if(H1.p>H2.p&&L1.p>L2.p)trend='up'; else if(H1.p<H2.p&&L1.p<L2.p)trend='down'; }
+  let bos='none',choch='none',bosLvl=null,chochLvl=null;
+  if(H1&&last>H1.p){ if(trend==='down'){choch='bull';chochLvl=H1.p;} else {bos='bull';bosLvl=H1.p;} }
+  else if(L1&&last<L1.p){ if(trend==='up'){choch='bear';chochLvl=L1.p;} else {bos='bear';bosLvl=L1.p;} }
+  return {trend,bos,choch,bosLvl,chochLvl};
+}
+/* Order Block: candle lawan terakhir sebelum impuls (jejak order institusi) */
+function orderBlock(o,h,l,c,leg){
+  if(!leg)return null;
+  if(leg.dir==='up'){let idx=-1;for(let i=leg.loIdx;i>=Math.max(0,leg.loIdx-6);i--){if(c[i]<o[i]){idx=i;break;}}if(idx<0)idx=leg.loIdx;return {type:'bull',lo:l[idx],hi:h[idx],mid:(l[idx]+h[idx])/2};}
+  let idx=-1;for(let i=leg.hiIdx;i>=Math.max(0,leg.hiIdx-6);i--){if(c[i]>o[i]){idx=i;break;}}if(idx<0)idx=leg.hiIdx;return {type:'bear',lo:l[idx],hi:h[idx],mid:(l[idx]+h[idx])/2};
+}
 
 /* ---------- engine ---------- */
 function analyze(d5,d15,d1h){
@@ -266,7 +285,10 @@ function analyze(d5,d15,d1h){
   const t1h=d1h?trendOf(d1h.c,d1h.h,d1h.l):{dir:'?',adx:null};
   const K=keyLevels(h,l,price,at);
   const distR=K.resistance-price,distS=price-K.support;
-  const leg=findLeg(h,l,at,price), F=fib(leg,price), BOS=detectBOS(h,l,c);
+  const leg=findLeg(h,l,at,price), F=fib(leg,price);
+  const S=detectStructure(h,l,c), OB=orderBlock(o,h,l,c,leg);
+  const BOS={dir:S.bos,level:S.bosLvl};
+  const inOB=OB&&price>=OB.lo&&price<=OB.hi;
   // candle character
   const body=c[n-1]-o[n-1],rng=(h[n-1]-l[n-1])||1;
   const upWick=h[n-1]-Math.max(c[n-1],o[n-1]),dnWick=Math.min(c[n-1],o[n-1])-l[n-1];
@@ -293,6 +315,9 @@ function analyze(d5,d15,d1h){
     add(F&&F.dir==='up'&&F.inGolden, (F&&Math.abs(price-F.at618)<at)?18:14, 'Harga di golden zone Fibonacci (diskon 0.5–0.705)');
     add(BOS.dir==='bull',12,'BOS bullish (break structure naik)');
     add(BOS.dir==='bear',-10,'BOS bearish (struktur lawan)');
+    add(S.choch==='bull',14,'CHoCH bullish (reversal ke atas)');
+    add(S.choch==='bear',-10,'CHoCH bearish (lawan)');
+    add(inOB&&OB.type==='bull',16,'Harga di Bullish Order Block');
     return f;}
   function scoreBear(){const f=[];const add=(cond,w,name)=>{if(cond)f.push({w,name});};
     add(t1h.dir==='turun',25,'Tren 1H turun'); add(t1h.dir==='ranging',6,'Tren 1H netral'); add(t1h.dir==='naik',-22,'Tren 1H naik (lawan)');
@@ -307,6 +332,9 @@ function analyze(d5,d15,d1h){
     add(F&&F.dir==='down'&&F.inGolden, (F&&Math.abs(price-F.at618)<at)?18:14, 'Harga di golden zone Fibonacci (premium 0.5–0.705)');
     add(BOS.dir==='bear',12,'BOS bearish (break structure turun)');
     add(BOS.dir==='bull',-10,'BOS bullish (struktur lawan)');
+    add(S.choch==='bear',14,'CHoCH bearish (reversal ke bawah)');
+    add(S.choch==='bull',-10,'CHoCH bullish (lawan)');
+    add(inOB&&OB.type==='bear',16,'Harga di Bearish Order Block');
     return f;}
   const fb=scoreBull(),fs=scoreBear();
   const sB=fb.reduce((s,x)=>s+x.w,0), sS=fs.reduce((s,x)=>s+x.w,0);
@@ -363,12 +391,13 @@ function analyze(d5,d15,d1h){
     ['Tren 15m sejalan?', (side==='BUY'&&t15.dir!=='turun')||(side==='SELL'&&t15.dir!=='naik')],
     ['Candle/sweep konfirmasi?', side==='BUY'?(rejUp||sweptLow):side==='SELL'?(rejDown||sweptHigh):false],
     ['Harga di golden zone Fibonacci?', F?F.inGolden:false],
-    ['BOS searah?', (side==='BUY'&&BOS.dir==='bull')||(side==='SELL'&&BOS.dir==='bear')],
+    ['BOS/CHoCH searah?', (side==='BUY'&&(S.bos==='bull'||S.choch==='bull'))||(side==='SELL'&&(S.bos==='bear'||S.choch==='bear'))],
+    ['Harga di Order Block?', inOB],
     ['Bukan jam rollover / berita?', utcH!==21 && !$('news').checked]
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB};
 }
 
 /* ---------- render ---------- */
@@ -444,7 +473,9 @@ function render(a,d5){
     <tr><td>Harga</td><td class="mono">$${fmt(a.price)}</td><td>—</td><td>—</td></tr>
     <tr><td>Support</td><td class="mono">$${fmt(a.K.supLo)}–$${fmt(a.K.supHi)}</td><td class="mono">${fmt(a.distS,1)}</td><td>${'★'.repeat(Math.min(3,a.K.supStr))||'—'}</td></tr>
     <tr><td>Fibonacci</td><td class="mono">${a.F?('golden $'+fmt(a.F.gLo)+'–$'+fmt(a.F.gHi)):'leg belum valid'}</td><td class="mono">${a.F?(a.F.inGolden?'✅ DI ZONA':'luar zona'):'—'}</td><td>${a.leg?(a.leg.dir==='up'?'leg naik (diskon=beli)':'leg turun (premium=jual)'):'—'}</td></tr>
-    <tr><td>BOS</td><td class="mono" style="color:${a.BOS.dir==='bull'?'var(--green2)':a.BOS.dir==='bear'?'var(--red)':'var(--muted)'}">${a.BOS.dir==='bull'?'▲ Bullish break':a.BOS.dir==='bear'?'▼ Bearish break':'— belum'}</td><td class="mono">${a.BOS.level?'$'+fmt(a.BOS.level):'—'}</td><td>${a.BOS.dir!=='none'?'struktur pecah':'—'}</td></tr>`;
+    <tr><td>BOS</td><td class="mono" style="color:${a.BOS.dir==='bull'?'var(--green2)':a.BOS.dir==='bear'?'var(--red)':'var(--muted)'}">${a.BOS.dir==='bull'?'▲ Bullish break':a.BOS.dir==='bear'?'▼ Bearish break':'— belum'}</td><td class="mono">${a.BOS.level?'$'+fmt(a.BOS.level):'—'}</td><td>${a.BOS.dir!=='none'?'lanjutan':'—'}</td></tr>
+    <tr><td>CHoCH</td><td class="mono" style="color:${a.S.choch==='bull'?'var(--green2)':a.S.choch==='bear'?'var(--red)':'var(--muted)'}">${a.S.choch==='bull'?'▲ Bullish':a.S.choch==='bear'?'▼ Bearish':'— belum'}</td><td class="mono">${a.S.chochLvl?'$'+fmt(a.S.chochLvl):'—'}</td><td>${a.S.choch!=='none'?'reversal':'tren '+(a.S.trend==='up'?'naik':a.S.trend==='down'?'turun':'?')}</td></tr>
+    <tr><td>Order Block</td><td class="mono" style="color:${a.OB?(a.OB.type==='bull'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.OB?(a.OB.type==='bull'?'🟩 Bullish':'🟥 Bearish'):'—'}</td><td class="mono">${a.OB?('$'+fmt(a.OB.lo)+'–$'+fmt(a.OB.hi)):'—'}</td><td>${a.inOB?'✅ harga DI DALAM':'harga di luar'}</td></tr>`;
 
   drawChart(d5,a);
 
@@ -471,14 +502,17 @@ function drawChart(d,a){
   if(a.F){zone(a.F.gLo,a.F.gHi,'rgba(224,178,60,.13)');
     ctx.font='9px monospace';
     [['0.5',a.F.levels[0.5]],['0.618',a.F.levels[0.618]],['0.786',a.F.levels[0.786]]].forEach(([lb,p])=>{ctx.strokeStyle='rgba(224,178,60,.45)';ctx.setLineDash([2,3]);ctx.beginPath();ctx.moveTo(0,y(p));ctx.lineTo(W-padR,y(p));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(224,178,60,.85)';ctx.fillText('fib '+lb,W-padR-54,y(p)-2);});}
-  // BOS level
+  // Order Block zone (ungu)
+  if(a.OB){zone(a.OB.lo,a.OB.hi,'rgba(155,110,255,.16)');ctx.fillStyle='rgba(178,140,255,.9)';ctx.font='9px monospace';ctx.fillText('OB '+a.OB.type,W-padR-58,y(a.OB.hi)-2);}
+  // BOS & CHoCH level
   if(a.BOS&&a.BOS.level){ctx.strokeStyle='rgba(76,141,255,.7)';ctx.setLineDash([6,3]);ctx.beginPath();ctx.moveTo(0,y(a.BOS.level));ctx.lineTo(W-padR,y(a.BOS.level));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(76,141,255,.95)';ctx.fillText('BOS',W-padR-84,y(a.BOS.level)-2);}
+  if(a.S&&a.S.chochLvl){ctx.strokeStyle='rgba(227,160,8,.75)';ctx.setLineDash([6,3]);ctx.beginPath();ctx.moveTo(0,y(a.S.chochLvl));ctx.lineTo(W-padR,y(a.S.chochLvl));ctx.stroke();ctx.setLineDash([]);ctx.fillStyle='rgba(240,198,90,.95)';ctx.fillText('CHoCH',W-padR-118,y(a.S.chochLvl)-2);}
   ctx.font='10px monospace';
   line(a.K.resistance,'rgba(229,72,77,.5)','R');line(a.K.support,'rgba(63,185,80,.5)','S');
   if(a.side!=='NONE'){line(a.entry,'rgba(224,178,60,.9)','Entry');line(a.sl,'rgba(229,72,77,.9)','SL');line(a.tp1,'rgba(63,185,80,.9)','TP1');line(a.tp2,'rgba(63,185,80,.6)','TP2');}
   for(let i=0;i<N;i++){const x=i*cw+cw/2,up=sc[i]>=so[i];ctx.strokeStyle=up?'#3fb950':'#e5484d';ctx.fillStyle=up?'#3fb950':'#e5484d';ctx.beginPath();ctx.moveTo(x,y(sh[i]));ctx.lineTo(x,y(sl[i]));ctx.stroke();const bw=Math.max(cw*0.6,1),yo=y(so[i]),yc=y(sc[i]);ctx.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
   const es=emaSeries(d.c,9).slice(-N);ctx.strokeStyle='rgba(76,141,255,.85)';ctx.lineWidth=1.3;ctx.beginPath();let s=false;for(let i=0;i<N;i++){if(es[i]==null)continue;const x=i*cw+cw/2;if(!s){ctx.moveTo(x,y(es[i]));s=true;}else ctx.lineTo(x,y(es[i]));}ctx.stroke();ctx.lineWidth=1;
-  $('chartLegend').innerHTML='Candle 5m · <span style="color:#4c8dff">━ EMA9</span> · area <span style="color:#e5484d">R</span>/<span style="color:#3fb950">S</span> · <span style="color:#e0b23c">▨ golden zone Fibo</span> · <span style="color:#4c8dff">┄ BOS</span> + Entry/SL/TP';
+  $('chartLegend').innerHTML='<span style="color:#4c8dff">━ EMA9</span> · area <span style="color:#e5484d">R</span>/<span style="color:#3fb950">S</span> · <span style="color:#e0b23c">▨ Fibo golden</span> · <span style="color:#9b6eff">▨ Order Block</span> · <span style="color:#4c8dff">┄ BOS</span> · <span style="color:#e3a008">┄ CHoCH</span> + Entry/SL/TP';
 }
 
 /* ---------- run ---------- */
