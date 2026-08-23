@@ -125,6 +125,7 @@
     </div>
     <div style="display:flex;gap:18px;margin-top:12px;flex-wrap:wrap">
       <label class="chk"><input type="checkbox" id="alarm" checked> 🔔 Alarm sinyal</label>
+      <label class="chk"><input type="checkbox" id="autolog"> 📝 Auto-catat sinyal ke jurnal</label>
       <label class="chk"><input type="checkbox" id="aplus"> ✦ Mode A+ saja (setup terbaik)</label>
       <label class="chk"><input type="checkbox" id="news"> ⚠️ Ada berita &lt;30 mnt (paksa NO TRADE)</label>
     </div>
@@ -171,6 +172,11 @@
       <h2><span class="bar"></span> Checklist Pra-Entry</h2>
       <ul class="checklist" id="checklist"></ul>
     </div>
+  </div>
+
+  <div class="card" id="planCard" style="display:none">
+    <h2><span class="bar"></span> 📋 Rencana Entry (saat pasar buka)</h2>
+    <div id="planOut"></div>
   </div>
 
   <div class="card" id="mtfCard" style="display:none">
@@ -230,6 +236,7 @@ try{
   if(localStorage.getItem(LS.alarm)!==null)$('alarm').checked=localStorage.getItem(LS.alarm)==='1';
   if(localStorage.getItem('xau_symbol'))$('symbol').value=localStorage.getItem('xau_symbol');
   if(localStorage.getItem('xau_aplus')==='1')$('aplus').checked=true;
+  if(localStorage.getItem('xau_autolog')==='1')$('autolog').checked=true;
 }catch(e){}
 
 /* ---------- symbol config (parameter menyesuaikan aset) ---------- */
@@ -444,6 +451,11 @@ function analyze(d5,d15,d1h,cfg,opts){
   if(side==='BUY'&&(t1h.dir==='turun'||t15.dir==='turun'||emaDn)){side='NONE';vetoMsg='Sinyal BUY dibatalkan — tren HTF/EMA sedang turun (jangan beli lawan arus).';}
   if(side==='SELL'&&(t1h.dir==='naik'||t15.dir==='naik'||emaUp)){side='NONE';vetoMsg='Sinyal SELL dibatalkan — tren HTF/EMA sedang naik (jangan jual lawan arus).';}
   if(vetoMsg)gates.push({t:'warn',m:vetoMsg});
+  // perkuat: wajib minimal 1 konfirmasi struktur (buang entry 'telanjang' S/R+momentum)
+  if(side!=='NONE'){
+    const hasC=factors.some(f=>/order block|golden|sweep|rejection|divergensi|choch|bos/i.test(f.name));
+    if(!hasC){gates.push({t:'warn',m:'Sinyal ditahan — butuh konfirmasi struktur (Order Block/Fibo/sweep/BOS/CHoCH/divergensi), bukan cuma S/R + indikator.'});side='NONE';factors=[];}
+  }
 
   // ---- levels (ATR dynamic) ----
   const spread=cfg.spread;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
@@ -497,7 +509,24 @@ function analyze(d5,d15,d1h,cfg,opts){
 const fmt=(x,dp=CURDP)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
 const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
-let lastSide=null,audioCtx=null,CURPRICE=null;
+let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null;
+function renderPlan(a){
+  $('planCard').style.display='block';
+  const closed=MARKET_AGE!=null&&MARKET_AGE>(a.cfg.crypto?20:120), bias=a.t1h.dir;
+  const buyZone=a.OB&&a.OB.type==='bull'?`Bullish Order Block $${fmt(a.OB.lo)}–$${fmt(a.OB.hi)}`:(a.F&&a.F.dir==='up'?`Fibo golden $${fmt(a.F.gLo)}–$${fmt(a.F.gHi)}`:`area support $${fmt(a.K.supLo)}–$${fmt(a.K.supHi)}`);
+  const sellZone=a.OB&&a.OB.type==='bear'?`Bearish Order Block $${fmt(a.OB.lo)}–$${fmt(a.OB.hi)}`:(a.F&&a.F.dir==='down'?`Fibo golden $${fmt(a.F.gLo)}–$${fmt(a.F.gHi)}`:`area resistance $${fmt(a.K.resLo)}–$${fmt(a.K.resHi)}`);
+  const banner=closed?`<div class="gate warn">⏸️ Pasar kemungkinan TUTUP — data terakhir ${Math.round(MARKET_AGE)} mnt lalu. Ini rencana untuk begitu pasar buka.</div>`:'';
+  let plan;
+  if(bias==='naik')plan=`<div class="gate ok">Bias 1H NAIK → prioritas BUY.</div><div class="reason"><b>🟢 Rencana BUY:</b> tunggu harga turun ke <b>${buyZone}</b>, muncul <b>rejection/sweep</b>, skor ≥55. SL di bawah zona · TP 1.2R &amp; 2R. <b>Hindari SELL</b> (lawan tren).</div>`;
+  else if(bias==='turun')plan=`<div class="gate ok">Bias 1H TURUN → prioritas SELL.</div><div class="reason"><b>🔴 Rencana SELL:</b> tunggu harga naik ke <b>${sellZone}</b>, muncul <b>rejection/sweep</b>, skor ≥55. SL di atas zona · TP 1.2R &amp; 2R. <b>Hindari BUY</b> (lawan tren).</div>`;
+  else plan=`<div class="gate warn">Bias 1H RANGING → tunggu breakout, jangan tebak arah.</div><div class="reason">Pantau dua sisi: BUY jika tembus &amp; retest resistance jadi support; SELL jika jebol support. Konfirmasi dulu (rejection/BOS), baru masuk.</div>`;
+  const levels=`<table style="margin-top:10px"><tr><th>Level kunci</th><th class="mono">Harga</th></tr>
+    <tr><td>Resistance</td><td class="mono">$${fmt(a.K.resLo)}–$${fmt(a.K.resHi)}</td></tr>
+    <tr><td>Support</td><td class="mono">$${fmt(a.K.supLo)}–$${fmt(a.K.supHi)}</td></tr>
+    ${a.F?`<tr><td>Fibo golden</td><td class="mono">$${fmt(a.F.gLo)}–$${fmt(a.F.gHi)}</td></tr>`:''}
+    ${a.OB?`<tr><td>Order Block (${a.OB.type})</td><td class="mono">$${fmt(a.OB.lo)}–$${fmt(a.OB.hi)}</td></tr>`:''}</table>`;
+  $('planOut').innerHTML=banner+`<div class="hint" style="margin-bottom:8px">Harga acuan terakhir: <b>$${fmt(a.price)}</b> · Bias 1H: <b>${trTxt(bias)}</b></div>`+plan+levels;
+}
 function loadMM(){try{const m=JSON.parse(localStorage.getItem('xau_mm')||'{}');if(m.bal!=null)$('mmBal').value=m.bal;if(m.risk!=null)$('mmRisk').value=m.risk;if(m.vpm!=null)$('mmVpm').value=m.vpm;}catch(e){}}
 function saveMM(){try{localStorage.setItem('xau_mm',JSON.stringify({bal:$('mmBal').value,risk:$('mmRisk').value,vpm:$('mmVpm').value}));}catch(e){}}
 function renderRisk(a){const bal=+$('mmBal').value||0,rp=+$('mmRisk').value||0,vpm=+$('mmVpm').value||0;saveMM();const el=$('mmOut');
@@ -586,7 +615,7 @@ function render(a,d5){
 
   drawChart(d5,a);
 
-  renderRisk(a);
+  renderRisk(a);renderPlan(a);
   // alarm
   if($('alarm').checked && (a.side==='BUY'||a.side==='SELL') && a.side!==lastSide){beep(a.side);beep(a.side);}
   lastSide=a.side;
@@ -637,10 +666,13 @@ async function run(){
     if((needHTF||!cache.d15)&&recentReq()<6){cache.d15=await fetchSeries('15min',150);}
     if((needHTF||!cache.d1h)&&recentReq()<6){cache.d1h=await fetchSeries('1h',150);}
     cache.cycle++;
+    const lastMs=new Date(d5.t[d5.t.length-1].replace(' ','T')+'Z').getTime();MARKET_AGE=(Date.now()-lastMs)/60000;
     const a=analyze(d5,cache.d15,cache.d1h,cfg);
     render(a,d5);
     lastRaw={d5,d15:cache.d15,d1h:cache.d1h,cfg};lastA={a,d5};
     evalOpen(a.price,d5.h[d5.h.length-1],d5.l[d5.l.length-1]);renderJournal();
+    if($('autolog').checked&&(a.side==='BUY'||a.side==='SELL')&&a.side!==autoLoggedSide)logTrade(a);
+    autoLoggedSide=a.side;
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800`;
   }catch(e){$('status').textContent='— error —';
     const rl=/429|API credits|run out/i.test(e.message);
@@ -789,6 +821,7 @@ $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
 $('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
+$('autolog').addEventListener('change',()=>localStorage.setItem('xau_autolog',$('autolog').checked?'1':'0'));
 buildWeights();renderJournal();loadMM();renderRisk(null);
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
