@@ -2,8 +2,15 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>XAUUSD Scalp Pro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Scalp Pro</title>
+<meta name="theme-color" content="#0a0e14" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Scalp Pro" />
+<meta name="mobile-web-app-capable" content="yes" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e0b23c'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%230a0e14' font-family='Arial' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E" />
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'%3E%3Crect width='180' height='180' rx='40' fill='%230a0e14'/%3E%3Ctext x='90' y='120' font-size='96' text-anchor='middle' fill='%23e0b23c' font-family='Arial' font-weight='bold'%3E%24%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
     --bg:#0a0e14; --panel:#131a24; --panel2:#1a2332; --line:#26303f;
@@ -172,6 +179,17 @@
     <table id="structTable" style="margin-top:12px"></table>
   </div>
 
+  <div class="card" id="riskCard">
+    <h2><span class="bar"></span> 💰 Kalkulator Money Management</h2>
+    <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
+      <div><label>Saldo akun ($)</label><input type="number" id="mmBal" value="100" min="0" step="10"></div>
+      <div><label>Risiko / trade (%)</label><input type="number" id="mmRisk" value="2" min="0.1" step="0.5"></div>
+      <div><label>Nilai per $1 gerak / lot ($)</label><input type="number" id="mmVpm" value="100" min="0.01" step="1"></div>
+    </div>
+    <div class="hint">"Nilai per $1 gerak/lot" = berapa dolar profit/loss per 1.0 pergerakan harga untuk 1 lot di broker Anda. Emas std ≈100, sesuaikan kalau akun CENT/mikro. Cek di spesifikasi kontrak broker.</div>
+    <div id="mmOut" style="margin-top:12px"></div>
+  </div>
+
   <div class="card" id="journalCard">
     <h2><span class="bar"></span> 📝 Jurnal Trade (otomatis)</h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
@@ -217,6 +235,12 @@ const sma=(a,p)=>a.length<p?null:sum(a,p)/p;
 function ema(a,p){if(a.length<p)return null;const k=2/(p+1);let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;for(let i=p;i<a.length;i++)e=a[i]*k+e*(1-k);return e;}
 function emaSeries(a,p){const out=new Array(a.length).fill(null);if(a.length<p)return out;const k=2/(p+1);let e=a.slice(0,p).reduce((x,y)=>x+y,0)/p;out[p-1]=e;for(let i=p;i<a.length;i++){e=a[i]*k+e*(1-k);out[i]=e;}return out;}
 function rsi(c,p=14){if(c.length<p+1)return null;let g=0,l=0;for(let i=1;i<=p;i++){const d=c[c.length-i]-c[c.length-i-1];if(d>=0)g+=d;else l-=d;}const ag=g/p,al=l/p;return al===0?100:100-100/(1+ag/al);}
+function rsiSeries(c,p=14){const out=new Array(c.length).fill(null);if(c.length<p+1)return out;let g=0,l=0;for(let i=1;i<=p;i++){const d=c[i]-c[i-1];if(d>=0)g+=d;else l-=d;}g/=p;l/=p;out[p]=l===0?100:100-100/(1+g/l);for(let i=p+1;i<c.length;i++){const d=c[i]-c[i-1];g=(g*(p-1)+(d>0?d:0))/p;l=(l*(p-1)+(d<0?-d:0))/p;out[i]=l===0?100:100-100/(1+g/l);}return out;}
+function detectDivergence(c,h,l){const rs=rsiSeries(c,14),w=2,lo=[],hi=[];for(let i=w;i<c.length-w;i++){let pl=true,ph=true;for(let j=i-w;j<=i+w;j++){if(j===i)continue;if(l[j]<=l[i])pl=false;if(h[j]>=h[i])ph=false;}if(pl)lo.push(i);if(ph)hi.push(i);}
+  let bull=false,bear=false;
+  if(lo.length>=2){const a=lo[lo.length-2],b=lo[lo.length-1];if(rs[a]!=null&&rs[b]!=null&&l[b]<l[a]&&rs[b]>rs[a]+1)bull=true;}
+  if(hi.length>=2){const a=hi[hi.length-2],b=hi[hi.length-1];if(rs[a]!=null&&rs[b]!=null&&h[b]>h[a]&&rs[b]<rs[a]-1)bear=true;}
+  return {bull,bear};}
 function stoch(h,l,c,p=14,d=3){if(c.length<p+d)return null;const ks=[];for(let i=c.length-d;i<c.length;i++){let hh=-1e9,ll=1e9;for(let j=i-p+1;j<=i;j++){hh=Math.max(hh,h[j]);ll=Math.min(ll,l[j]);}ks.push(hh===ll?50:100*(c[i]-ll)/(hh-ll));}return {k:ks[ks.length-1],d:ks.reduce((x,y)=>x+y,0)/ks.length};}
 function atr(h,l,c,p=14){if(c.length<p+1)return null;const tr=[];for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));let a=tr.slice(0,p).reduce((x,y)=>x+y,0)/p;for(let i=p;i<tr.length;i++)a=(a*(p-1)+tr[i])/p;return a;}
 function macd(c){if(c.length<35)return null;const l12=emaSeries(c,12),l26=emaSeries(c,26);const line=[];for(let i=0;i<c.length;i++)if(l12[i]!=null&&l26[i]!=null)line.push(l12[i]-l26[i]);const sig=ema(line,9);const m=line[line.length-1];return {macd:m,signal:sig,hist:sig==null?null:m-sig};}
@@ -324,6 +348,7 @@ function analyze(d5,d15,d1h,cfg){
   const S=detectStructure(h,l,c), OB=orderBlock(o,h,l,c,leg);
   const BOS={dir:S.bos,level:S.bosLvl};
   const inOB=OB&&price>=OB.lo&&price<=OB.hi;
+  const DV=detectDivergence(c,h,l);
   // candle character
   const body=c[n-1]-o[n-1],rng=(h[n-1]-l[n-1])||1;
   const upWick=h[n-1]-Math.max(c[n-1],o[n-1]),dnWick=Math.min(c[n-1],o[n-1])-l[n-1];
@@ -353,6 +378,7 @@ function analyze(d5,d15,d1h,cfg){
     add(S.choch==='bull',14,'CHoCH bullish (reversal ke atas)');
     add(S.choch==='bear',-10,'CHoCH bearish (lawan)');
     add(inOB&&OB.type==='bull',16,'Harga di Bullish Order Block');
+    add(DV.bull,12,'Divergensi bullish RSI');
     return f;}
   function scoreBear(){const f=[];const add=(cond,w,name)=>{if(cond)f.push({w,name});};
     add(t1h.dir==='turun',25,'Tren 1H turun'); add(t1h.dir==='ranging',6,'Tren 1H netral'); add(t1h.dir==='naik',-22,'Tren 1H naik (lawan)');
@@ -370,6 +396,7 @@ function analyze(d5,d15,d1h,cfg){
     add(S.choch==='bear',14,'CHoCH bearish (reversal ke bawah)');
     add(S.choch==='bull',-10,'CHoCH bullish (lawan)');
     add(inOB&&OB.type==='bear',16,'Harga di Bearish Order Block');
+    add(DV.bear,12,'Divergensi bearish RSI');
     return f;}
   const fb=scoreBull(),fs=scoreBear();
   const W=loadW(),scaleF=arr=>arr.forEach(f=>{f.w=Math.round(f.w*(W[categoryOf(f.name)]??1));});
@@ -438,18 +465,30 @@ function analyze(d5,d15,d1h,cfg){
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV};
 }
 
 /* ---------- render ---------- */
 const fmt=(x,dp=CURDP)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
 const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
-let lastSide=null,audioCtx=null;
+let lastSide=null,audioCtx=null,CURPRICE=null;
+function loadMM(){try{const m=JSON.parse(localStorage.getItem('xau_mm')||'{}');if(m.bal!=null)$('mmBal').value=m.bal;if(m.risk!=null)$('mmRisk').value=m.risk;if(m.vpm!=null)$('mmVpm').value=m.vpm;}catch(e){}}
+function saveMM(){try{localStorage.setItem('xau_mm',JSON.stringify({bal:$('mmBal').value,risk:$('mmRisk').value,vpm:$('mmVpm').value}));}catch(e){}}
+function renderRisk(a){const bal=+$('mmBal').value||0,rp=+$('mmRisk').value||0,vpm=+$('mmVpm').value||0;saveMM();const el=$('mmOut');
+  if(!a||a.side==='NONE'||!a.risk){el.innerHTML='<div class="hint">Muncul otomatis saat ada sinyal aktif (butuh jarak SL untuk hitung lot).</div>';return;}
+  const riskAmt=bal*rp/100,slDist=a.risk,lot=(vpm>0&&slDist>0)?riskAmt/(slDist*vpm):0,tp1$=slDist*1.2*vpm*lot,tp2$=slDist*2*vpm*lot;
+  el.innerHTML=`<div class="ind-grid">
+    <div class="ind"><div class="n">Risiko $</div><div class="val" style="color:var(--red)">$${riskAmt.toFixed(2)}</div></div>
+    <div class="ind"><div class="n">Jarak SL</div><div class="val">${slDist.toFixed(1)} pt</div></div>
+    <div class="ind"><div class="n">Lot disarankan</div><div class="val" style="color:var(--brass)">${lot.toFixed(2)}</div></div>
+    <div class="ind"><div class="n">Profit TP1</div><div class="val" style="color:var(--green2)">+$${tp1$.toFixed(2)}</div></div>
+    <div class="ind"><div class="n">Profit TP2</div><div class="val" style="color:var(--green2)">+$${tp2$.toFixed(2)}</div></div>
+  </div>`;}
 function beep(side){try{if(!audioCtx)return;const ctx=audioCtx;const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=side==='BUY'?880:440;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.35,ctx.currentTime+0.02);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.6);o.start();o.stop(ctx.currentTime+0.6);}catch(e){}}
 
 function render(a,d5){
-  CURDP=a.cfg?a.cfg.dp:2;
+  CURDP=a.cfg?a.cfg.dp:2;CURPRICE=a.price;
   const c=d5.c,n=c.length,prev=c[n-2]||c[n-1],chg=a.price-prev,chgP=prev?chg/prev*100:0;
   $('price').textContent='$'+fmt(a.price);
   const ce=$('chg');ce.className='chg '+(chg>=0?'up':'down');ce.textContent=(chg>=0?'+':'')+fmt(chg)+' ('+(chg>=0?'+':'')+fmt(chgP,2)+'%)';
@@ -517,10 +556,12 @@ function render(a,d5){
     <tr><td>Fibonacci</td><td class="mono">${a.F?('golden $'+fmt(a.F.gLo)+'–$'+fmt(a.F.gHi)):'leg belum valid'}</td><td class="mono">${a.F?(a.F.inGolden?'✅ DI ZONA':'luar zona'):'—'}</td><td>${a.leg?(a.leg.dir==='up'?'leg naik (diskon=beli)':'leg turun (premium=jual)'):'—'}</td></tr>
     <tr><td>BOS</td><td class="mono" style="color:${a.BOS.dir==='bull'?'var(--green2)':a.BOS.dir==='bear'?'var(--red)':'var(--muted)'}">${a.BOS.dir==='bull'?'▲ Bullish break':a.BOS.dir==='bear'?'▼ Bearish break':'— belum'}</td><td class="mono">${a.BOS.level?'$'+fmt(a.BOS.level):'—'}</td><td>${a.BOS.dir!=='none'?'lanjutan':'—'}</td></tr>
     <tr><td>CHoCH</td><td class="mono" style="color:${a.S.choch==='bull'?'var(--green2)':a.S.choch==='bear'?'var(--red)':'var(--muted)'}">${a.S.choch==='bull'?'▲ Bullish':a.S.choch==='bear'?'▼ Bearish':'— belum'}</td><td class="mono">${a.S.chochLvl?'$'+fmt(a.S.chochLvl):'—'}</td><td>${a.S.choch!=='none'?'reversal':'tren '+(a.S.trend==='up'?'naik':a.S.trend==='down'?'turun':'?')}</td></tr>
-    <tr><td>Order Block</td><td class="mono" style="color:${a.OB?(a.OB.type==='bull'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.OB?(a.OB.type==='bull'?'🟩 Bullish':'🟥 Bearish'):'—'}</td><td class="mono">${a.OB?('$'+fmt(a.OB.lo)+'–$'+fmt(a.OB.hi)):'—'}</td><td>${a.inOB?'✅ harga DI DALAM':'harga di luar'}</td></tr>`;
+    <tr><td>Order Block</td><td class="mono" style="color:${a.OB?(a.OB.type==='bull'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.OB?(a.OB.type==='bull'?'🟩 Bullish':'🟥 Bearish'):'—'}</td><td class="mono">${a.OB?('$'+fmt(a.OB.lo)+'–$'+fmt(a.OB.hi)):'—'}</td><td>${a.inOB?'✅ harga DI DALAM':'harga di luar'}</td></tr>
+    <tr><td>Divergensi RSI</td><td class="mono" style="color:${a.DV.bull?'var(--green2)':a.DV.bear?'var(--red)':'var(--muted)'}">${a.DV.bull?'▲ Bullish':a.DV.bear?'▼ Bearish':'— tidak ada'}</td><td class="mono">—</td><td>${a.DV.bull||a.DV.bear?'sinyal reversal':'—'}</td></tr>`;
 
   drawChart(d5,a);
 
+  renderRisk(a);
   // alarm
   if($('alarm').checked && (a.side==='BUY'||a.side==='SELL') && a.side!==lastSide){beep(a.side);beep(a.side);}
   lastSide=a.side;
@@ -658,7 +699,11 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   // list
   $('jtable').innerHTML=`<tr><th>Waktu</th><th>Aset</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
     (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';const dp=(SYMBOLS[t.symbol]||{dp:2}).dp;
-      return `<tr><td class="mono" style="font-size:11px">${new Date(t.ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="font-size:11px">${(t.symbol||'XAU/USD').replace('/USD','')}</td><td style="color:${t.side==='BUY'?'var(--green2)':'var(--red)'};font-weight:700">${t.side}</td><td class="mono">${fmt(t.entry,dp)}</td><td style="font-size:12px">${t.setup}</td><td style="color:${stC};font-weight:700">${t.status==='open'?'⏳ open':t.status}</td><td class="mono" style="color:${stC}">${t.net==null?'—':(t.net>=0?'+':'')+t.net}</td><td><span data-del="${t.id}" style="cursor:pointer;color:var(--muted)">✕</span></td></tr>`;}).join(''):'<tr><td colspan="8" class="muted">Belum ada trade dicatat.</td></tr>');
+      let stTxt=t.status==='open'?'⏳ open':t.status, netCell=t.net==null?'—':`<span style="color:${stC}">${(t.net>=0?'+':'')+t.net}</span>`;
+      if(t.status==='open'&&t.symbol===$('symbol').value&&CURPRICE){const fl=t.side==='BUY'?CURPRICE-t.entry:t.entry-CURPRICE,risk=Math.abs(t.entry-t.sl);
+        netCell=`<span style="color:${fl>=0?'var(--green2)':'var(--red)'}">${fl>=0?'+':''}${fl.toFixed(dp)}</span>`;
+        if(fl>=risk*0.5)stTxt='⏳ geser SL→BE';}
+      return `<tr><td class="mono" style="font-size:11px">${new Date(t.ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="font-size:11px">${(t.symbol||'XAU/USD').replace('/USD','')}</td><td style="color:${t.side==='BUY'?'var(--green2)':'var(--red)'};font-weight:700">${t.side}</td><td class="mono">${fmt(t.entry,dp)}</td><td style="font-size:12px">${t.setup}</td><td style="color:${stC};font-weight:700">${stTxt}</td><td class="mono">${netCell}</td><td><span data-del="${t.id}" style="cursor:pointer;color:var(--muted)">✕</span></td></tr>`;}).join(''):'<tr><td colspan="8" class="muted">Belum ada trade dicatat.</td></tr>');
   $('jtable').querySelectorAll('[data-del]').forEach(x=>x.addEventListener('click',()=>{saveJ(loadJ().filter(t=>t.id!=x.dataset.del));renderJournal();}));}
 $('btnLog').addEventListener('click',()=>logTrade(lastA?lastA.a:null));
 $('btnCloseNow').addEventListener('click',()=>{if(lastA)closeNow(lastA.a.price);});
@@ -668,7 +713,8 @@ $('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat k
 $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
-buildWeights();renderJournal();
+buildWeights();renderJournal();loadMM();renderRisk(null);
+['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
 if($('apiKey').value.trim())run();
 </script>
