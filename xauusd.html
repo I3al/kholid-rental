@@ -125,6 +125,7 @@
     </div>
     <div style="display:flex;gap:18px;margin-top:12px;flex-wrap:wrap">
       <label class="chk"><input type="checkbox" id="alarm" checked> 🔔 Alarm sinyal</label>
+      <label class="chk"><input type="checkbox" id="aplus"> ✦ Mode A+ saja (setup terbaik)</label>
       <label class="chk"><input type="checkbox" id="news"> ⚠️ Ada berita &lt;30 mnt (paksa NO TRADE)</label>
     </div>
     <details style="margin-top:12px">
@@ -218,6 +219,7 @@ try{
   if(localStorage.getItem(LS.auto))$('auto').value=localStorage.getItem(LS.auto);
   if(localStorage.getItem(LS.alarm)!==null)$('alarm').checked=localStorage.getItem(LS.alarm)==='1';
   if(localStorage.getItem('xau_symbol'))$('symbol').value=localStorage.getItem('xau_symbol');
+  if(localStorage.getItem('xau_aplus')==='1')$('aplus').checked=true;
 }catch(e){}
 
 /* ---------- symbol config (parameter menyesuaikan aset) ---------- */
@@ -446,6 +448,13 @@ function analyze(d5,d15,d1h,cfg){
   const quality=Math.max(0,Math.min(100,Math.round(score)));
   let conf='—';
   if(side!=='NONE'){conf=quality>=70?'High':quality>=55?'Medium':'Low';}
+  // ---- A+ setup: konfluens maksimum (tren searah + di zona + konfirmasi + skor tinggi) ----
+  const _fn=factors.map(f=>f.name.toLowerCase());
+  const hasZone=_fn.some(n=>n.includes('order block')||n.includes('golden'));
+  const hasConfirm=_fn.some(n=>n.includes('sweep')||n.includes('rejection')||n.includes('divergensi')||n.includes('choch'));
+  const trendAligned=side==='BUY'?(t1h.dir==='naik'&&t15.dir!=='turun'):side==='SELL'?(t1h.dir==='turun'&&t15.dir!=='naik'):false;
+  const isAplus=side!=='NONE'&&quality>=75&&trendAligned&&hasZone&&hasConfirm;
+  if($('aplus').checked&&side!=='NONE'&&!isAplus){gates.push({t:'warn',m:'Mode A+ aktif — sinyal ditahan. Menunggu setup terbaik: skor≥75, tren 1H searah, harga di Order Block/Fibo golden, + konfirmasi (sweep/divergensi/CHoCH).'});side='NONE';}
 
   // ---- probabilities from quality ----
   let pSL=[0,0],pTP1=[0,0],pTP2=[0,0];
@@ -468,7 +477,7 @@ function analyze(d5,d15,d1h,cfg){
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV,isAplus};
 }
 
 /* ---------- render ---------- */
@@ -502,7 +511,7 @@ function render(a,d5){
   if(a.side==='BUY'){b.className='signal-badge sig-buy';b.textContent='🟢 BUY (Long)';}
   else if(a.side==='SELL'){b.className='signal-badge sig-sell';b.textContent='🔴 SELL (Short)';}
   else{b.className='signal-badge sig-none';b.textContent='⚪ NO TRADE';}
-  $('sigConf').textContent=a.side==='NONE'?'tunggu setup':('Confidence: '+a.conf);
+  $('sigConf').innerHTML=a.side==='NONE'?'tunggu setup':('Confidence: '+a.conf+(a.isAplus?' <span style="color:#0a0e14;background:var(--brass);padding:2px 7px;border-radius:5px;font-weight:800">✦ A+</span>':''));
 
   const q=a.side==='NONE'?0:a.quality;
   const col=q>=70?'var(--green2)':q>=55?'var(--brass)':q>0?'var(--amber)':'var(--line)';
@@ -718,6 +727,7 @@ $('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat k
 $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
+$('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 buildWeights();renderJournal();loadMM();renderRisk(null);
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
