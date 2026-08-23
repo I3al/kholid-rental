@@ -191,6 +191,16 @@
     <div id="mmOut" style="margin-top:12px"></div>
   </div>
 
+  <div class="card" id="backtestCard">
+    <h2><span class="bar"></span> 🔬 Backtest (uji strategi di data historis)</h2>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
+      <button id="btnBacktest">Jalankan Backtest</button>
+      <span class="hint" style="margin:0">Aset & Mode A+ mengikuti setelan di atas. ~3 request API.</span>
+    </div>
+    <div id="btOut"></div>
+    <div class="hint">Backtest jujur: spread dimasukkan, prioritas SL saat 1 candle sentuh SL &amp; TP bersamaan, 1 entry per sinyal. Hasil masa lalu <b>bukan jaminan</b> masa depan — ini untuk melihat apakah aturannya punya edge, bukan ramalan.</div>
+  </div>
+
   <div class="card" id="journalCard">
     <h2><span class="bar"></span> 📝 Jurnal Trade (otomatis)</h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
@@ -336,8 +346,11 @@ function orderBlock(o,h,l,c,leg){
 }
 
 /* ---------- engine ---------- */
-function analyze(d5,d15,d1h,cfg){
+function analyze(d5,d15,d1h,cfg,opts){
+  opts=opts||{};
   cfg=cfg||cfgOf($('symbol').value);
+  const newsOn=opts.news!==undefined?opts.news:$('news').checked;
+  const aplusOn=opts.aplus!==undefined?opts.aplus:$('aplus').checked;
   const c=d5.c,h=d5.h,l=d5.l,o=d5.o,n=c.length,price=c[n-1];
   const at=atr(h,l,c)||3;
   const ind={rsi:rsi(c),stoch:stoch(h,l,c),cci:cci(h,l,c),atr:at,macd:macd(c),adx:adx(h,l,c),ema9:ema(c,9),ema21:ema(c,21),ema50:ema(c,50)};
@@ -406,9 +419,9 @@ function analyze(d5,d15,d1h,cfg){
   const sB=fb.reduce((s,x)=>s+x.w,0), sS=fs.reduce((s,x)=>s+x.w,0);
 
   // ---- gates ----
-  const gates=[];let hardBlock=false;const utcH=new Date().getUTCHours();const atrPct=at/price;
+  const gates=[];let hardBlock=false;const utcH=opts.utcH!==undefined?opts.utcH:new Date().getUTCHours();const atrPct=at/price;
   if(atrPct>cfg.atrMaxPct){gates.push({t:'block',m:`ATR ${(atrPct*100).toFixed(2)}% dari harga > batas ${(cfg.atrMaxPct*100).toFixed(2)}% — terlalu volatil untuk scalp. SKIP.`});hardBlock=true;}
-  if($('news').checked){gates.push({t:'block',m:'Anda tandai ada berita <30 menit — NO TRADE (berita bisa gerak harga drastis).'});hardBlock=true;}
+  if(newsOn){gates.push({t:'block',m:'Anda tandai ada berita <30 menit — NO TRADE (berita bisa gerak harga drastis).'});hardBlock=true;}
   if(!cfg.crypto){
     if(utcH===21){gates.push({t:'block',m:'Rollover 21:00–22:00 UTC — rawan stop-hunt. SKIP.'});hardBlock=true;}
     if(utcH>=13&&utcH<17)gates.push({t:'ok',m:'Sesi London–NY overlap — likuiditas terbaik.'});
@@ -454,7 +467,7 @@ function analyze(d5,d15,d1h,cfg){
   const hasConfirm=_fn.some(n=>n.includes('sweep')||n.includes('rejection')||n.includes('divergensi')||n.includes('choch'));
   const trendAligned=side==='BUY'?(t1h.dir==='naik'&&t15.dir!=='turun'):side==='SELL'?(t1h.dir==='turun'&&t15.dir!=='naik'):false;
   const isAplus=side!=='NONE'&&quality>=75&&trendAligned&&hasZone&&hasConfirm;
-  if($('aplus').checked&&side!=='NONE'&&!isAplus){gates.push({t:'warn',m:'Mode A+ aktif — sinyal ditahan. Menunggu setup terbaik: skor≥75, tren 1H searah, harga di Order Block/Fibo golden, + konfirmasi (sweep/divergensi/CHoCH).'});side='NONE';}
+  if(aplusOn&&side!=='NONE'&&!isAplus){gates.push({t:'warn',m:'Mode A+ aktif — sinyal ditahan. Menunggu setup terbaik: skor≥75, tren 1H searah, harga di Order Block/Fibo golden, + konfirmasi (sweep/divergensi/CHoCH).'});side='NONE';}
 
   // ---- probabilities from quality ----
   let pSL=[0,0],pTP1=[0,0],pTP2=[0,0];
@@ -473,7 +486,7 @@ function analyze(d5,d15,d1h,cfg){
     ['Harga di golden zone Fibonacci?', F?F.inGolden:false],
     ['BOS/CHoCH searah?', (side==='BUY'&&(S.bos==='bull'||S.choch==='bull'))||(side==='SELL'&&(S.bos==='bear'||S.choch==='bear'))],
     ['Harga di Order Block?', inOB],
-    [cfg.crypto?'Tanpa berita besar?':'Bukan jam rollover / berita?', (cfg.crypto?true:utcH!==21) && !$('news').checked]
+    [cfg.crypto?'Tanpa berita besar?':'Bukan jam rollover / berita?', (cfg.crypto?true:utcH!==21) && !newsOn]
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
@@ -723,6 +736,54 @@ $('btnLog').addEventListener('click',()=>logTrade(lastA?lastA.a:null));
 $('btnCloseNow').addEventListener('click',()=>{if(lastA)closeNow(lastA.a.price);});
 $('btnClear').addEventListener('click',()=>{if(confirm('Hapus semua jurnal trade?')){saveJ([]);renderJournal();}});
 
+/* ---------- backtest ---------- */
+async function runBacktest(){
+  const out=$('btOut'),btn=$('btnBacktest');out.innerHTML='<div class="hint">⏳ Mengambil data historis & menjalankan replay…</div>';btn.disabled=true;
+  try{
+    const cfg=cfgOf($('symbol').value),aplusOn=$('aplus').checked;
+    const d5=await fetchSeries('5min',400),d15=await fetchSeries('15min',200),d1h=await fetchSeries('1h',120);
+    if(d5.c.length<80)throw new Error('Data historis kurang.');
+    const toMs=s=>new Date(s.replace(' ','T')+'Z').getTime();
+    const t5=d5.t.map(toMs),t15=d15.t.map(toMs),t1h=d1h.t.map(toMs);
+    const START=60,LOOK=72;let trades=[],p15=0,p1h=0;
+    for(let i=START;i<d5.c.length-1;i++){
+      while(p15+1<t15.length&&t15[p15+1]<=t5[i])p15++;
+      while(p1h+1<t1h.length&&t1h[p1h+1]<=t5[i])p1h++;
+      const s5={o:d5.o.slice(0,i+1),h:d5.h.slice(0,i+1),l:d5.l.slice(0,i+1),c:d5.c.slice(0,i+1)};
+      const s15={o:d15.o.slice(0,p15+1),h:d15.h.slice(0,p15+1),l:d15.l.slice(0,p15+1),c:d15.c.slice(0,p15+1)};
+      const s1h={o:d1h.o.slice(0,p1h+1),h:d1h.h.slice(0,p1h+1),l:d1h.l.slice(0,p1h+1),c:d1h.c.slice(0,p1h+1)};
+      const a=analyze(s5,s15,s1h,cfg,{news:false,aplus:aplusOn,utcH:new Date(t5[i]).getUTCHours()});
+      if(a.side==='NONE')continue;
+      const sp=cfg.spread;let res=null;
+      for(let j=i+1;j<Math.min(d5.c.length,i+1+LOOK);j++){const hi=d5.h[j],lo=d5.l[j];
+        if(a.side==='BUY'){if(lo<=a.sl)res={o:'SL',net:(a.sl-a.entry)-sp};else if(hi>=a.tp2)res={o:'TP2',net:(a.tp2-a.entry)-sp};else if(hi>=a.tp1)res={o:'TP1',net:(a.tp1-a.entry)-sp};}
+        else{if(hi>=a.sl)res={o:'SL',net:(a.entry-a.sl)-sp};else if(lo<=a.tp2)res={o:'TP2',net:(a.entry-a.tp2)-sp};else if(lo<=a.tp1)res={o:'TP1',net:(a.entry-a.tp1)-sp};}
+        if(res){i=j;break;}}
+      if(res){res.side=a.side;trades.push(res);}
+    }
+    renderBacktest(trades,cfg,d5.c.length);
+  }catch(e){out.innerHTML=`<div class="err">Gagal: ${e.message}</div>`;}
+  btn.disabled=false;
+}
+function renderBacktest(tr,cfg,bars){
+  const out=$('btOut');
+  if(!tr.length){out.innerHTML='<div class="hint">Tidak ada sinyal terpicu di rentang ini (wajar untuk mode selektif/A+). Coba matikan A+ atau ganti aset/waktu.</div>';return;}
+  const wins=tr.filter(t=>t.net>0).length,losses=tr.length-wins,wr=Math.round(wins/tr.length*100);
+  const net=tr.reduce((a,b)=>a+b.net,0);
+  const gW=tr.filter(t=>t.net>0).reduce((a,b)=>a+b.net,0),gL=Math.abs(tr.filter(t=>t.net<=0).reduce((a,b)=>a+b.net,0));
+  const pf=gL>0?gW/gL:Infinity,exp=net/tr.length,col=v=>v>=0?'var(--green2)':'var(--red)';
+  const verdict=pf>=1.3&&wr>=45?'✅ Ada edge positif di data ini — layak diuji lanjut lewat paper trade.':pf>=1?'⚠️ Marginal — edge tipis. Coba setel bobot atau aktifkan Mode A+.':'❌ Belum profit di data ini — JANGAN pakai uang real. Setel bobot, aktifkan A+, atau tunggu kondisi pasar beda.';
+  out.innerHTML=`<div class="ind-grid">
+    <div class="ind"><div class="n">Total sinyal</div><div class="val">${tr.length}</div></div>
+    <div class="ind"><div class="n">Win rate</div><div class="val" style="color:${wr>=50?'var(--green2)':'var(--red)'}">${wr}%</div></div>
+    <div class="ind"><div class="n">W / L</div><div class="val">${wins}/${losses}</div></div>
+    <div class="ind"><div class="n">Net poin</div><div class="val" style="color:${col(net)}">${net>=0?'+':''}${net.toFixed(1)}</div></div>
+    <div class="ind"><div class="n">Profit Factor</div><div class="val" style="color:${pf>=1.2?'var(--green2)':'var(--red)'}">${pf===Infinity?'∞':pf.toFixed(2)}</div></div>
+    <div class="ind"><div class="n">Expectancy/trade</div><div class="val" style="color:${col(exp)}">${exp>=0?'+':''}${exp.toFixed(1)}</div></div>
+  </div>
+  <div class="reason" style="margin-top:10px"><b>Kesimpulan:</b> ${verdict}<br><span class="muted">Dari ${bars} candle 5m. Profit Factor = total profit ÷ total loss (&gt;1 = cuan). Expectancy = rata-rata poin per trade (setelah spread).</span></div>`;
+}
+$('btnBacktest').addEventListener('click',runBacktest);
 $('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat kuota
 $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
