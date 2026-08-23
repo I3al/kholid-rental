@@ -134,6 +134,11 @@
       <div id="weights" style="margin-top:10px"></div>
       <button class="ghost" id="wReset" style="margin-top:8px;padding:6px 12px;font-size:12px">Reset ke default</button>
     </details>
+    <div style="margin-top:12px;max-width:300px">
+      <label>🔗 Offset broker MT5 ($)</label>
+      <input type="number" id="offset" value="0" step="0.1">
+      <div class="hint">Selisih harga MT5 Anda vs dashboard. Contoh: MT5 4604.9, dashboard 4608.2 → isi <b>-3.3</b>. Semua level ikut harga broker Anda. Eksekusi tetap manual di MT5.</div>
+    </div>
     <div id="errBox"></div>
   </div>
 
@@ -237,6 +242,7 @@ try{
   if(localStorage.getItem('xau_symbol'))$('symbol').value=localStorage.getItem('xau_symbol');
   if(localStorage.getItem('xau_aplus')==='1')$('aplus').checked=true;
   if(localStorage.getItem('xau_autolog')==='1')$('autolog').checked=true;
+  if(localStorage.getItem('xau_offset'))$('offset').value=localStorage.getItem('xau_offset');
 }catch(e){}
 
 /* ---------- symbol config (parameter menyesuaikan aset) ---------- */
@@ -668,14 +674,17 @@ async function run(){
     if((needHTF||!cache.d15)&&recentReq()<6){cache.d15=await fetchSeries('15min',150);}
     if((needHTF||!cache.d1h)&&recentReq()<6){cache.d1h=await fetchSeries('1h',150);}
     cache.cycle++;
+    const off=+($('offset').value)||0;
+    const shift=d=>off?{o:d.o.map(x=>x+off),h:d.h.map(x=>x+off),l:d.l.map(x=>x+off),c:d.c.map(x=>x+off),t:d.t}:d;
+    const D5=shift(d5),D15=shift(cache.d15),D1H=shift(cache.d1h);
     const lastMs=new Date(d5.t[d5.t.length-1].replace(' ','T')+'Z').getTime();MARKET_AGE=(Date.now()-lastMs)/60000;
-    const a=analyze(d5,cache.d15,cache.d1h,cfg);
-    render(a,d5);
-    lastRaw={d5,d15:cache.d15,d1h:cache.d1h,cfg};lastA={a,d5};
-    evalOpen(a.price,d5.h[d5.h.length-1],d5.l[d5.l.length-1]);renderJournal();
+    const a=analyze(D5,D15,D1H,cfg);
+    render(a,D5);
+    lastRaw={d5:D5,d15:D15,d1h:D1H,cfg};lastA={a,d5:D5};
+    evalOpen(a.price,D5.h[D5.h.length-1],D5.l[D5.l.length-1]);renderJournal();
     if($('autolog').checked&&(a.side==='BUY'||a.side==='SELL')&&a.side!==autoLoggedSide)logTrade(a);
     autoLoggedSide=a.side;
-    $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800`;
+    $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800${off?` · offset ${off>=0?'+':''}${off}`:''}`;
   }catch(e){$('status').textContent='— error —';
     const rl=/429|API credits|run out/i.test(e.message);
     err.innerHTML=`<div class="err"><b>${rl?'⏳ Limit API tercapai':'Gagal'}:</b> ${rl?('Free plan Twelve Data = 8 request/menit. Tunggu ~60 detik'+(+$('auto').value>0?' — auto-refresh akan coba lagi otomatis.':', lalu klik Analisa lagi.')):e.message}</div>`;
@@ -824,6 +833,7 @@ $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
 $('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 $('autolog').addEventListener('change',()=>localStorage.setItem('xau_autolog',$('autolog').checked?'1':'0'));
+$('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('offset').value);if(lastRaw&&$('apiKey').value.trim())run();});
 buildWeights();renderJournal();loadMM();renderRisk(null);
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
