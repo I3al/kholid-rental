@@ -167,6 +167,23 @@ canvas{border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;b
 .disclaimer{color:#333;background:#c0c0c0}
 .chk{color:#000;font-weight:700}
 details summary{color:#000080!important}
+/* taskbar + start menu + window controls */
+body{padding-bottom:40px}
+.winctrls{display:flex;gap:2px;margin-left:8px}
+.winctrls button{padding:0;width:20px;height:18px;font-size:11px;font-weight:700;line-height:1;box-shadow:1px 1px 0 #000}
+.taskbar{position:fixed;left:0;right:0;bottom:0;height:34px;z-index:100;display:flex;align-items:center;gap:4px;padding:3px 4px;background:#c0c0c0;border-top:2px solid #dfdfdf;box-shadow:inset 0 1px 0 #fff}
+.startbtn{font-weight:700;padding:3px 12px;display:flex;align-items:center;gap:6px}
+.taskitem{flex:0 1 220px;text-align:left;padding:4px 10px;font-weight:400;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.taskitem.min{border-color:#808080 #fff #fff #808080;box-shadow:none;font-style:italic;color:#333}
+.clock{margin-left:auto;font-family:var(--mono);font-size:12px;padding:4px 12px;background:#c0c0c0;border:2px solid;border-color:#808080 #fff #fff #808080}
+.startmenu{position:fixed;left:4px;bottom:37px;z-index:101;width:240px;display:none;background:#c0c0c0;border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;box-shadow:3px 3px 8px rgba(0,0,0,.45)}
+.startmenu.show{display:flex}
+.startmenu .side{width:30px;background:linear-gradient(#1084d0,#000080);color:#fff;font-weight:800;font-size:13px;letter-spacing:2px;writing-mode:vertical-rl;transform:rotate(180deg);text-align:center;padding:10px 0}
+.startmenu .items{flex:1;padding:4px}
+.smitem{display:flex;align-items:center;gap:8px;padding:7px 8px;cursor:pointer;font-weight:400;color:#000}
+.smitem:hover{background:#000080;color:#fff}
+.smsep{height:0;margin:4px 2px;border-top:1px solid #808080;border-bottom:1px solid #fff}
+.minimized .tabbar,.minimized .pane,.minimized .disclaimer{display:none!important}
 </style>
 </head>
 <body>
@@ -176,6 +193,7 @@ details summary{color:#000080!important}
     <div class="brand"><span class="dot"></span> XAU PRO <small>terminal</small></div>
     <div class="mkt" id="mkt"></div>
     <div class="status" id="status">— idle —</div>
+    <div class="winctrls"><button id="winMin" title="Minimize">_</button><button id="winMax" title="Restore">□</button><button id="winClose" title="Close">×</button></div>
   </div>
   <nav class="tabbar" id="tabbar"></nav>
 
@@ -315,6 +333,25 @@ details summary{color:#000080!important}
     ⚠️ Alat bantu analisis berbasis aturan — <b>bukan nasihat keuangan</b>, bukan jaminan profit. Filter ketat = sinyal lebih jarang tapi lebih terpilih.
     Selalu cek kalender ekonomi (CPI/NFP/FOMC). Untuk belajar &amp; disiplin.
   </div>
+</div>
+
+<div class="startmenu" id="startmenu">
+  <div class="side">XAU PRO</div>
+  <div class="items">
+    <div class="smitem" data-go="chartCard">📈 Grafik</div>
+    <div class="smitem" data-go="signalCard">🎯 Sinyal</div>
+    <div class="smitem" data-go="journalCard">📝 Jurnal</div>
+    <div class="smitem" data-go="backtestCard">🔬 Backtest</div>
+    <div class="smitem" data-go="akunCard">⚙️ Pengaturan</div>
+    <div class="smsep"></div>
+    <div class="smitem" id="smAbout">❓ Tentang</div>
+    <div class="smitem" id="smShut">⏻ Shut Down…</div>
+  </div>
+</div>
+<div class="taskbar">
+  <button class="startbtn" id="startbtn">🪟 Start</button>
+  <button class="taskitem" id="taskitem">XAU PRO — terminal</button>
+  <div class="clock" id="clock">--:--</div>
 </div>
 
 <script>
@@ -971,6 +1008,22 @@ function buildMkt(){$('mkt').innerHTML=MKT.map(([v,l])=>`<button data-s="${v}">$
 function syncMkt(){$('mkt').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===$('symbol').value));}
 buildTabs();buildMkt();
 {let t='chartCard';try{t=localStorage.getItem('xau_tab')||'chartCard';}catch(e){}if(!TABS.some(x=>x[0]===t))t='chartCard';showTab(t);}
+/* ---------- retro desktop: taskbar, start menu, window controls ---------- */
+const clockTick=()=>{$('clock').textContent=new Date().toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'});};
+clockTick();setInterval(clockTick,15000);
+$('startbtn').addEventListener('click',e=>{e.stopPropagation();$('startmenu').classList.toggle('show');});
+$('startmenu').addEventListener('click',e=>e.stopPropagation());
+document.addEventListener('click',()=>$('startmenu').classList.remove('show'));
+document.querySelectorAll('.smitem[data-go]').forEach(b=>b.addEventListener('click',()=>{restoreWin();showTab(b.dataset.go);$('startmenu').classList.remove('show');}));
+$('smAbout').addEventListener('click',()=>{$('startmenu').classList.remove('show');alert('XAU PRO Terminal — Windows edition\nAnalisa XAUUSD / BTC / ETH.\nAlat bantu, bukan nasihat keuangan.');});
+$('smShut').addEventListener('click',()=>{$('startmenu').classList.remove('show');alert('Sekadar gaya 😄 — jangan matikan, pasar butuh Anda!');});
+const wrapEl=document.querySelector('.wrap');
+function minimizeWin(){wrapEl.classList.add('minimized');$('taskitem').classList.add('min');}
+function restoreWin(){wrapEl.classList.remove('minimized');$('taskitem').classList.remove('min');}
+$('winMin').addEventListener('click',minimizeWin);
+$('winClose').addEventListener('click',minimizeWin);
+$('winMax').addEventListener('click',restoreWin);
+$('taskitem').addEventListener('click',()=>{wrapEl.classList.contains('minimized')?restoreWin():minimizeWin();});
 buildWeights();renderJournal();loadMM();renderRisk(null);loadMt5S();
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
