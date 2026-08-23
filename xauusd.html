@@ -242,7 +242,9 @@ async function fetchSeries(interval,size){
   const v=j.values.slice().reverse();
   return {t:v.map(x=>x.datetime),o:v.map(x=>+x.open),h:v.map(x=>+x.high),l:v.map(x=>+x.low),c:v.map(x=>+x.close)};
 }
-function bumpReq(){try{const t=new Date().toISOString().slice(0,10);if(localStorage.getItem(LS.reqDay)!==t){localStorage.setItem(LS.reqDay,t);localStorage.setItem(LS.reqCount,'0');}localStorage.setItem(LS.reqCount,String((+localStorage.getItem(LS.reqCount)||0)+1));}catch(e){}}
+let reqTimes=[];
+function recentReq(){const now=Date.now();reqTimes=reqTimes.filter(t=>now-t<60000);return reqTimes.length;}
+function bumpReq(){reqTimes.push(Date.now());try{const t=new Date().toISOString().slice(0,10);if(localStorage.getItem(LS.reqDay)!==t){localStorage.setItem(LS.reqDay,t);localStorage.setItem(LS.reqCount,'0');}localStorage.setItem(LS.reqCount,String((+localStorage.getItem(LS.reqCount)||0)+1));}catch(e){}}
 function reqUsed(){try{return +localStorage.getItem(LS.reqCount)||0;}catch(e){return 0;}}
 
 /* ---------- key levels ---------- */
@@ -565,15 +567,19 @@ async function run(){
     localStorage.setItem('xau_symbol',$('symbol').value);
     const cfg=cfgOf($('symbol').value);
     const d5=await fetchSeries('5min',150);
-    if(cache.cycle%5===0||!cache.d15){cache.d15=await fetchSeries('15min',150);}
-    if(cache.cycle%5===0||!cache.d1h){cache.d1h=await fetchSeries('1h',150);}
+    const needHTF=cache.cycle%8===0; // refresh 15m/1H tiap 8 siklus (hemat kuota)
+    if((needHTF||!cache.d15)&&recentReq()<6){cache.d15=await fetchSeries('15min',150);}
+    if((needHTF||!cache.d1h)&&recentReq()<6){cache.d1h=await fetchSeries('1h',150);}
     cache.cycle++;
     const a=analyze(d5,cache.d15,cache.d1h,cfg);
     render(a,d5);
     lastRaw={d5,d15:cache.d15,d1h:cache.d1h,cfg};lastA={a,d5};
     evalOpen(a.price,d5.h[d5.h.length-1],d5.l[d5.l.length-1]);renderJournal();
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800`;
-  }catch(e){$('status').textContent='— error —';err.innerHTML=`<div class="err"><b>Gagal:</b> ${e.message}</div>`;}
+  }catch(e){$('status').textContent='— error —';
+    const rl=/429|API credits|run out/i.test(e.message);
+    err.innerHTML=`<div class="err"><b>${rl?'⏳ Limit API tercapai':'Gagal'}:</b> ${rl?('Free plan Twelve Data = 8 request/menit. Tunggu ~60 detik'+(+$('auto').value>0?' — auto-refresh akan coba lagi otomatis.':', lalu klik Analisa lagi.')):e.message}</div>`;
+  }
 }
 function setupAuto(){if(timer){clearInterval(timer);timer=null;}const s=+$('auto').value;if(s>0)timer=setInterval(run,s*1000);}
 /* ---------- weights ---------- */
@@ -658,7 +664,7 @@ $('btnLog').addEventListener('click',()=>logTrade(lastA?lastA.a:null));
 $('btnCloseNow').addEventListener('click',()=>{if(lastA)closeNow(lastA.a.price);});
 $('btnClear').addEventListener('click',()=>{if(confirm('Hapus semua jurnal trade?')){saveJ([]);renderJournal();}});
 
-$('btnAnalyze').addEventListener('click',()=>{cache.cycle=0;run();});
+$('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat kuota
 $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
