@@ -202,6 +202,21 @@
     <div id="mmOut" style="margin-top:12px"></div>
   </div>
 
+  <div class="card" id="mt5Card">
+    <h2><span class="bar"></span> 🔗 MT5 — Saldo &amp; Posisi (read-only)</h2>
+    <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div style="grid-column:1/-1"><label>MetaApi token</label><input type="password" id="mtToken" placeholder="Tempel API token MetaApi" autocomplete="off"></div>
+      <div><label>Account ID (MetaApi)</label><input type="text" id="mtAcc" placeholder="cth: 0a1b2c3d-..."></div>
+      <div><label>Region</label><select id="mtRegion"><option value="new-york">new-york</option><option value="london">london</option><option value="singapore">singapore</option></select></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">
+      <button id="btnMt5">Hubungkan &amp; muat</button>
+      <label class="chk"><input type="checkbox" id="mtAuto"> auto-refresh tiap analisa</label>
+    </div>
+    <div id="mt5Out" style="margin-top:12px"></div>
+    <div class="hint">Pakai <b>investor password</b> (read-only) saat provisioning akun di MetaApi — lebih aman, tidak bisa dipakai trading. Token disimpan lokal di browser Anda. Akun harus sudah <b>deployed &amp; connected</b> di MetaApi, dan region harus cocok. Ini <b>bukan</b> auto-trade — cuma memantau.</div>
+  </div>
+
   <div class="card" id="backtestCard">
     <h2><span class="bar"></span> 🔬 Backtest (uji strategi di data historis)</h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
@@ -684,6 +699,7 @@ async function run(){
     evalOpen(a.price,D5.h[D5.h.length-1],D5.l[D5.l.length-1]);renderJournal();
     if($('autolog').checked&&(a.side==='BUY'||a.side==='SELL')&&a.side!==autoLoggedSide)logTrade(a);
     autoLoggedSide=a.side;
+    if($('mtAuto').checked&&$('mtToken').value.trim())connectMt5(true);
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800${off?` · offset ${off>=0?'+':''}${off}`:''}`;
   }catch(e){$('status').textContent='— error —';
     const rl=/429|API credits|run out/i.test(e.message);
@@ -826,6 +842,39 @@ function renderBacktest(tr,cfg,bars){
   </div>
   <div class="reason" style="margin-top:10px"><b>Kesimpulan:</b> ${verdict}<br><span class="muted">Dari ${bars} candle 5m. Profit Factor = total profit ÷ total loss (&gt;1 = cuan). Expectancy = rata-rata poin per trade (setelah spread).</span></div>`;
 }
+/* ---------- MT5 read-only via MetaApi ---------- */
+function loadMt5S(){try{const m=JSON.parse(localStorage.getItem('xau_mt5')||'{}');if(m.token)$('mtToken').value=m.token;if(m.acc)$('mtAcc').value=m.acc;if(m.region)$('mtRegion').value=m.region;if(m.auto)$('mtAuto').checked=true;}catch(e){}}
+function saveMt5S(){try{localStorage.setItem('xau_mt5',JSON.stringify({token:$('mtToken').value.trim(),acc:$('mtAcc').value.trim(),region:$('mtRegion').value,auto:$('mtAuto').checked?1:0}));}catch(e){}}
+async function connectMt5(silent){
+  const out=$('mt5Out'),token=$('mtToken').value.trim(),acc=$('mtAcc').value.trim(),region=$('mtRegion').value;saveMt5S();
+  if(!token||!acc){if(!silent)out.innerHTML='<div class="err">Isi token & Account ID dulu.</div>';return;}
+  if(!silent)out.innerHTML='<div class="hint">⏳ Menghubungkan ke MetaApi…</div>';
+  const base=`https://mt-client-api-v1.${region}.agiliumtrade.ai`,h={'auth-token':token};
+  try{
+    const [ai,pos]=await Promise.all([
+      fetch(`${base}/users/current/accounts/${acc}/account-information`,{headers:h}).then(r=>r.json()),
+      fetch(`${base}/users/current/accounts/${acc}/positions`,{headers:h}).then(r=>r.json())
+    ]);
+    if(ai==null||ai.balance===undefined)throw new Error(ai&&(ai.message||ai.error)||'Respons tak terduga (akun belum deployed/connected?)');
+    renderMt5(ai,Array.isArray(pos)?pos:[]);
+  }catch(e){out.innerHTML=`<div class="err"><b>Gagal:</b> ${e.message}. Cek token/Account ID/region, dan pastikan akun sudah <b>deployed &amp; connected</b> di MetaApi.</div>`;}
+}
+function renderMt5(ai,pos){
+  const out=$('mt5Out'),cur=ai.currency||'',f=x=>x==null?'—':(+x).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),plCol=ai.profit>=0?'var(--green2)':'var(--red)';
+  let html=`<div class="ind-grid">
+    <div class="ind"><div class="n">Saldo</div><div class="val">${f(ai.balance)} ${cur}</div></div>
+    <div class="ind"><div class="n">Ekuitas</div><div class="val">${f(ai.equity)} ${cur}</div></div>
+    <div class="ind"><div class="n">Floating P/L</div><div class="val" style="color:${plCol}">${f(ai.profit)} ${cur}</div></div>
+    <div class="ind"><div class="n">Margin bebas</div><div class="val">${f(ai.freeMargin)} ${cur}</div></div>
+    <div class="ind"><div class="n">Leverage</div><div class="val">1:${ai.leverage||'—'}</div></div>
+    <div class="ind"><div class="n">Posisi</div><div class="val">${pos.length}</div></div></div>`;
+  if(pos.length)html+=`<div style="overflow-x:auto;margin-top:10px"><table><tr><th>Simbol</th><th>Tipe</th><th class="mono">Lot</th><th class="mono">Buka</th><th class="mono">Skrg</th><th class="mono">P/L</th></tr>`+
+    pos.map(p=>`<tr><td>${p.symbol||''}</td><td style="color:${(p.type||'').includes('BUY')?'var(--green2)':'var(--red)'};font-weight:700">${(p.type||'').replace('POSITION_TYPE_','')}</td><td class="mono">${p.volume}</td><td class="mono">${f(p.openPrice)}</td><td class="mono">${f(p.currentPrice)}</td><td class="mono" style="color:${p.profit>=0?'var(--green2)':'var(--red)'}">${f(p.profit)}</td></tr>`).join('')+`</table></div>`;
+  else html+='<div class="hint" style="margin-top:8px">Tidak ada posisi terbuka.</div>';
+  out.innerHTML=html+`<div class="hint">Update: ${new Date().toLocaleTimeString('id-ID')}</div>`;
+}
+$('btnMt5').addEventListener('click',()=>connectMt5(false));
+$('mtAuto').addEventListener('change',saveMt5S);
 $('btnBacktest').addEventListener('click',runBacktest);
 $('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat kuota
 $('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
@@ -834,7 +883,7 @@ $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm'
 $('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 $('autolog').addEventListener('change',()=>localStorage.setItem('xau_autolog',$('autolog').checked?'1':'0'));
 $('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('offset').value);if(lastRaw&&$('apiKey').value.trim())run();});
-buildWeights();renderJournal();loadMM();renderRisk(null);
+buildWeights();renderJournal();loadMM();renderRisk(null);loadMt5S();
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
 if($('apiKey').value.trim())run();
