@@ -98,17 +98,39 @@
   a{color:var(--brass)}
   .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
   @media(max-width:640px){.cols{grid-template-columns:1fr}.price-hero .big{font-size:34px}.wrap{padding:12px}}
+/* ===== MT5 terminal skin ===== */
+:root{--bg:#0b0e12;--panel:#12161d;--panel2:#171d26;--line:#222b37;--accent:#3d8bff;}
+body{font-size:14px}
+.wrap{max-width:1200px;padding:0 0 40px}
+.term-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(#141b24,#0f141b);border-bottom:1px solid var(--line);padding:8px 14px}
+.term-header .brand{font-size:15px}
+.term-header .brand .dot{background:var(--accent);box-shadow:0 0 10px var(--accent)}
+.mkt{display:flex;gap:6px;flex-wrap:wrap;flex:1;justify-content:center}
+.mkt button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);font-weight:700;font-size:12px;padding:5px 11px;border-radius:6px;font-family:var(--mono)}
+.mkt button.on{background:var(--accent);color:#04101f;border-color:var(--accent)}
+.tabbar{position:sticky;top:41px;z-index:19;display:flex;gap:2px;overflow-x:auto;background:#0d1218;border-bottom:1px solid var(--line);padding:0 6px}
+.tabbar::-webkit-scrollbar{height:0}
+.tab{flex:0 0 auto;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:700;font-size:12.5px;padding:10px 13px;border-radius:0;white-space:nowrap;cursor:pointer}
+.tab.on{color:var(--text);border-bottom-color:var(--accent);background:rgba(61,139,255,.07)}
+.pane{display:none!important;margin:12px}
+.pane.on{display:block!important}
+.card h2{text-transform:uppercase;letter-spacing:.5px;font-size:12px;color:var(--muted)}
+.card h2 .bar{background:var(--accent)}
+#btnAnalyze{background:var(--accent);color:#04101f}
+.big{font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
 <div class="wrap">
 
-  <header>
-    <div class="brand"><span class="dot"></span> XAUUSD SCALP PRO <small>multi-timeframe · confluence engine</small></div>
+  <div class="term-header">
+    <div class="brand"><span class="dot"></span> XAU PRO <small>terminal</small></div>
+    <div class="mkt" id="mkt"></div>
     <div class="status" id="status">— idle —</div>
-  </header>
+  </div>
+  <nav class="tabbar" id="tabbar"></nav>
 
-  <div class="card">
+  <div class="card pane" id="akunCard">
     <div class="toolbar">
       <div class="grow">
         <label>Twelve Data API Key</label>
@@ -142,7 +164,7 @@
     <div id="errBox"></div>
   </div>
 
-  <div class="card">
+  <div class="card pane" id="chartCard">
     <div class="price-hero">
       <div class="big" id="price">—</div>
       <div class="chg" id="chg">—</div>
@@ -152,7 +174,7 @@
     <div class="hint" id="chartLegend"></div>
   </div>
 
-  <div class="card" id="signalCard" style="display:none">
+  <div class="card pane" id="signalCard">
     <div><span class="signal-badge" id="sigBadge">⚪ NO TRADE</span><span class="conf" id="sigConf"></span></div>
     <div class="qbar"><div id="qfill" style="width:0%"></div></div>
     <div class="hint" id="qlabel"></div>
@@ -179,19 +201,19 @@
     </div>
   </div>
 
-  <div class="card" id="planCard" style="display:none">
+  <div class="card pane" id="planCard">
     <h2><span class="bar"></span> 📋 Rencana Entry (saat pasar buka)</h2>
     <div id="planOut"></div>
   </div>
 
-  <div class="card" id="mtfCard" style="display:none">
+  <div class="card pane" id="mtfCard">
     <h2><span class="bar"></span> Multi-Timeframe &amp; Indikator</h2>
     <div class="mtf" id="mtf"></div>
     <div class="ind-grid" id="indGrid" style="margin-top:12px"></div>
     <table id="structTable" style="margin-top:12px"></table>
   </div>
 
-  <div class="card" id="riskCard">
+  <div class="card pane" id="riskCard">
     <h2><span class="bar"></span> 💰 Kalkulator Money Management</h2>
     <div class="row" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px">
       <div><label>Saldo akun ($)</label><input type="number" id="mmBal" value="100" min="0" step="10"></div>
@@ -202,7 +224,7 @@
     <div id="mmOut" style="margin-top:12px"></div>
   </div>
 
-  <div class="card" id="mt5Card">
+  <div class="card pane" id="mt5Card">
     <h2><span class="bar"></span> 🔗 MT5 — Saldo &amp; Posisi (read-only)</h2>
     <div class="row" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
       <div style="grid-column:1/-1"><label>MetaApi token</label><input type="password" id="mtToken" placeholder="Tempel API token MetaApi" autocomplete="off"></div>
@@ -217,7 +239,7 @@
     <div class="hint">Pakai <b>investor password</b> (read-only) saat provisioning akun di MetaApi — lebih aman, tidak bisa dipakai trading. Token disimpan lokal di browser Anda. Akun harus sudah <b>deployed &amp; connected</b> di MetaApi, dan region harus cocok. Ini <b>bukan</b> auto-trade — cuma memantau.</div>
   </div>
 
-  <div class="card" id="backtestCard">
+  <div class="card pane" id="backtestCard">
     <h2><span class="bar"></span> 🔬 Backtest (uji strategi di data historis)</h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px">
       <button id="btnBacktest">Jalankan Backtest</button>
@@ -227,7 +249,7 @@
     <div class="hint">Backtest jujur: spread dimasukkan, prioritas SL saat 1 candle sentuh SL &amp; TP bersamaan, 1 entry per sinyal. Hasil masa lalu <b>bukan jaminan</b> masa depan — ini untuk melihat apakah aturannya punya edge, bukan ramalan.</div>
   </div>
 
-  <div class="card" id="journalCard">
+  <div class="card pane" id="journalCard">
     <h2><span class="bar"></span> 📝 Jurnal Trade (otomatis)</h2>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px">
       <button id="btnLog">+ Catat sinyal aktif</button>
@@ -533,7 +555,7 @@ const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
 let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null;
 function renderPlan(a){
-  $('planCard').style.display='block';
+  // panel rencana diatur oleh sistem tab
   const closed=MARKET_AGE!=null&&MARKET_AGE>(a.cfg.crypto?20:120), bias=a.t1h.dir;
   const buyZone=a.OB&&a.OB.type==='bull'?`Bullish Order Block $${fmt(a.OB.lo)}–$${fmt(a.OB.hi)}`:(a.F&&a.F.dir==='up'?`Fibo golden $${fmt(a.F.gLo)}–$${fmt(a.F.gHi)}`:`area support $${fmt(a.K.supLo)}–$${fmt(a.K.supHi)}`);
   const sellZone=a.OB&&a.OB.type==='bear'?`Bearish Order Block $${fmt(a.OB.lo)}–$${fmt(a.OB.hi)}`:(a.F&&a.F.dir==='down'?`Fibo golden $${fmt(a.F.gLo)}–$${fmt(a.F.gHi)}`:`area resistance $${fmt(a.K.resLo)}–$${fmt(a.K.resHi)}`);
@@ -570,7 +592,7 @@ function render(a,d5){
   const ce=$('chg');ce.className='chg '+(chg>=0?'up':'down');ce.textContent=(chg>=0?'+':'')+fmt(chg)+' ('+(chg>=0?'+':'')+fmt(chgP,2)+'%)';
   $('sub').innerHTML=`<b style="color:var(--brass)">${a.cfg?a.cfg.label:''}</b> · S <b>$${fmt(a.K.support)}</b>·R <b>$${fmt(a.K.resistance)}</b> · ATR ${fmt(a.at,1)} · 1H ${trTxt(a.t1h.dir)} · 15m ${trTxt(a.t15.dir)}`;
 
-  $('signalCard').style.display='block';$('mtfCard').style.display='block';
+  // visibilitas kartu diatur oleh sistem tab
   const b=$('sigBadge');
   if(a.side==='BUY'){b.className='signal-badge sig-buy';b.textContent='🟢 BUY (Long)';}
   else if(a.side==='SELL'){b.className='signal-badge sig-sell';b.textContent='🔴 SELL (Short)';}
@@ -877,12 +899,21 @@ $('btnMt5').addEventListener('click',()=>connectMt5(false));
 $('mtAuto').addEventListener('change',saveMt5S);
 $('btnBacktest').addEventListener('click',runBacktest);
 $('btnAnalyze').addEventListener('click',()=>run()); // pakai cache HTF, hemat kuota
-$('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
+$('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if(typeof syncMkt==='function')syncMkt();if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
 $('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 $('autolog').addEventListener('change',()=>localStorage.setItem('xau_autolog',$('autolog').checked?'1':'0'));
 $('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('offset').value);if(lastRaw&&$('apiKey').value.trim())run();});
+/* ---------- MT5-style tabs + market watch ---------- */
+const TABS=[['chartCard','📈 Grafik'],['signalCard','🎯 Sinyal'],['planCard','📋 Rencana'],['mtfCard','📊 Pasar'],['riskCard','💰 Modal'],['journalCard','📝 Jurnal'],['backtestCard','🔬 Backtest'],['mt5Card','🔗 MT5'],['akunCard','⚙️ Akun']];
+function buildTabs(){$('tabbar').innerHTML=TABS.map(([id,l])=>`<button class="tab" data-t="${id}">${l}</button>`).join('');$('tabbar').querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.t)));}
+function showTab(id){TABS.forEach(([tid])=>{const c=$(tid);if(c)c.classList.toggle('on',tid===id);});$('tabbar').querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===id));try{localStorage.setItem('xau_tab',id);}catch(e){}if(id==='chartCard'&&lastA)drawChart(lastA.d5,lastA.a);}
+const MKT=[['XAU/USD','XAUUSD'],['BTC/USD','BTCUSD'],['ETH/USD','ETHUSD']];
+function buildMkt(){$('mkt').innerHTML=MKT.map(([v,l])=>`<button data-s="${v}">${l}</button>`).join('');$('mkt').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('symbol').value=b.dataset.s;$('symbol').dispatchEvent(new Event('change'));syncMkt();}));syncMkt();}
+function syncMkt(){$('mkt').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===$('symbol').value));}
+buildTabs();buildMkt();
+{let t='chartCard';try{t=localStorage.getItem('xau_tab')||'chartCard';}catch(e){}if(!TABS.some(x=>x[0]===t))t='chartCard';showTab(t);}
 buildWeights();renderJournal();loadMM();renderRisk(null);loadMt5S();
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
