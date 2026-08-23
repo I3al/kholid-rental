@@ -418,14 +418,17 @@ function analyze(d5,d15,d1h,cfg){
 
   // ---- decide ----
   let side='NONE',factors=[],score=0;
-  const TH=45;
+  const TH=55; // ambang lebih tinggi = lebih selektif
   if(!hardBlock && nearZone){
     if(sB>=sS && sB>=TH){side='BUY';factors=fb;score=sB;}
     else if(sS>sB && sS>=TH){side='SELL';factors=fs;score=sS;}
   }
-  // MTF conflict veto
-  if(side==='BUY'&&t1h.dir==='turun'){side='NONE';}
-  if(side==='SELL'&&t1h.dir==='naik'){side='NONE';}
+  // ---- veto anti counter-trend (kunci: jangan lawan arah) ----
+  const emaUp=ind.ema9>ind.ema21&&ind.ema21>ind.ema50, emaDn=ind.ema9<ind.ema21&&ind.ema21<ind.ema50;
+  let vetoMsg=null;
+  if(side==='BUY'&&(t1h.dir==='turun'||t15.dir==='turun'||emaDn)){side='NONE';vetoMsg='Sinyal BUY dibatalkan — tren HTF/EMA sedang turun (jangan beli lawan arus).';}
+  if(side==='SELL'&&(t1h.dir==='naik'||t15.dir==='naik'||emaUp)){side='NONE';vetoMsg='Sinyal SELL dibatalkan — tren HTF/EMA sedang naik (jangan jual lawan arus).';}
+  if(vetoMsg)gates.push({t:'warn',m:vetoMsg});
 
   // ---- levels (ATR dynamic) ----
   const spread=cfg.spread;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
@@ -684,7 +687,9 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   const nets=closed.map(t=>t.net||0),tot=nets.reduce((a,b)=>a+b,0);
   const wNets=closed.filter(t=>t.net>0).map(t=>t.net),lNets=closed.filter(t=>t.net<=0).map(t=>t.net);
   const avgW=wNets.length?(wNets.reduce((a,b)=>a+b,0)/wNets.length):0, avgL=lNets.length?(lNets.reduce((a,b)=>a+b,0)/lNets.length):0;
-  $('jstats').innerHTML=`<div class="ind-grid">
+  let streak=0;for(const t of closed){if(t.status==='SL'||(t.net!=null&&t.net<0))streak++;else break;}
+  const banner=streak>=2?`<div class="gate block" style="margin-bottom:10px">⛔ ${streak} loss beruntun — STOP dulu sesi ini. Jangan revenge trade. Sinyal sering gagal saat pasar choppy / Anda lawan arah tren.</div>`:'';
+  $('jstats').innerHTML=banner+`<div class="ind-grid">
     <div class="ind"><div class="n">Total</div><div class="val">${closed.length}</div></div>
     <div class="ind"><div class="n">Win rate</div><div class="val" style="color:${wr>=50?'var(--green2)':'var(--red)'}">${wr}%</div></div>
     <div class="ind"><div class="n">W / L</div><div class="val">${wins}/${losses}</div></div>
