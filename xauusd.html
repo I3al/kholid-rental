@@ -118,6 +118,55 @@ body{font-size:14px}
 .card h2 .bar{background:var(--accent)}
 #btnAnalyze{background:var(--accent);color:#04101f}
 .big{font-variant-numeric:tabular-nums}
+
+/* ============ WINDOWS 98 / XP RETRO SKIN (override) ============ */
+:root{
+  --bg:#008080;--panel:#c0c0c0;--panel2:#ffffff;--line:#808080;
+  --text:#000;--muted:#3a3a3a;--green2:#008000;--green:#008000;--red:#b00000;--amber:#8a6d00;
+  --brass:#000080;--accent:#000080;--blue:#0000a8;
+  --sans:'Tahoma','MS Sans Serif',Geneva,sans-serif;--mono:'Lucida Console','Courier New',monospace;
+}
+body{background:#008080;color:#000;font-family:var(--sans);font-size:12px;-webkit-font-smoothing:none}
+.wrap{max-width:1000px;margin:10px auto;background:#c0c0c0;padding:0 0 10px;
+  border:2px solid;border-color:#dfdfdf #000 #000 #dfdfdf;box-shadow:inset 1px 1px 0 #fff,inset -1px -1px 0 #808080}
+/* title bar */
+.term-header{position:static;background:linear-gradient(90deg,#000080,#1084d0);color:#fff;border:none;padding:4px 6px;margin:2px}
+.term-header .brand{color:#fff;font-weight:700;font-size:13px} .term-header .brand small{color:#d6e4ff}
+.term-header .brand .dot{display:none}
+.status{color:#fff!important;font-family:var(--mono);font-size:11px}
+.mkt{flex:0 1 auto;justify-content:flex-start}
+/* 3D beveled buttons + tabs */
+button{font-family:var(--sans);font-size:12px;color:#000;background:#c0c0c0;border:2px solid;border-color:#fff #808080 #808080 #fff;border-radius:0;box-shadow:1px 1px 0 #000;padding:3px 12px;font-weight:400}
+button:active{border-color:#808080 #fff #fff #808080;box-shadow:none}
+button.ghost,#btnAnalyze,#btnBacktest,#btnMt5,#btnLog{background:#c0c0c0;color:#000}
+input[type=text],input[type=password],input[type=number],select{background:#fff;color:#000;border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;font-family:var(--mono);padding:4px 6px}
+label{color:#000;font-weight:700;text-transform:none}
+/* windows / group panels */
+.card{background:#c0c0c0;border:2px solid;border-color:#dfdfdf #808080 #808080 #dfdfdf;border-radius:0;box-shadow:none;margin:8px;padding:12px}
+.card h2{color:#000080;text-transform:none;letter-spacing:0;font-weight:700;font-size:13px}
+.card h2 .bar{background:#000080;width:4px;height:13px}
+/* classic tab control */
+.tabbar{position:static;background:#c0c0c0;border:none;border-bottom:2px solid #808080;gap:0;padding:8px 6px 0}
+.tab{margin:0 2px -2px 0;padding:5px 11px;border:2px solid;border-color:#fff #808080 #c0c0c0 #fff;border-radius:0;background:#c0c0c0;color:#000;box-shadow:none;font-weight:400}
+.tab.on{color:#000;font-weight:700;border-bottom-color:#c0c0c0;padding-bottom:7px}
+.mkt button{border-radius:0}
+.mkt button.on{background:#000080;color:#fff;border-color:#808080 #fff #fff #808080}
+/* sunken value boxes / tables / lists */
+.ind,.lv,.tfbox{background:#fff;border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0}
+.ind .n,.lv .k,.tfbox .t{color:#333;font-weight:400}
+.ind .val,.lv .v{color:#000}
+.qbar{background:#fff;border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;height:16px}
+table{font-family:var(--mono)} th{background:#c0c0c0;color:#000;border-bottom:1px solid #808080;text-transform:none}
+td{background:#fff;color:#000;border-bottom:1px solid #d4d0c8}
+.gate,.reason,.err,.signal-badge,.conf,.pill{border-radius:0}
+.reason{background:#ffffe1;border-left:3px solid #000080;color:#000}
+.hint{color:#3a3a3a} a{color:#0000ee}
+.price-hero .big{color:#000} .meta-line{color:#333}
+.signal-badge{border:2px solid;border-color:#fff #808080 #808080 #fff}
+canvas{border:2px solid;border-color:#808080 #fff #fff #808080;border-radius:0;background:#000}
+.disclaimer{color:#333;background:#c0c0c0}
+.chk{color:#000;font-weight:700}
+details summary{color:#000080!important}
 </style>
 </head>
 <body>
