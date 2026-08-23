@@ -108,6 +108,9 @@
         <input type="password" id="apiKey" placeholder="Tempel API key lalu Analisa" autocomplete="off" />
         <div class="hint">Disimpan lokal di browser Anda. <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Key gratis →</a></div>
       </div>
+      <div style="flex:0 0 auto"><label>Aset</label>
+        <select id="symbol"><option value="XAU/USD" selected>Emas (XAUUSD)</option><option value="BTC/USD">Bitcoin (BTCUSD)</option><option value="ETH/USD">Ethereum (ETHUSD)</option></select>
+      </div>
       <div style="flex:0 0 auto"><label>&nbsp;</label><button id="btnAnalyze">Analisa</button></div>
       <div style="flex:0 0 auto"><label>Auto-refresh</label>
         <select id="auto"><option value="0">Off</option><option value="60" selected>60 dtk</option><option value="120">2 mnt</option><option value="300">5 mnt</option></select>
@@ -196,7 +199,17 @@ try{
   $('apiKey').value=localStorage.getItem(LS.key)||'';
   if(localStorage.getItem(LS.auto))$('auto').value=localStorage.getItem(LS.auto);
   if(localStorage.getItem(LS.alarm)!==null)$('alarm').checked=localStorage.getItem(LS.alarm)==='1';
+  if(localStorage.getItem('xau_symbol'))$('symbol').value=localStorage.getItem('xau_symbol');
 }catch(e){}
+
+/* ---------- symbol config (parameter menyesuaikan aset) ---------- */
+const SYMBOLS={
+  'XAU/USD':{label:'Emas · XAUUSD', dp:2, spread:3,  atrMaxPct:0.0035, slFloor:5,  crypto:false},
+  'BTC/USD':{label:'Bitcoin · BTCUSD', dp:1, spread:25, atrMaxPct:0.0090, slFloor:40, crypto:true},
+  'ETH/USD':{label:'Ethereum · ETHUSD', dp:2, spread:2,  atrMaxPct:0.0110, slFloor:3,  crypto:true}
+};
+const cfgOf=s=>SYMBOLS[s]||SYMBOLS['XAU/USD'];
+let CURDP=2;
 
 /* ---------- indicators ---------- */
 const sum=(a,p)=>{let s=0;for(let i=a.length-p;i<a.length;i++)s+=a[i];return s;};
@@ -220,8 +233,9 @@ function trendOf(c,h,l){const e20=ema(c,20),e50=ema(c,50);const ad=adx(h,l,c);le
 /* ---------- fetch ---------- */
 async function fetchSeries(interval,size){
   const key=$('apiKey').value.trim();if(!key)throw new Error('API key kosong.');
+  const sym=$('symbol').value;
   bumpReq();
-  const url=`https://api.twelvedata.com/time_series?symbol=XAU/USD&interval=${interval}&outputsize=${size}&apikey=${encodeURIComponent(key)}`;
+  const url=`https://api.twelvedata.com/time_series?symbol=${encodeURIComponent(sym)}&interval=${interval}&outputsize=${size}&apikey=${encodeURIComponent(key)}`;
   const r=await fetch(url);const j=await r.json();
   if(j.status==='error'||j.code)throw new Error((j.message||'error')+(j.code?` (code ${j.code})`:''));
   if(!j.values)throw new Error('Tidak ada data.');
@@ -294,7 +308,8 @@ function orderBlock(o,h,l,c,leg){
 }
 
 /* ---------- engine ---------- */
-function analyze(d5,d15,d1h){
+function analyze(d5,d15,d1h,cfg){
+  cfg=cfg||cfgOf($('symbol').value);
   const c=d5.c,h=d5.h,l=d5.l,o=d5.o,n=c.length,price=c[n-1];
   const at=atr(h,l,c)||3;
   const ind={rsi:rsi(c),stoch:stoch(h,l,c),cci:cci(h,l,c),atr:at,macd:macd(c),adx:adx(h,l,c),ema9:ema(c,9),ema21:ema(c,21),ema50:ema(c,50)};
@@ -360,13 +375,17 @@ function analyze(d5,d15,d1h){
   const sB=fb.reduce((s,x)=>s+x.w,0), sS=fs.reduce((s,x)=>s+x.w,0);
 
   // ---- gates ----
-  const gates=[];let hardBlock=false;const utcH=new Date().getUTCHours();
-  if(at>8){gates.push({t:'block',m:`ATR 5m ${at.toFixed(1)} > 8 — volatilitas terlalu tinggi. SKIP.`});hardBlock=true;}
-  if(utcH===21){gates.push({t:'block',m:'Rollover 21:00–22:00 UTC — rawan stop-hunt. SKIP.'});hardBlock=true;}
-  if($('news').checked){gates.push({t:'block',m:'Anda tandai ada berita <30 menit — NO TRADE (berita bisa gerak 30–50 poin).'});hardBlock=true;}
-  if(utcH>=13&&utcH<17)gates.push({t:'ok',m:'Sesi London–NY overlap — likuiditas terbaik.'});
-  else if((utcH>=8&&utcH<13)||(utcH>=17&&utcH<21))gates.push({t:'ok',m:'Sesi London/NY aktif.'});
-  else gates.push({t:'warn',m:'Sesi Asia / di luar overlap — spread lebih lebar.'});
+  const gates=[];let hardBlock=false;const utcH=new Date().getUTCHours();const atrPct=at/price;
+  if(atrPct>cfg.atrMaxPct){gates.push({t:'block',m:`ATR ${(atrPct*100).toFixed(2)}% dari harga > batas ${(cfg.atrMaxPct*100).toFixed(2)}% — terlalu volatil untuk scalp. SKIP.`});hardBlock=true;}
+  if($('news').checked){gates.push({t:'block',m:'Anda tandai ada berita <30 menit — NO TRADE (berita bisa gerak harga drastis).'});hardBlock=true;}
+  if(!cfg.crypto){
+    if(utcH===21){gates.push({t:'block',m:'Rollover 21:00–22:00 UTC — rawan stop-hunt. SKIP.'});hardBlock=true;}
+    if(utcH>=13&&utcH<17)gates.push({t:'ok',m:'Sesi London–NY overlap — likuiditas terbaik.'});
+    else if((utcH>=8&&utcH<13)||(utcH>=17&&utcH<21))gates.push({t:'ok',m:'Sesi London/NY aktif.'});
+    else gates.push({t:'warn',m:'Sesi Asia / di luar overlap — spread lebih lebar.'});
+  } else {
+    gates.push({t:'ok',m:'Crypto 24/7 — tidak ada rollover/sesi. Tapi malam/akhir pekan likuiditas bisa tipis.'});
+  }
 
   // ---- decide ----
   let side='NONE',factors=[],score=0;
@@ -380,12 +399,12 @@ function analyze(d5,d15,d1h){
   if(side==='SELL'&&t1h.dir==='naik'){side='NONE';}
 
   // ---- levels (ATR dynamic) ----
-  const spread=3;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
+  const spread=cfg.spread;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
   if(side!=='NONE'){
     entry=price;
-    const buf=Math.max(at*0.4,1.5);
-    if(side==='BUY'){sl=Math.min(price-Math.max(5,at*1.2),K.support-buf);}
-    else{sl=Math.max(price+Math.max(5,at*1.2),K.resistance+buf);}
+    const buf=Math.max(at*0.4,cfg.slFloor*0.3);
+    if(side==='BUY'){sl=Math.min(price-Math.max(cfg.slFloor,at*1.2),K.support-buf);}
+    else{sl=Math.max(price+Math.max(cfg.slFloor,at*1.2),K.resistance+buf);}
     risk=Math.abs(entry-sl);
     if(side==='BUY'){tp1=entry+risk*1.2;tp2=entry+risk*2.0;}
     else{tp1=entry-risk*1.2;tp2=entry-risk*2.0;}
@@ -406,32 +425,33 @@ function analyze(d5,d15,d1h){
 
   const checks=[
     ['Harga di level jelas?', nearZone&&side!=='NONE'],
-    ['ATR wajar (≤8)?', at<=8],
+    ['ATR wajar (volatilitas)?', atrPct<=cfg.atrMaxPct],
     ['Tren 1H sejalan?', (side==='BUY'&&t1h.dir!=='turun')||(side==='SELL'&&t1h.dir!=='naik')],
     ['Tren 15m sejalan?', (side==='BUY'&&t15.dir!=='turun')||(side==='SELL'&&t15.dir!=='naik')],
     ['Candle/sweep konfirmasi?', side==='BUY'?(rejUp||sweptLow):side==='SELL'?(rejDown||sweptHigh):false],
     ['Harga di golden zone Fibonacci?', F?F.inGolden:false],
     ['BOS/CHoCH searah?', (side==='BUY'&&(S.bos==='bull'||S.choch==='bull'))||(side==='SELL'&&(S.bos==='bear'||S.choch==='bear'))],
     ['Harga di Order Block?', inOB],
-    ['Bukan jam rollover / berita?', utcH!==21 && !$('news').checked]
+    [cfg.crypto?'Tanpa berita besar?':'Bukan jam rollover / berita?', (cfg.crypto?true:utcH!==21) && !$('news').checked]
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg};
 }
 
 /* ---------- render ---------- */
-const fmt=(x,dp=2)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const fmt=(x,dp=CURDP)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
 const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
 let lastSide=null,audioCtx=null;
 function beep(side){try{if(!audioCtx)return;const ctx=audioCtx;const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=side==='BUY'?880:440;g.gain.setValueAtTime(0.0001,ctx.currentTime);g.gain.exponentialRampToValueAtTime(0.35,ctx.currentTime+0.02);g.gain.exponentialRampToValueAtTime(0.0001,ctx.currentTime+0.6);o.start();o.stop(ctx.currentTime+0.6);}catch(e){}}
 
 function render(a,d5){
+  CURDP=a.cfg?a.cfg.dp:2;
   const c=d5.c,n=c.length,prev=c[n-2]||c[n-1],chg=a.price-prev,chgP=prev?chg/prev*100:0;
   $('price').textContent='$'+fmt(a.price);
   const ce=$('chg');ce.className='chg '+(chg>=0?'up':'down');ce.textContent=(chg>=0?'+':'')+fmt(chg)+' ('+(chg>=0?'+':'')+fmt(chgP,2)+'%)';
-  $('sub').innerHTML=`S <b>$${fmt(a.K.support)}</b>·R <b>$${fmt(a.K.resistance)}</b> · ATR ${fmt(a.at,1)} · 1H ${trTxt(a.t1h.dir)} · 15m ${trTxt(a.t15.dir)}`;
+  $('sub').innerHTML=`<b style="color:var(--brass)">${a.cfg?a.cfg.label:''}</b> · S <b>$${fmt(a.K.support)}</b>·R <b>$${fmt(a.K.resistance)}</b> · ATR ${fmt(a.at,1)} · 1H ${trTxt(a.t1h.dir)} · 15m ${trTxt(a.t15.dir)}`;
 
   $('signalCard').style.display='block';$('mtfCard').style.display='block';
   const b=$('sigBadge');
@@ -542,13 +562,15 @@ async function run(){
   try{
     localStorage.setItem(LS.key,$('apiKey').value.trim());localStorage.setItem(LS.auto,$('auto').value);localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0');
     if(!audioCtx){try{audioCtx=new (window.AudioContext||window.webkitAudioContext)();}catch(e){}}
+    localStorage.setItem('xau_symbol',$('symbol').value);
+    const cfg=cfgOf($('symbol').value);
     const d5=await fetchSeries('5min',150);
     if(cache.cycle%5===0||!cache.d15){cache.d15=await fetchSeries('15min',150);}
     if(cache.cycle%5===0||!cache.d1h){cache.d1h=await fetchSeries('1h',150);}
     cache.cycle++;
-    const a=analyze(d5,cache.d15,cache.d1h);
+    const a=analyze(d5,cache.d15,cache.d1h,cfg);
     render(a,d5);
-    lastRaw={d5,d15:cache.d15,d1h:cache.d1h};lastA={a,d5};
+    lastRaw={d5,d15:cache.d15,d1h:cache.d1h,cfg};lastA={a,d5};
     evalOpen(a.price,d5.h[d5.h.length-1],d5.l[d5.l.length-1]);renderJournal();
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800`;
   }catch(e){$('status').textContent='— error —';err.innerHTML=`<div class="err"><b>Gagal:</b> ${e.message}</div>`;}
@@ -574,7 +596,7 @@ function buildWeights(){const w=loadW();$('weights').innerHTML=WKEYS.map(k=>`
   </div>`).join('');
   $('weights').querySelectorAll('input[data-wk]').forEach(inp=>inp.addEventListener('input',()=>{
     const w=loadW();w[inp.dataset.wk]=+inp.value/100;saveW(w);$('wv_'+inp.dataset.wk).textContent=inp.value+'%';
-    if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);} // re-score instan dari data cache
+    if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);} // re-score instan dari data cache
   }));}
 $('wReset').addEventListener('click',()=>{saveW({trend:1,fib:1,structure:1,ob:1,momentum:1,sweep:1});buildWeights();if($('apiKey').value.trim())run();});
 
@@ -589,10 +611,10 @@ function setupTag(a){const n=a.factors.map(f=>f.name.toLowerCase());
   if(n.some(x=>x.includes('bos')))return 'BOS';
   return 'S/R + Momentum';}
 function logTrade(a){if(!a||a.side==='NONE'){alert('Tidak ada sinyal aktif untuk dicatat.');return;}
-  const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null});
+  const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),symbol:$('symbol').value,side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null});
   saveJ(j);renderJournal();}
-function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sp=3;
-  j.forEach(t=>{if(t.status!=='open')return;
+function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sym=$('symbol').value;
+  j.forEach(t=>{if(t.status!=='open')return;if(t.symbol&&t.symbol!==sym)return;const sp=(SYMBOLS[t.symbol]||{spread:3}).spread;
     if(t.side==='BUY'){
       if(lo<=t.sl){t.status='SL';t.net=+((t.sl-t.entry)-sp).toFixed(1);ch=true;}
       else if(hi>=t.tp2){t.status='TP2';t.net=+((t.tp2-t.entry)-sp).toFixed(1);ch=true;}
@@ -605,8 +627,8 @@ function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sp=3;
     if(ch&&t.status!=='open')t.closeTs=new Date().toISOString();
   });
   if(ch)saveJ(j);return ch;}
-function closeNow(price){const j=loadJ();let ch=false;const sp=3;
-  j.forEach(t=>{if(t.status!=='open')return;t.status='manual';t.net=+((t.side==='BUY'?price-t.entry:t.entry-price)-sp).toFixed(1);t.closeTs=new Date().toISOString();ch=true;});
+function closeNow(price){const j=loadJ();let ch=false;const sym=$('symbol').value;
+  j.forEach(t=>{if(t.status!=='open')return;if(t.symbol&&t.symbol!==sym)return;const sp=(SYMBOLS[t.symbol]||{spread:3}).spread;t.status='manual';t.net=+((t.side==='BUY'?price-t.entry:t.entry-price)-sp).toFixed(1);t.closeTs=new Date().toISOString();ch=true;});
   if(ch){saveJ(j);renderJournal();}}
 function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='open');
   const wins=closed.filter(t=>t.status==='TP1'||t.status==='TP2'||(t.status==='manual'&&t.net>0)).length;
@@ -628,15 +650,16 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   const rows=Object.entries(byS).map(([s,ts])=>{const w=ts.filter(t=>t.net>0).length,n=ts.length,net=ts.reduce((a,b)=>a+(b.net||0),0);return {s,w,n,wr:Math.round(w/n*100),net};}).sort((a,b)=>b.wr-a.wr||b.net-a.net);
   $('jbest').innerHTML=rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'';
   // list
-  $('jtable').innerHTML=`<tr><th>Waktu</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
-    (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';
-      return `<tr><td class="mono" style="font-size:11px">${new Date(t.ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="color:${t.side==='BUY'?'var(--green2)':'var(--red)'};font-weight:700">${t.side}</td><td class="mono">${fmt(t.entry)}</td><td style="font-size:12px">${t.setup}</td><td style="color:${stC};font-weight:700">${t.status==='open'?'⏳ open':t.status}</td><td class="mono" style="color:${stC}">${t.net==null?'—':(t.net>=0?'+':'')+t.net}</td><td><span data-del="${t.id}" style="cursor:pointer;color:var(--muted)">✕</span></td></tr>`;}).join(''):'<tr><td colspan="7" class="muted">Belum ada trade dicatat.</td></tr>');
+  $('jtable').innerHTML=`<tr><th>Waktu</th><th>Aset</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
+    (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';const dp=(SYMBOLS[t.symbol]||{dp:2}).dp;
+      return `<tr><td class="mono" style="font-size:11px">${new Date(t.ts).toLocaleString('id-ID',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'})}</td><td style="font-size:11px">${(t.symbol||'XAU/USD').replace('/USD','')}</td><td style="color:${t.side==='BUY'?'var(--green2)':'var(--red)'};font-weight:700">${t.side}</td><td class="mono">${fmt(t.entry,dp)}</td><td style="font-size:12px">${t.setup}</td><td style="color:${stC};font-weight:700">${t.status==='open'?'⏳ open':t.status}</td><td class="mono" style="color:${stC}">${t.net==null?'—':(t.net>=0?'+':'')+t.net}</td><td><span data-del="${t.id}" style="cursor:pointer;color:var(--muted)">✕</span></td></tr>`;}).join(''):'<tr><td colspan="8" class="muted">Belum ada trade dicatat.</td></tr>');
   $('jtable').querySelectorAll('[data-del]').forEach(x=>x.addEventListener('click',()=>{saveJ(loadJ().filter(t=>t.id!=x.dataset.del));renderJournal();}));}
 $('btnLog').addEventListener('click',()=>logTrade(lastA?lastA.a:null));
 $('btnCloseNow').addEventListener('click',()=>{if(lastA)closeNow(lastA.a.price);});
 $('btnClear').addEventListener('click',()=>{if(confirm('Hapus semua jurnal trade?')){saveJ([]);renderJournal();}});
 
 $('btnAnalyze').addEventListener('click',()=>{cache.cycle=0;run();});
+$('symbol').addEventListener('change',()=>{localStorage.setItem('xau_symbol',$('symbol').value);cache={d15:null,d1h:null,cycle:0};if($('apiKey').value.trim())run();});
 $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').value);setupAuto();});
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
 buildWeights();renderJournal();
