@@ -221,6 +221,7 @@ body{padding-bottom:40px}
     <div style="display:flex;gap:18px;margin-top:12px;flex-wrap:wrap">
       <label class="chk"><input type="checkbox" id="alarm" checked> 🔔 Alarm sinyal</label>
       <label class="chk"><input type="checkbox" id="autolog"> 📝 Auto-catat sinyal ke jurnal</label>
+      <label class="chk"><input type="checkbox" id="aibrain" checked> 🧠 Auto-belajar (AI)</label>
       <label class="chk"><input type="checkbox" id="aplus"> ✦ Mode A+ saja (setup terbaik)</label>
       <label class="chk"><input type="checkbox" id="news"> ⚠️ Ada berita &lt;30 mnt (paksa NO TRADE)</label>
     </div>
@@ -396,6 +397,7 @@ try{
   $('symbol').value='XAU/USD'; // fokus XAUUSD only
   if(localStorage.getItem('xau_aplus')==='1')$('aplus').checked=true;
   if(localStorage.getItem('xau_autolog')==='1')$('autolog').checked=true;
+  if(localStorage.getItem('xau_ai')==='0')$('aibrain').checked=false;
   if(localStorage.getItem('xau_offset'))$('offset').value=localStorage.getItem('xau_offset');
 }catch(e){}
 
@@ -653,6 +655,16 @@ function analyze(d5,d15,d1h,cfg,opts){
       else if(ad.wr>=60){score+=8;factors=factors.concat([{w:8,name:`Bonus historis: setup "${tag}" kuat (WR ${ad.wr}%, ${ad.n}x)`}]);}
     }
   }
+  // ---- kecerdasan: penyesuaian per-faktor + konteks arah (belajar dari kesalahan) ----
+  if(side!=='NONE'&&BRAIN&&BRAIN.factorAdj){let aiOn=true;try{aiOn=$('aibrain').checked;}catch(e){}
+    if(aiOn){
+      let fa=0;factors.forEach(f=>{const v=BRAIN.factorAdj[f.name];if(v)fa+=v;});fa=Math.max(-0.4,Math.min(0.4,fa));
+      if(fa){const old=score;score=Math.max(0,Math.round(score*(1+fa)));factors=factors.concat([{w:score-old,name:`Kecerdasan: pola faktor historis (${fa>=0?'+':''}${Math.round(fa*100)}%)`}]);}
+      const cs=BRAIN.side&&BRAIN.side[side];
+      if(cs&&cs.n>=10&&cs.w/cs.n<0.35){score=Math.max(0,score-12);factors=factors.concat([{w:-12,name:`Kecerdasan: arah ${side} historis lemah (WR ${Math.round(cs.w/cs.n*100)}%)`}]);}
+      if(score<TH){gates.push({t:'warn',m:'Dibatalkan oleh kecerdasan — pola ini historis merugikan untuk Anda.'});side='NONE';factors=[];}
+    }
+  }
 
   // ---- levels (ATR dynamic) ----
   const spread=cfg.spread;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
@@ -706,7 +718,15 @@ function analyze(d5,d15,d1h,cfg,opts){
 const fmt=(x,dp=CURDP)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
 const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
-let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null,ADAPT={};
+let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null,ADAPT={},BRAIN={factorAdj:{},side:{},sess:{}};
+function sessionOf(){const h=new Date().getUTCHours();if(h>=13&&h<17)return 'overlap';if(h>=8&&h<13)return 'london';if(h>=17&&h<21)return 'ny';return 'asia';}
+function learnBrain(closed){const fs={},cSide={},cSess={};
+  closed.forEach(t=>{const win=t.net>0?1:0;
+    (t.factors||[]).forEach(nm=>{fs[nm]=fs[nm]||{w:0,n:0};fs[nm].w+=win;fs[nm].n++;});
+    const sd=t.side||'?';cSide[sd]=cSide[sd]||{w:0,n:0};cSide[sd].w+=win;cSide[sd].n++;
+    const ss=t.sess||'?';cSess[ss]=cSess[ss]||{w:0,n:0};cSess[ss].w+=win;cSess[ss].n++;});
+  const adj={};Object.entries(fs).forEach(([k,v])=>{if(v.n>=5){const wr=v.w/v.n,shrink=v.n/(v.n+6);adj[k]=Math.max(-0.35,Math.min(0.35,(wr-0.5)*2*shrink));}});
+  BRAIN={factorAdj:adj,side:cSide,sess:cSess,fs};}
 function renderPlan(a){
   // panel rencana diatur oleh sistem tab
   const closed=MARKET_AGE!=null&&MARKET_AGE>(a.cfg.crypto?20:120), bias=a.t1h.dir;
@@ -941,7 +961,7 @@ function setupTag(a){const n=a.factors.map(f=>f.name.toLowerCase());
   if(n.some(x=>x.includes('bos')))return 'BOS';
   return 'S/R + Momentum';}
 function logTrade(a){if(!a||a.side==='NONE'){alert('Tidak ada sinyal aktif untuk dicatat.');return;}
-  const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),symbol:$('symbol').value,side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null});
+  const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),symbol:$('symbol').value,side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null,factors:(a.factors||[]).map(f=>f.name),sess:sessionOf()});
   saveJ(j);renderJournal();}
 function notifyClose(t){const dp=(SYMBOLS[t.symbol]||{dp:2}).dp,emo=t.status==='SL'?'🔴':'🟢';
   const msg=`${emo} XAU PRO — ${t.status} tercapai\n${t.side} ${(t.symbol||'').replace('/USD','')}\nEntry ${(+t.entry).toFixed(dp)}\nHasil: ${t.net>=0?'+':''}${t.net} poin\nSetup: ${t.setup}`;
@@ -998,11 +1018,15 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   // best setup
   const byS={};closed.forEach(t=>{(byS[t.setup]=byS[t.setup]||[]).push(t);});
   const rows=Object.entries(byS).map(([s,ts])=>{const w=ts.filter(t=>t.net>0).length,n=ts.length,net=ts.reduce((a,b)=>a+(b.net||0),0);return {s,w,n,wr:Math.round(w/n*100),net};}).sort((a,b)=>b.wr-a.wr||b.net-a.net);
-  // ---- pembelajaran adaptif: simpan WR per setup untuk auto-koreksi ----
+  // ---- pembelajaran adaptif: simpan WR per setup + otak per-faktor ----
   ADAPT={};rows.forEach(r=>{ADAPT[r.s]={n:r.n,wr:r.wr};});
+  learnBrain(closed);
+  const fE=Object.entries(BRAIN.factorAdj||{}),pos=fE.filter(([,v])=>v>0.05).sort((a,b)=>b[1]-a[1]).slice(0,3),neg=fE.filter(([,v])=>v<-0.05).sort((a,b)=>a[1]-b[1]).slice(0,3);
+  const sessTxt=Object.entries(BRAIN.sess||{}).filter(([,v])=>v.n>=3).map(([k,v])=>`${k} ${Math.round(v.w/v.n*100)}%`).join(' · ');
+  const brainPanel=(pos.length||neg.length)?`<div class="reason" style="margin-top:10px"><b>🧠 Kecerdasan (belajar per faktor):</b><br>${pos.length?'✅ Cenderung MENANG: '+pos.map(([k])=>k.slice(0,24)).join(' · ')+'<br>':''}${neg.length?'❌ Cenderung RUGI: '+neg.map(([k])=>k.slice(0,24)).join(' · ')+'<br>':''}${sessTxt?'<span class="muted">WR per sesi: '+sessTxt+'</span>':''}<br><span class="muted">Skor otomatis disesuaikan dari pola ini (≥5 sampel/faktor).</span></div>`:'';
   const learned=rows.filter(r=>r.n>=8);
   const learnPanel=learned.length?`<div class="reason" style="margin-top:10px"><b>🧠 Pembelajaran (auto-koreksi):</b><br>`+learned.map(r=>`• ${r.s}: WR ${r.wr}% (${r.n}x) — ${r.wr<40?'❌ dihindari/diperketat':r.wr>=60?'✅ diprioritaskan':'netral'}`).join('<br>')+`<br><span class="muted">Aktif setelah ≥8 trade per setup. Makin banyak data jurnal → makin akurat &amp; makin jarang mengulang setup yang rugi.</span></div>`:`<div class="hint" style="margin-top:10px">🧠 Auto-koreksi belum aktif — butuh ≥8 trade per jenis setup. Terus kumpulkan data lewat jurnal.</div>`;
-  $('jbest').innerHTML=(rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'')+learnPanel;
+  $('jbest').innerHTML=(rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'')+learnPanel+brainPanel;
   drawEquity(closed);
   // list
   $('jtable').innerHTML=`<tr><th>Waktu</th><th>Aset</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
@@ -1118,6 +1142,7 @@ $('auto').addEventListener('change',()=>{localStorage.setItem(LS.auto,$('auto').
 $('alarm').addEventListener('change',()=>localStorage.setItem(LS.alarm,$('alarm').checked?'1':'0'));
 $('aplus').addEventListener('change',()=>{localStorage.setItem('xau_aplus',$('aplus').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 $('autolog').addEventListener('change',()=>localStorage.setItem('xau_autolog',$('autolog').checked?'1':'0'));
+$('aibrain').addEventListener('change',()=>{localStorage.setItem('xau_ai',$('aibrain').checked?'1':'0');if(lastRaw){const a=analyze(lastRaw.d5,lastRaw.d15,lastRaw.d1h,lastRaw.cfg);lastA={a,d5:lastRaw.d5};render(a,lastRaw.d5);}});
 $('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('offset').value);if(lastRaw&&$('apiKey').value.trim())run();});
 /* ---------- MT5-style tabs + market watch ---------- */
 const TABS=[['chartCard','📈 Grafik'],['signalCard','🎯 Sinyal'],['planCard','📋 Rencana'],['mtfCard','📊 Pasar'],['riskCard','💰 Modal'],['journalCard','📝 Jurnal'],['backtestCard','🔬 Backtest'],['mt5Card','🔗 MT5'],['akunCard','⚙️ Akun']];
