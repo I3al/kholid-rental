@@ -616,6 +616,15 @@ function analyze(d5,d15,d1h,cfg,opts){
     const hasC=factors.some(f=>/order block|golden|sweep|rejection|divergensi|choch|bos/i.test(f.name));
     if(!hasC){gates.push({t:'warn',m:'Sinyal ditahan — butuh konfirmasi struktur (Order Block/Fibo/sweep/BOS/CHoCH/divergensi), bukan cuma S/R + indikator.'});side='NONE';factors=[];}
   }
+  // ---- auto-koreksi dari riwayat jurnal (makin akurat seiring data) ----
+  if(side!=='NONE'&&ADAPT&&Object.keys(ADAPT).length){
+    const tag=setupTag({factors}),ad=ADAPT[tag];
+    if(ad&&ad.n>=8){
+      if(ad.wr<40){score=Math.max(0,score-15);factors=factors.concat([{w:-15,name:`Koreksi historis: setup "${tag}" lemah (WR ${ad.wr}%, ${ad.n}x)`}]);
+        if(score<TH){gates.push({t:'warn',m:`Dibatalkan oleh pembelajaran — setup "${tag}" terbukti rugi untuk Anda (WR ${ad.wr}%). Sistem menghindarinya.`});side='NONE';factors=[];}}
+      else if(ad.wr>=60){score+=8;factors=factors.concat([{w:8,name:`Bonus historis: setup "${tag}" kuat (WR ${ad.wr}%, ${ad.n}x)`}]);}
+    }
+  }
 
   // ---- levels (ATR dynamic) ----
   const spread=cfg.spread;let entry=null,sl=null,tp1=null,tp2=null,risk=0;
@@ -669,7 +678,7 @@ function analyze(d5,d15,d1h,cfg,opts){
 const fmt=(x,dp=CURDP)=>x==null?'—':x.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
 const trCls=d=>d==='naik'?'up':d==='turun'?'down':'flat';
 const trTxt=d=>d==='naik'?'▲ Naik':d==='turun'?'▼ Turun':d==='ranging'?'► Ranging':'—';
-let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null;
+let lastSide=null,audioCtx=null,CURPRICE=null,MARKET_AGE=null,autoLoggedSide=null,ADAPT={};
 function renderPlan(a){
   // panel rencana diatur oleh sistem tab
   const closed=MARKET_AGE!=null&&MARKET_AGE>(a.cfg.crypto?20:120), bias=a.t1h.dir;
@@ -895,18 +904,21 @@ function setupTag(a){const n=a.factors.map(f=>f.name.toLowerCase());
 function logTrade(a){if(!a||a.side==='NONE'){alert('Tidak ada sinyal aktif untuk dicatat.');return;}
   const j=loadJ();j.unshift({id:Date.now(),ts:new Date().toISOString(),symbol:$('symbol').value,side:a.side,entry:a.entry,sl:a.sl,tp1:a.tp1,tp2:a.tp2,setup:setupTag(a),quality:a.quality,status:'open',net:null});
   saveJ(j);renderJournal();}
+function notifyClose(t){const dp=(SYMBOLS[t.symbol]||{dp:2}).dp,emo=t.status==='SL'?'🔴':'🟢';
+  const msg=`${emo} XAU PRO — ${t.status} tercapai\n${t.side} ${(t.symbol||'').replace('/USD','')}\nEntry ${(+t.entry).toFixed(dp)}\nHasil: ${t.net>=0?'+':''}${t.net} poin\nSetup: ${t.setup}`;
+  try{if($('waOn').checked)sendWA(msg);if($('tgOn').checked)sendTG(msg);}catch(e){}}
 function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sym=$('symbol').value;
-  j.forEach(t=>{if(t.status!=='open')return;if(t.symbol&&t.symbol!==sym)return;const sp=(SYMBOLS[t.symbol]||{spread:3}).spread;
+  j.forEach(t=>{if(t.status!=='open')return;if(t.symbol&&t.symbol!==sym)return;const sp=(SYMBOLS[t.symbol]||{spread:3}).spread;let closed=false;
     if(t.side==='BUY'){
-      if(lo<=t.sl){t.status='SL';t.net=+((t.sl-t.entry)-sp).toFixed(1);ch=true;}
-      else if(hi>=t.tp2){t.status='TP2';t.net=+((t.tp2-t.entry)-sp).toFixed(1);ch=true;}
-      else if(hi>=t.tp1){t.status='TP1';t.net=+((t.tp1-t.entry)-sp).toFixed(1);ch=true;}
+      if(lo<=t.sl){t.status='SL';t.net=+((t.sl-t.entry)-sp).toFixed(1);closed=true;}
+      else if(hi>=t.tp2){t.status='TP2';t.net=+((t.tp2-t.entry)-sp).toFixed(1);closed=true;}
+      else if(hi>=t.tp1){t.status='TP1';t.net=+((t.tp1-t.entry)-sp).toFixed(1);closed=true;}
     }else{
-      if(hi>=t.sl){t.status='SL';t.net=+((t.entry-t.sl)-sp).toFixed(1);ch=true;}
-      else if(lo<=t.tp2){t.status='TP2';t.net=+((t.entry-t.tp2)-sp).toFixed(1);ch=true;}
-      else if(lo<=t.tp1){t.status='TP1';t.net=+((t.entry-t.tp1)-sp).toFixed(1);ch=true;}
+      if(hi>=t.sl){t.status='SL';t.net=+((t.entry-t.sl)-sp).toFixed(1);closed=true;}
+      else if(lo<=t.tp2){t.status='TP2';t.net=+((t.entry-t.tp2)-sp).toFixed(1);closed=true;}
+      else if(lo<=t.tp1){t.status='TP1';t.net=+((t.entry-t.tp1)-sp).toFixed(1);closed=true;}
     }
-    if(ch&&t.status!=='open')t.closeTs=new Date().toISOString();
+    if(closed){t.closeTs=new Date().toISOString();ch=true;notifyClose(t);}
   });
   if(ch)saveJ(j);return ch;}
 function closeNow(price){const j=loadJ();let ch=false;const sym=$('symbol').value;
@@ -932,7 +944,11 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   // best setup
   const byS={};closed.forEach(t=>{(byS[t.setup]=byS[t.setup]||[]).push(t);});
   const rows=Object.entries(byS).map(([s,ts])=>{const w=ts.filter(t=>t.net>0).length,n=ts.length,net=ts.reduce((a,b)=>a+(b.net||0),0);return {s,w,n,wr:Math.round(w/n*100),net};}).sort((a,b)=>b.wr-a.wr||b.net-a.net);
-  $('jbest').innerHTML=rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'';
+  // ---- pembelajaran adaptif: simpan WR per setup untuk auto-koreksi ----
+  ADAPT={};rows.forEach(r=>{ADAPT[r.s]={n:r.n,wr:r.wr};});
+  const learned=rows.filter(r=>r.n>=8);
+  const learnPanel=learned.length?`<div class="reason" style="margin-top:10px"><b>🧠 Pembelajaran (auto-koreksi):</b><br>`+learned.map(r=>`• ${r.s}: WR ${r.wr}% (${r.n}x) — ${r.wr<40?'❌ dihindari/diperketat':r.wr>=60?'✅ diprioritaskan':'netral'}`).join('<br>')+`<br><span class="muted">Aktif setelah ≥8 trade per setup. Makin banyak data jurnal → makin akurat &amp; makin jarang mengulang setup yang rugi.</span></div>`:`<div class="hint" style="margin-top:10px">🧠 Auto-koreksi belum aktif — butuh ≥8 trade per jenis setup. Terus kumpulkan data lewat jurnal.</div>`;
+  $('jbest').innerHTML=(rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'')+learnPanel;
   // list
   $('jtable').innerHTML=`<tr><th>Waktu</th><th>Aset</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
     (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';const dp=(SYMBOLS[t.symbol]||{dp:2}).dp;
