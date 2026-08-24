@@ -545,6 +545,10 @@ function analyze(d5,d15,d1h,cfg,opts){
   const atUpTL=TL.up&&Math.abs(price-TL.up.at)<=tlTol, atDnTL=TL.down&&Math.abs(price-TL.down.at)<=tlTol;
   const brkUpTL=TL.down&&price>TL.down.at&&c[n-2]<=tlDnVal2;  // tembus trendline turun = bullish
   const brkDnTL=TL.up&&price<TL.up.at&&c[n-2]>=tlUpVal2;      // jebol trendline naik = bearish
+  // channel: garis paralel (naik = dari support ke atas via highs; turun sebaliknya)
+  let CH=null;const wStart=Math.max(0,n-40);
+  if(TL.up){let off=0;for(let i=wStart;i<n;i++)off=Math.max(off,h[i]-(TL.up.m*i+TL.up.c));CH={dir:'up',m:TL.up.m,cLow:TL.up.c,cHigh:TL.up.c+off,atLow:TL.up.at,atHigh:TL.up.at+off};}
+  else if(TL.down){let off=0;for(let i=wStart;i<n;i++)off=Math.max(off,(TL.down.m*i+TL.down.c)-l[i]);CH={dir:'down',m:TL.down.m,cHigh:TL.down.c,cLow:TL.down.c-off,atHigh:TL.down.at,atLow:TL.down.at-off};}
   // candle character
   const body=c[n-1]-o[n-1],rng=(h[n-1]-l[n-1])||1;
   const upWick=h[n-1]-Math.max(c[n-1],o[n-1]),dnWick=Math.min(c[n-1],o[n-1])-l[n-1];
@@ -690,7 +694,7 @@ function analyze(d5,d15,d1h,cfg,opts){
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV,isAplus,TL};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV,isAplus,TL,CH};
 }
 
 /* ---------- render ---------- */
@@ -801,7 +805,8 @@ function render(a,d5){
     <tr><td>Order Block</td><td class="mono" style="color:${a.OB?(a.OB.type==='bull'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.OB?(a.OB.type==='bull'?'🟩 Bullish':'🟥 Bearish'):'—'}</td><td class="mono">${a.OB?('$'+fmt(a.OB.lo)+'–$'+fmt(a.OB.hi)):'—'}</td><td>${a.inOB?'✅ harga DI DALAM':'harga di luar'}</td></tr>
     <tr><td>Divergensi RSI</td><td class="mono" style="color:${a.DV.bull?'var(--green2)':a.DV.bear?'var(--red)':'var(--muted)'}">${a.DV.bull?'▲ Bullish':a.DV.bear?'▼ Bearish':'— tidak ada'}</td><td class="mono">—</td><td>${a.DV.bull||a.DV.bear?'sinyal reversal':'—'}</td></tr>
     <tr><td>Trendline naik</td><td class="mono" style="color:var(--green2)">${a.TL&&a.TL.up?'$'+fmt(a.TL.up.at):'— belum ada'}</td><td class="mono">${a.TL&&a.TL.up?fmt(a.price-a.TL.up.at,1):'—'}</td><td>support dinamis</td></tr>
-    <tr><td>Trendline turun</td><td class="mono" style="color:var(--red)">${a.TL&&a.TL.down?'$'+fmt(a.TL.down.at):'— belum ada'}</td><td class="mono">${a.TL&&a.TL.down?fmt(a.TL.down.at-a.price,1):'—'}</td><td>resistance dinamis</td></tr>`;
+    <tr><td>Trendline turun</td><td class="mono" style="color:var(--red)">${a.TL&&a.TL.down?'$'+fmt(a.TL.down.at):'— belum ada'}</td><td class="mono">${a.TL&&a.TL.down?fmt(a.TL.down.at-a.price,1):'—'}</td><td>resistance dinamis</td></tr>
+    <tr><td>Channel</td><td class="mono" style="color:${a.CH?(a.CH.dir==='up'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.CH?(a.CH.dir==='up'?'▲ Rising channel':'▼ Falling channel'):'— belum ada'}</td><td class="mono">${a.CH?('$'+fmt(a.CH.atLow)+'–$'+fmt(a.CH.atHigh)):'—'}</td><td>${a.CH?'batas bawah–atas':'—'}</td></tr>`;
 
   drawChart(d5,a);
 
@@ -842,16 +847,20 @@ function drawChart(d,a){
   for(let i=0;i<N;i++){const x=i*cw+cw/2,up=sc[i]>=so[i],col=up?UP:DN;ctx.strokeStyle=col;ctx.fillStyle=col;
     ctx.beginPath();ctx.moveTo(x,y(sh[i]));ctx.lineTo(x,y(sl[i]));ctx.stroke();
     const yo=y(so[i]),yc=y(sc[i]);ctx.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
-  // Trend line (support naik hijau / resistance turun merah)
-  const drawTL=(tl,col)=>{if(!tl)return;const base=d.c.length-N;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([]);ctx.beginPath();let started=false;for(let k=0;k<N;k++){const val=tl.m*(base+k)+tl.c;if(val<lo||val>hi){started=false;continue;}const x=k*cw+cw/2,yy=y(val);if(!started){ctx.moveTo(x,yy);started=true;}else ctx.lineTo(x,yy);}ctx.stroke();ctx.lineWidth=1;};
-  if(a.TL){drawTL(a.TL.up,'rgba(38,166,154,.85)');drawTL(a.TL.down,'rgba(239,83,80,.85)');}
+  // Trend line / Channel (garis sejajar)
+  const drawTL=(tl,col,dash,lw)=>{if(!tl)return;const base=d.c.length-N;ctx.strokeStyle=col;ctx.lineWidth=lw||1.5;ctx.setLineDash(dash||[]);ctx.beginPath();let started=false;for(let k=0;k<N;k++){const val=tl.m*(base+k)+tl.c;if(val<lo||val>hi){started=false;continue;}const x=k*cw+cw/2,yy=y(val);if(!started){ctx.moveTo(x,yy);started=true;}else ctx.lineTo(x,yy);}ctx.stroke();ctx.lineWidth=1;ctx.setLineDash([]);};
+  if(a.CH){const col=a.CH.dir==='up'?'rgba(38,166,154,.9)':'rgba(239,83,80,.9)';
+    drawTL({m:a.CH.m,c:a.CH.cLow},col,[],1.6);              // garis bawah
+    drawTL({m:a.CH.m,c:a.CH.cHigh},col,[],1.6);             // garis atas (paralel)
+    drawTL({m:a.CH.m,c:(a.CH.cLow+a.CH.cHigh)/2},'rgba(150,160,180,.5)',[4,4],1); // tengah
+  } else if(a.TL){drawTL(a.TL.up,'rgba(38,166,154,.85)');drawTL(a.TL.down,'rgba(239,83,80,.85)');}
   // EMA9
   const es=emaSeries(d.c,9).slice(-N);ctx.strokeStyle='rgba(76,141,255,.9)';ctx.lineWidth=1.2;ctx.beginPath();let s=false;for(let i=0;i<N;i++){if(es[i]==null)continue;const x=i*cw+cw/2;if(!s){ctx.moveTo(x,y(es[i]));s=true;}else ctx.lineTo(x,y(es[i]));}ctx.stroke();ctx.lineWidth=1;
   // ---- garis Bid + label harga di sumbu (khas MT5) ----
   const last=sc[N-1],upL=sc[N-1]>=sc[N-2],lc=upL?UP:DN,ly=cy(last);
   ctx.strokeStyle=lc;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W-padR,ly);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=lc;ctx.fillRect(W-padR,ly-8,padR,16);ctx.fillStyle='#04101f';ctx.font='bold 11px ui-monospace,monospace';ctx.textAlign='left';ctx.fillText(last.toFixed(a.cfg?a.cfg.dp:2),W-padR+4,ly+4);
-  $('chartLegend').innerHTML='<span style="color:#26a69a">▮ naik</span>/<span style="color:#ef5350">▮ turun</span> · <span style="color:#4c8dff">━ EMA9</span> · <span style="color:#26a69a">╱ trendline naik</span> <span style="color:#ef5350">╲ turun</span> · <span style="color:#e0b23c">▨ Fibo</span> · <span style="color:#9b6eff">▨ OB</span> · garis Bid + Entry/SL/TP';
+  $('chartLegend').innerHTML='<span style="color:#26a69a">▮ naik</span>/<span style="color:#ef5350">▮ turun</span> · <span style="color:#4c8dff">━ EMA9</span> · <span style="color:#26a69a">╱╱ channel naik</span>/<span style="color:#ef5350">╲╲ turun</span> ·<span style="color:#e0b23c">▨ Fibo</span> · <span style="color:#9b6eff">▨ OB</span> · garis Bid + Entry/SL/TP';
 }
 
 /* ---------- run ---------- */
