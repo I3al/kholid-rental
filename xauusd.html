@@ -211,7 +211,7 @@ body{padding-bottom:40px}
         <div class="hint">Disimpan lokal di browser Anda. <a href="https://twelvedata.com/pricing" target="_blank" rel="noopener">Key gratis →</a></div>
       </div>
       <div style="flex:0 0 auto"><label>Aset</label>
-        <select id="symbol"><option value="XAU/USD" selected>Emas (XAUUSD)</option><option value="BTC/USD">Bitcoin (BTCUSD)</option><option value="ETH/USD">Ethereum (ETHUSD)</option></select>
+        <select id="symbol"><option value="XAU/USD" selected>Emas (XAUUSD)</option></select>
       </div>
       <div style="flex:0 0 auto"><label>&nbsp;</label><button id="btnAnalyze">Analisa</button></div>
       <div style="flex:0 0 auto"><label>Auto-refresh</label>
@@ -392,7 +392,7 @@ try{
   $('apiKey').value=localStorage.getItem(LS.key)||'';
   if(localStorage.getItem(LS.auto))$('auto').value=localStorage.getItem(LS.auto);
   if(localStorage.getItem(LS.alarm)!==null)$('alarm').checked=localStorage.getItem(LS.alarm)==='1';
-  if(localStorage.getItem('xau_symbol'))$('symbol').value=localStorage.getItem('xau_symbol');
+  $('symbol').value='XAU/USD'; // fokus XAUUSD only
   if(localStorage.getItem('xau_aplus')==='1')$('aplus').checked=true;
   if(localStorage.getItem('xau_autolog')==='1')$('autolog').checked=true;
   if(localStorage.getItem('xau_offset'))$('offset').value=localStorage.getItem('xau_offset');
@@ -1102,7 +1102,7 @@ $('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('
 const TABS=[['chartCard','📈 Grafik'],['signalCard','🎯 Sinyal'],['planCard','📋 Rencana'],['mtfCard','📊 Pasar'],['riskCard','💰 Modal'],['journalCard','📝 Jurnal'],['backtestCard','🔬 Backtest'],['mt5Card','🔗 MT5'],['akunCard','⚙️ Akun']];
 function buildTabs(){$('tabbar').innerHTML=TABS.map(([id,l])=>`<button class="tab" data-t="${id}">${l}</button>`).join('');$('tabbar').querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.t)));}
 function showTab(id){const c=$(id);if(c)c.scrollIntoView({behavior:'smooth',block:'start'});if(id==='chartCard'&&lastA)drawChart(lastA.d5,lastA.a);}
-const MKT=[['XAU/USD','XAUUSD'],['BTC/USD','BTCUSD'],['ETH/USD','ETHUSD']];
+const MKT=[['XAU/USD','XAUUSD']];
 function buildMkt(){$('mkt').innerHTML=MKT.map(([v,l])=>`<button data-s="${v}">${l}</button>`).join('');$('mkt').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('symbol').value=b.dataset.s;$('symbol').dispatchEvent(new Event('change'));syncMkt();}));syncMkt();}
 function syncMkt(){$('mkt').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===$('symbol').value));}
 buildTabs();buildMkt();
