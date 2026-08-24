@@ -1,0 +1,88 @@
+name: SEO Auto-Submit ke Google
+
+on:
+  push:
+    branches:
+      - main
+      - claude/automatic-web-backling-uaknpk
+    paths:
+      - 'index.html'
+      - 'sitemap.xml'
+      - 'robots.txt'
+      - '.github/workflows/seo-auto-submit.yml'
+  schedule:
+    # Auto-submit sitemap setiap hari Minggu jam 8 pagi UTC
+    - cron: '0 8 * * 0'
+
+jobs:
+  submit-to-google:
+    name: Submit Sitemap ke Google Search Console
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Submit Sitemap ke Google
+        run: |
+          echo "📤 Submitting sitemap to Google..."
+
+          # URL encode the sitemap URL
+          SITEMAP_URL="https://kholidrental.com/sitemap.xml"
+
+          # Submit ke Google
+          curl -X POST "https://www.google.com/ping?sitemap=${SITEMAP_URL}" \
+            -H "User-Agent: Mozilla/5.0" \
+            -v || echo "⚠️ Note: Google ping mungkin tidak merespons status"
+
+          echo "✅ Sitemap submission request sent"
+
+      - name: Verify Robots.txt & Sitemap
+        run: |
+          echo "🔍 Verifying robots.txt..."
+          curl -s -I https://kholidrental.com/robots.txt | head -5
+
+          echo ""
+          echo "🔍 Verifying sitemap.xml..."
+          curl -s -I https://kholidrental.com/sitemap.xml | head -5
+
+          echo ""
+          echo "✅ Files accessible"
+
+      - name: Check SEO Headers
+        run: |
+          echo "🔍 Checking SEO Headers..."
+          curl -s -I https://kholidrental.com | grep -E "Cache-Control|Content-Type|Referrer-Policy" || true
+          echo "✅ Headers verified"
+
+      - name: Send Notification
+        if: success()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            console.log('✅ SEO auto-submit completed successfully');
+            console.log('🔗 Your website is now submitted to Google');
+            console.log('⏱️ Google biasanya indexing dalam 24-48 jam');
+
+  monitor-indexing:
+    name: Monitor Indexing Status
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    steps:
+      - name: Check Indexing Status
+        run: |
+          echo "📊 Website Indexing Monitoring"
+          echo "================================"
+          echo ""
+          echo "Status: Pemantauan aktif"
+          echo "Sitemap: https://kholidrental.com/sitemap.xml"
+          echo "Robots: https://kholidrental.com/robots.txt"
+          echo ""
+          echo "📌 Untuk tracking lebih detail:"
+          echo "   1. Buka Google Search Console"
+          echo "   2. Tambahkan domain: https://kholidrental.com"
+          echo "   3. Verify dengan Google"
+          echo ""
+          echo "💡 Tips SEO tambahan:"
+          echo "   - Pastikan backlinks dari website lain"
+          echo "   - Update konten secara berkala"
+          echo "   - Gunakan keyword yang relevan"

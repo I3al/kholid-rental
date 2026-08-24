@@ -1,0 +1,24 @@
+{
+  "ci": {
+    "collect": {
+      "url": [
+        "https://kholidrental.com/"
+      ],
+      "numberOfRuns": 1,
+      "settings": {
+        "chromeFlags": ["--no-sandbox", "--disable-gpu"],
+        "skipAudits": ["performance", "accessibility"]
+      }
+    },
+    "upload": {
+      "target": "temporary-public-storage"
+    },
+    "assert": {
+      "preset": "lighthouse:recommended",
+      "assertions": {
+        "categories:seo": ["warn", { "minScore": 0.85 }],
+        "categories:best-practices": ["warn", { "minScore": 0.75 }]
+      }
+    }
+  }
+}

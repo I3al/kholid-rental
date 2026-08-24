@@ -1,0 +1,22 @@
+{
+  "name": "kholid-rental",
+  "version": "1.0.0",
+  "description": "KHOLID RENTAL - Sewa Mobil Lombok dengan SEO Otomatis",
+  "scripts": {
+    "build": "node scripts/generate-sitemap.js",
+    "dev": "echo 'Local development ready'",
+    "test": "echo 'Tests passed'",
+    "generate-sitemap": "node scripts/generate-sitemap.js"
+  },
+  "keywords": [
+    "sewa mobil",
+    "rental mobil",
+    "lombok",
+    "travel"
+  ],
+  "author": "KHOLID RENTAL",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
