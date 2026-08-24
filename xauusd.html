@@ -459,6 +459,16 @@ function keyLevels(h,l,price,at){
   const rz=cluster(resistance,sw.hi),sz=cluster(support,sw.lo);
   return {resistance,support,resStr:rz.n,supStr:sz.n,resLo:rz.lo,resHi:rz.hi,supLo:sz.lo,supHi:sz.hi};
 }
+/* Trend line: tarik 2 pivot terakhir. Naik = higher-low (support), Turun = lower-high (resistance) */
+function pivotsIdx(h,l,w){const hi=[],lo=[];for(let i=w;i<h.length-w;i++){let ph=true,pl=true;for(let j=i-w;j<=i+w;j++){if(j===i)continue;if(h[j]>=h[i])ph=false;if(l[j]<=l[i])pl=false;}if(ph)hi.push({i,p:h[i]});if(pl)lo.push({i,p:l[i]});}return {hi,lo};}
+function trendlines(h,l){
+  const pv=pivotsIdx(h,l,2),n=h.length;
+  const mk=pts=>{if(pts.length<2)return null;const a=pts[pts.length-2],b=pts[pts.length-1];if(b.i===a.i)return null;const m=(b.p-a.p)/(b.i-a.i),c=b.p-m*b.i;return {m,c,at:m*(n-1)+c};};
+  let up=mk(pv.lo),down=mk(pv.hi);
+  if(up&&up.m<=0)up=null;        // trendline naik harus miring ke atas
+  if(down&&down.m>=0)down=null;  // trendline turun harus miring ke bawah
+  return {up,down};
+}
 /* Fibonacci: cari leg impuls terakhir yang VALID (range > 2×ATR), lalu retracement */
 function findLeg(h,l,at,price){
   const w=2,piv=[];
@@ -530,6 +540,11 @@ function analyze(d5,d15,d1h,cfg,opts){
   const BOS={dir:S.bos,level:S.bosLvl};
   const inOB=OB&&price>=OB.lo&&price<=OB.hi;
   const DV=detectDivergence(c,h,l);
+  const TL=trendlines(h,l), tlTol=Math.max(at*0.9,3);
+  const tlUpVal2=TL.up?TL.up.m*(n-2)+TL.up.c:null, tlDnVal2=TL.down?TL.down.m*(n-2)+TL.down.c:null;
+  const atUpTL=TL.up&&Math.abs(price-TL.up.at)<=tlTol, atDnTL=TL.down&&Math.abs(price-TL.down.at)<=tlTol;
+  const brkUpTL=TL.down&&price>TL.down.at&&c[n-2]<=tlDnVal2;  // tembus trendline turun = bullish
+  const brkDnTL=TL.up&&price<TL.up.at&&c[n-2]>=tlUpVal2;      // jebol trendline naik = bearish
   // candle character
   const body=c[n-1]-o[n-1],rng=(h[n-1]-l[n-1])||1;
   const upWick=h[n-1]-Math.max(c[n-1],o[n-1]),dnWick=Math.min(c[n-1],o[n-1])-l[n-1];
@@ -560,6 +575,8 @@ function analyze(d5,d15,d1h,cfg,opts){
     add(S.choch==='bear',-10,'CHoCH bearish (lawan)');
     add(inOB&&OB.type==='bull',16,'Harga di Bullish Order Block');
     add(DV.bull,12,'Divergensi bullish RSI');
+    add(atUpTL&&rejUp,14,'Bounce di trendline naik (support)');
+    add(brkUpTL,14,'Break trendline turun (bullish)');
     return f;}
   function scoreBear(){const f=[];const add=(cond,w,name)=>{if(cond)f.push({w,name});};
     add(t1h.dir==='turun',25,'Tren 1H turun'); add(t1h.dir==='ranging',6,'Tren 1H netral'); add(t1h.dir==='naik',-22,'Tren 1H naik (lawan)');
@@ -578,6 +595,8 @@ function analyze(d5,d15,d1h,cfg,opts){
     add(S.choch==='bull',-10,'CHoCH bullish (lawan)');
     add(inOB&&OB.type==='bear',16,'Harga di Bearish Order Block');
     add(DV.bear,12,'Divergensi bearish RSI');
+    add(atDnTL&&rejDown,14,'Rejeksi di trendline turun (resistance)');
+    add(brkDnTL,14,'Break trendline naik (bearish)');
     return f;}
   const fb=scoreBull(),fs=scoreBear();
   const W=loadW(),scaleF=arr=>arr.forEach(f=>{f.w=Math.round(f.w*(W[categoryOf(f.name)]??1));});
@@ -613,7 +632,7 @@ function analyze(d5,d15,d1h,cfg,opts){
   if(vetoMsg)gates.push({t:'warn',m:vetoMsg});
   // perkuat: wajib minimal 1 konfirmasi struktur (buang entry 'telanjang' S/R+momentum)
   if(side!=='NONE'){
-    const hasC=factors.some(f=>/order block|golden|sweep|rejection|divergensi|choch|bos/i.test(f.name));
+    const hasC=factors.some(f=>/order block|golden|sweep|rejection|divergensi|choch|bos|trendline/i.test(f.name));
     if(!hasC){gates.push({t:'warn',m:'Sinyal ditahan — butuh konfirmasi struktur (Order Block/Fibo/sweep/BOS/CHoCH/divergensi), bukan cuma S/R + indikator.'});side='NONE';factors=[];}
   }
   // ---- auto-koreksi dari riwayat jurnal (makin akurat seiring data) ----
@@ -671,7 +690,7 @@ function analyze(d5,d15,d1h,cfg,opts){
   ];
 
   return {price,ind,t5,t15,t1h,K,distR,distS,side,conf,quality,score,factors,
-    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV,isAplus};
+    entry,sl,tp1,tp2,risk,spread,pSL,pTP1,pTP2,gates,checks,at,leg,F,BOS,S,OB,inOB,cfg,DV,isAplus,TL};
 }
 
 /* ---------- render ---------- */
@@ -780,7 +799,9 @@ function render(a,d5){
     <tr><td>BOS</td><td class="mono" style="color:${a.BOS.dir==='bull'?'var(--green2)':a.BOS.dir==='bear'?'var(--red)':'var(--muted)'}">${a.BOS.dir==='bull'?'▲ Bullish break':a.BOS.dir==='bear'?'▼ Bearish break':'— belum'}</td><td class="mono">${a.BOS.level?'$'+fmt(a.BOS.level):'—'}</td><td>${a.BOS.dir!=='none'?'lanjutan':'—'}</td></tr>
     <tr><td>CHoCH</td><td class="mono" style="color:${a.S.choch==='bull'?'var(--green2)':a.S.choch==='bear'?'var(--red)':'var(--muted)'}">${a.S.choch==='bull'?'▲ Bullish':a.S.choch==='bear'?'▼ Bearish':'— belum'}</td><td class="mono">${a.S.chochLvl?'$'+fmt(a.S.chochLvl):'—'}</td><td>${a.S.choch!=='none'?'reversal':'tren '+(a.S.trend==='up'?'naik':a.S.trend==='down'?'turun':'?')}</td></tr>
     <tr><td>Order Block</td><td class="mono" style="color:${a.OB?(a.OB.type==='bull'?'var(--green2)':'var(--red)'):'var(--muted)'}">${a.OB?(a.OB.type==='bull'?'🟩 Bullish':'🟥 Bearish'):'—'}</td><td class="mono">${a.OB?('$'+fmt(a.OB.lo)+'–$'+fmt(a.OB.hi)):'—'}</td><td>${a.inOB?'✅ harga DI DALAM':'harga di luar'}</td></tr>
-    <tr><td>Divergensi RSI</td><td class="mono" style="color:${a.DV.bull?'var(--green2)':a.DV.bear?'var(--red)':'var(--muted)'}">${a.DV.bull?'▲ Bullish':a.DV.bear?'▼ Bearish':'— tidak ada'}</td><td class="mono">—</td><td>${a.DV.bull||a.DV.bear?'sinyal reversal':'—'}</td></tr>`;
+    <tr><td>Divergensi RSI</td><td class="mono" style="color:${a.DV.bull?'var(--green2)':a.DV.bear?'var(--red)':'var(--muted)'}">${a.DV.bull?'▲ Bullish':a.DV.bear?'▼ Bearish':'— tidak ada'}</td><td class="mono">—</td><td>${a.DV.bull||a.DV.bear?'sinyal reversal':'—'}</td></tr>
+    <tr><td>Trendline naik</td><td class="mono" style="color:var(--green2)">${a.TL&&a.TL.up?'$'+fmt(a.TL.up.at):'— belum ada'}</td><td class="mono">${a.TL&&a.TL.up?fmt(a.price-a.TL.up.at,1):'—'}</td><td>support dinamis</td></tr>
+    <tr><td>Trendline turun</td><td class="mono" style="color:var(--red)">${a.TL&&a.TL.down?'$'+fmt(a.TL.down.at):'— belum ada'}</td><td class="mono">${a.TL&&a.TL.down?fmt(a.TL.down.at-a.price,1):'—'}</td><td>resistance dinamis</td></tr>`;
 
   drawChart(d5,a);
 
@@ -821,13 +842,16 @@ function drawChart(d,a){
   for(let i=0;i<N;i++){const x=i*cw+cw/2,up=sc[i]>=so[i],col=up?UP:DN;ctx.strokeStyle=col;ctx.fillStyle=col;
     ctx.beginPath();ctx.moveTo(x,y(sh[i]));ctx.lineTo(x,y(sl[i]));ctx.stroke();
     const yo=y(so[i]),yc=y(sc[i]);ctx.fillRect(x-bw/2,Math.min(yo,yc),bw,Math.max(Math.abs(yc-yo),1));}
+  // Trend line (support naik hijau / resistance turun merah)
+  const drawTL=(tl,col)=>{if(!tl)return;const base=d.c.length-N;ctx.strokeStyle=col;ctx.lineWidth=1.5;ctx.setLineDash([]);ctx.beginPath();let started=false;for(let k=0;k<N;k++){const val=tl.m*(base+k)+tl.c;if(val<lo||val>hi){started=false;continue;}const x=k*cw+cw/2,yy=y(val);if(!started){ctx.moveTo(x,yy);started=true;}else ctx.lineTo(x,yy);}ctx.stroke();ctx.lineWidth=1;};
+  if(a.TL){drawTL(a.TL.up,'rgba(38,166,154,.85)');drawTL(a.TL.down,'rgba(239,83,80,.85)');}
   // EMA9
   const es=emaSeries(d.c,9).slice(-N);ctx.strokeStyle='rgba(76,141,255,.9)';ctx.lineWidth=1.2;ctx.beginPath();let s=false;for(let i=0;i<N;i++){if(es[i]==null)continue;const x=i*cw+cw/2;if(!s){ctx.moveTo(x,y(es[i]));s=true;}else ctx.lineTo(x,y(es[i]));}ctx.stroke();ctx.lineWidth=1;
   // ---- garis Bid + label harga di sumbu (khas MT5) ----
   const last=sc[N-1],upL=sc[N-1]>=sc[N-2],lc=upL?UP:DN,ly=cy(last);
   ctx.strokeStyle=lc;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(0,ly);ctx.lineTo(W-padR,ly);ctx.stroke();ctx.setLineDash([]);
   ctx.fillStyle=lc;ctx.fillRect(W-padR,ly-8,padR,16);ctx.fillStyle='#04101f';ctx.font='bold 11px ui-monospace,monospace';ctx.textAlign='left';ctx.fillText(last.toFixed(a.cfg?a.cfg.dp:2),W-padR+4,ly+4);
-  $('chartLegend').innerHTML='<span style="color:#26a69a">▮ naik</span> / <span style="color:#ef5350">▮ turun</span> · <span style="color:#4c8dff">━ EMA9</span> · area <span style="color:#ef5350">R</span>/<span style="color:#26a69a">S</span> · <span style="color:#e0b23c">▨ Fibo</span> · <span style="color:#9b6eff">▨ OB</span> · garis Bid + Entry/SL/TP';
+  $('chartLegend').innerHTML='<span style="color:#26a69a">▮ naik</span>/<span style="color:#ef5350">▮ turun</span> · <span style="color:#4c8dff">━ EMA9</span> · <span style="color:#26a69a">╱ trendline naik</span> <span style="color:#ef5350">╲ turun</span> · <span style="color:#e0b23c">▨ Fibo</span> · <span style="color:#9b6eff">▨ OB</span> · garis Bid + Entry/SL/TP';
 }
 
 /* ---------- run ---------- */
@@ -876,7 +900,7 @@ function categoryOf(name){const n=name.toLowerCase();
   if(n.includes('tren'))return 'trend';
   if(n.includes('fibonacci')||n.includes('golden'))return 'fib';
   if(n.includes('order block'))return 'ob';
-  if(n.includes('bos')||n.includes('choch')||n.includes('structure'))return 'structure';
+  if(n.includes('bos')||n.includes('choch')||n.includes('structure')||n.includes('trendline'))return 'structure';
   if(n.includes('sweep')||n.includes('rejection')||n.includes('candle'))return 'sweep';
   return 'momentum';}
 function buildWeights(){const w=loadW();$('weights').innerHTML=WKEYS.map(k=>`
@@ -896,6 +920,7 @@ function loadJ(){try{return JSON.parse(localStorage.getItem('xau_journal')||'[]'
 function saveJ(j){try{localStorage.setItem('xau_journal',JSON.stringify(j));}catch(e){}}
 function setupTag(a){const n=a.factors.map(f=>f.name.toLowerCase());
   if(n.some(x=>x.includes('order block')))return 'Order Block';
+  if(n.some(x=>x.includes('trendline')))return 'Trendline';
   if(n.some(x=>x.includes('choch')))return 'CHoCH';
   if(n.some(x=>x.includes('sweep')))return 'Liquidity Sweep';
   if(n.some(x=>x.includes('golden')))return 'Fibo Golden';
