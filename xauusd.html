@@ -463,10 +463,14 @@ function keyLevels(h,l,price,at){
 function pivotsIdx(h,l,w){const hi=[],lo=[];for(let i=w;i<h.length-w;i++){let ph=true,pl=true;for(let j=i-w;j<=i+w;j++){if(j===i)continue;if(h[j]>=h[i])ph=false;if(l[j]<=l[i])pl=false;}if(ph)hi.push({i,p:h[i]});if(pl)lo.push({i,p:l[i]});}return {hi,lo};}
 function trendlines(h,l){
   const pv=pivotsIdx(h,l,2),n=h.length;
-  const mk=pts=>{if(pts.length<2)return null;const a=pts[pts.length-2],b=pts[pts.length-1];if(b.i===a.i)return null;const m=(b.p-a.p)/(b.i-a.i),c=b.p-m*b.i;return {m,c,at:m*(n-1)+c};};
-  let up=mk(pv.lo),down=mk(pv.hi);
-  if(up&&up.m<=0)up=null;        // trendline naik harus miring ke atas
-  if(down&&down.m>=0)down=null;  // trendline turun harus miring ke bawah
+  // garis regresi (least-squares) dari 4 pivot terakhir → lebih stabil & rapi
+  const fit=arr=>{const P=arr.slice(-4);if(P.length<2)return null;let sx=0,sy=0,sxx=0,sxy=0;const k=P.length;P.forEach(p=>{sx+=p.i;sy+=p.p;sxx+=p.i*p.i;sxy+=p.i*p.p;});const den=k*sxx-sx*sx;if(den===0)return null;const m=(k*sxy-sx*sy)/den,c=(sy-m*sx)/k;return {m,c,at:m*(n-1)+c,pts:k};};
+  let up=fit(pv.lo),down=fit(pv.hi);
+  // filter: arah benar, tidak terlalu curam, dan garis dekat rentang harga (anti "menembak" liar)
+  const win=Math.min(60,n),rH=Math.max(...h.slice(-win)),rL=Math.min(...l.slice(-win)),rng=(rH-rL)||1;
+  const ok=t=>t&&Math.abs(t.m)*win<rng*2.5&&t.at>=rL-rng*0.4&&t.at<=rH+rng*0.4;
+  if(!(up&&up.m>0&&ok(up)))up=null;
+  if(!(down&&down.m<0&&ok(down)))down=null;
   return {up,down};
 }
 /* Fibonacci: cari leg impuls terakhir yang VALID (range > 2×ATR), lalu retracement */
