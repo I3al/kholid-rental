@@ -184,6 +184,12 @@ body{padding-bottom:40px}
 .smitem:hover{background:#000080;color:#fff}
 .smsep{height:0;margin:4px 2px;border-top:1px solid #808080;border-bottom:1px solid #fff}
 .minimized .tabbar,.minimized .pane,.minimized .disclaimer{display:none!important}
+/* SATUKAN: tanpa tab — semua panel tampil sekaligus, chart+sinyal di atas, pengaturan di bawah */
+.tabbar{display:none!important}
+.pane{display:block!important;margin:8px}
+.wrap{display:flex;flex-direction:column}
+#chartCard{order:1}#signalCard{order:2}#planCard{order:3}#mtfCard{order:4}#riskCard{order:5}#journalCard{order:6}#backtestCard{order:7}#mt5Card{order:8}#akunCard{order:20}.disclaimer{order:30}
+.term-header{order:-1}
 </style>
 </head>
 <body>
@@ -1002,7 +1008,7 @@ $('offset').addEventListener('change',()=>{localStorage.setItem('xau_offset',$('
 /* ---------- MT5-style tabs + market watch ---------- */
 const TABS=[['chartCard','📈 Grafik'],['signalCard','🎯 Sinyal'],['planCard','📋 Rencana'],['mtfCard','📊 Pasar'],['riskCard','💰 Modal'],['journalCard','📝 Jurnal'],['backtestCard','🔬 Backtest'],['mt5Card','🔗 MT5'],['akunCard','⚙️ Akun']];
 function buildTabs(){$('tabbar').innerHTML=TABS.map(([id,l])=>`<button class="tab" data-t="${id}">${l}</button>`).join('');$('tabbar').querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.t)));}
-function showTab(id){TABS.forEach(([tid])=>{const c=$(tid);if(c)c.classList.toggle('on',tid===id);});$('tabbar').querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.t===id));try{localStorage.setItem('xau_tab',id);}catch(e){}if(id==='chartCard'&&lastA)drawChart(lastA.d5,lastA.a);}
+function showTab(id){const c=$(id);if(c)c.scrollIntoView({behavior:'smooth',block:'start'});if(id==='chartCard'&&lastA)drawChart(lastA.d5,lastA.a);}
 const MKT=[['XAU/USD','XAUUSD'],['BTC/USD','BTCUSD'],['ETH/USD','ETHUSD']];
 function buildMkt(){$('mkt').innerHTML=MKT.map(([v,l])=>`<button data-s="${v}">${l}</button>`).join('');$('mkt').querySelectorAll('button').forEach(b=>b.addEventListener('click',()=>{$('symbol').value=b.dataset.s;$('symbol').dispatchEvent(new Event('change'));syncMkt();}));syncMkt();}
 function syncMkt(){$('mkt').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.s===$('symbol').value));}
