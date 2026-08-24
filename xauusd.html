@@ -354,6 +354,7 @@ body{padding-bottom:40px}
       <button class="ghost" id="btnClear">Hapus semua</button>
     </div>
     <div id="jstats"></div>
+    <div style="margin-top:10px"><label style="margin-bottom:4px">📈 Kurva Ekuitas (poin kumulatif)</label><canvas id="equity" height="150" style="height:150px"></canvas></div>
     <div style="overflow-x:auto"><table id="jtable"></table></div>
     <div id="jbest" style="margin-top:12px"></div>
     <div class="hint">Trade otomatis ditutup saat harga menyentuh SL/TP (dicek tiap refresh). Data tersimpan lokal di browser Anda.</div>
@@ -962,6 +963,21 @@ function evalOpen(price,hi,lo){const j=loadJ();let ch=false;const sym=$('symbol'
 function closeNow(price){const j=loadJ();let ch=false;const sym=$('symbol').value;
   j.forEach(t=>{if(t.status!=='open')return;if(t.symbol&&t.symbol!==sym)return;const sp=(SYMBOLS[t.symbol]||{spread:3}).spread;t.status='manual';t.net=+((t.side==='BUY'?price-t.entry:t.entry-price)-sp).toFixed(1);t.closeTs=new Date().toISOString();ch=true;});
   if(ch){saveJ(j);renderJournal();}}
+function drawEquity(closed){const cv=$('equity');if(!cv)return;const ctx=cv.getContext('2d'),DPR=window.devicePixelRatio||1,W=cv.clientWidth||300,H=150;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0);ctx.fillStyle='#0a0f16';ctx.fillRect(0,0,W,H);
+  const tr=closed.slice().sort((a,b)=>new Date(a.closeTs||a.ts)-new Date(b.closeTs||b.ts));
+  if(!tr.length){ctx.fillStyle='#7f8ea3';ctx.font='12px monospace';ctx.fillText('Belum ada trade selesai — kurva muncul setelah ada hasil.',10,H/2);return;}
+  let cum=0;const pts=[0];tr.forEach(t=>{cum+=t.net||0;pts.push(+cum.toFixed(1));});
+  const hi=Math.max(...pts,1),lo=Math.min(...pts,-1),pad=(hi-lo)*0.12||1,H2=hi+pad,L2=lo-pad;
+  const padL=46,padB=16,padT=8,x=i=>padL+i/(pts.length-1)*(W-padL-8),y=v=>padT+(H2-v)/(H2-L2)*(H-padT-padB);
+  ctx.strokeStyle='rgba(255,255,255,.12)';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(padL,y(0));ctx.lineTo(W-8,y(0));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#7f8ea3';ctx.font='10px monospace';ctx.fillText('0',8,y(0)+3);ctx.fillText('+'+hi.toFixed(0),8,y(hi)+3);ctx.fillText(lo.toFixed(0),8,y(lo)+3);
+  const up=cum>=0,col=up?'#26a69a':'#ef5350';
+  ctx.beginPath();ctx.moveTo(x(0),y(pts[0]));for(let i=1;i<pts.length;i++)ctx.lineTo(x(i),y(pts[i]));ctx.lineTo(x(pts.length-1),y(0));ctx.lineTo(x(0),y(0));ctx.closePath();ctx.fillStyle=up?'rgba(38,166,154,.18)':'rgba(239,83,80,.18)';ctx.fill();
+  ctx.beginPath();ctx.moveTo(x(0),y(pts[0]));for(let i=1;i<pts.length;i++)ctx.lineTo(x(i),y(pts[i]));ctx.strokeStyle=col;ctx.lineWidth=1.8;ctx.stroke();ctx.lineWidth=1;
+  const lx=x(pts.length-1),ly=y(cum);ctx.fillStyle=col;ctx.beginPath();ctx.arc(lx,ly,3,0,7);ctx.fill();
+  let peak=-1e9,dd=0;pts.forEach(v=>{peak=Math.max(peak,v);dd=Math.max(dd,peak-v);});
+  ctx.textAlign='right';ctx.fillStyle=col;ctx.font='bold 13px monospace';ctx.fillText((cum>=0?'+':'')+cum.toFixed(1)+' pt',W-10,16);
+  ctx.textAlign='left';ctx.fillStyle='#7f8ea3';ctx.font='10px monospace';ctx.fillText('Max drawdown: '+dd.toFixed(0)+' pt · '+tr.length+' trade',padL,H-5);}
 function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='open');
   const wins=closed.filter(t=>t.status==='TP1'||t.status==='TP2'||(t.status==='manual'&&t.net>0)).length;
   const losses=closed.filter(t=>t.status==='SL'||(t.status==='manual'&&t.net<=0)).length;
@@ -987,6 +1003,7 @@ function renderJournal(){const j=loadJ();const closed=j.filter(t=>t.status!=='op
   const learned=rows.filter(r=>r.n>=8);
   const learnPanel=learned.length?`<div class="reason" style="margin-top:10px"><b>🧠 Pembelajaran (auto-koreksi):</b><br>`+learned.map(r=>`• ${r.s}: WR ${r.wr}% (${r.n}x) — ${r.wr<40?'❌ dihindari/diperketat':r.wr>=60?'✅ diprioritaskan':'netral'}`).join('<br>')+`<br><span class="muted">Aktif setelah ≥8 trade per setup. Makin banyak data jurnal → makin akurat &amp; makin jarang mengulang setup yang rugi.</span></div>`:`<div class="hint" style="margin-top:10px">🧠 Auto-koreksi belum aktif — butuh ≥8 trade per jenis setup. Terus kumpulkan data lewat jurnal.</div>`;
   $('jbest').innerHTML=(rows.length?`<h2 style="font-size:13px;margin:4px 0 6px"><span class="bar"></span> Setup terbaik</h2><table><tr><th>Setup</th><th class="mono">Trade</th><th class="mono">Win%</th><th class="mono">Net</th></tr>${rows.map(r=>`<tr><td>${r.s}</td><td class="mono">${r.n}</td><td class="mono" style="color:${r.wr>=50?'var(--green2)':'var(--red)'}">${r.wr}%</td><td class="mono">${r.net>=0?'+':''}${r.net.toFixed(1)}</td></tr>`).join('')}</table>`:'')+learnPanel;
+  drawEquity(closed);
   // list
   $('jtable').innerHTML=`<tr><th>Waktu</th><th>Aset</th><th>Arah</th><th class="mono">Entry</th><th>Setup</th><th>Status</th><th class="mono">Net</th><th></th></tr>`+
     (j.length?j.map(t=>{const stC=t.status==='open'?'var(--muted)':(t.status==='SL'||(t.net<=0))?'var(--red)':'var(--green2)';const dp=(SYMBOLS[t.symbol]||{dp:2}).dp;
