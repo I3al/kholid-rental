@@ -234,6 +234,18 @@ body{padding-bottom:40px}
       <input type="number" id="offset" value="0" step="0.1">
       <div class="hint">Selisih harga MT5 Anda vs dashboard. Contoh: MT5 4604.9, dashboard 4608.2 → isi <b>-3.3</b>. Semua level ikut harga broker Anda. Eksekusi tetap manual di MT5.</div>
     </div>
+    <div style="margin-top:12px;max-width:360px">
+      <label>📲 Notifikasi sinyal ke WhatsApp (CallMeBot)</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input type="text" id="waPhone" placeholder="No. WA cth: 62812xxxxxxx" style="flex:1;min-width:150px">
+        <input type="password" id="waKey" placeholder="API key CallMeBot" style="flex:1;min-width:120px">
+      </div>
+      <div style="display:flex;gap:14px;margin-top:8px;align-items:center;flex-wrap:wrap">
+        <label class="chk"><input type="checkbox" id="waOn"> Kirim sinyal ke WA</label>
+        <button class="ghost" id="waTest">Test kirim</button>
+      </div>
+      <div class="hint"><b>Aktivasi (sekali):</b> di WhatsApp, kirim pesan <b>"I allow callmebot to send me messages"</b> ke nomor <b>+34 644 51 95 23</b> → nanti dibalas <b>API key</b> Anda. ⚠️ Notif hanya jalan saat halaman ini <b>terbuka &amp; aktif</b> (bukan server 24/7).</div>
+    </div>
     <div id="errBox"></div>
   </div>
 
@@ -819,7 +831,10 @@ async function run(){
     render(a,D5);
     lastRaw={d5:D5,d15:D15,d1h:D1H,cfg};lastA={a,d5:D5};
     evalOpen(a.price,D5.h[D5.h.length-1],D5.l[D5.l.length-1]);renderJournal();
-    if($('autolog').checked&&(a.side==='BUY'||a.side==='SELL')&&a.side!==autoLoggedSide)logTrade(a);
+    if((a.side==='BUY'||a.side==='SELL')&&a.side!==autoLoggedSide){
+      if($('autolog').checked)logTrade(a);
+      if($('waOn').checked)sendWA(`🎯 XAU PRO SINYAL\n${a.side} ${$('symbol').value}\nEntry ${fmt(a.entry)}\nSL ${fmt(a.sl)} · TP1 ${fmt(a.tp1)} · TP2 ${fmt(a.tp2)}\nSkor ${a.quality} (${a.conf})\n⚠️ konfirmasi di MT5 — bukan nasihat keuangan`);
+    }
     autoLoggedSide=a.side;
     if($('mtAuto').checked&&$('mtToken').value.trim())connectMt5(true);
     $('status').innerHTML=`<span class="dotlive"></span> ${new Date().toLocaleTimeString('id-ID')} · req: ${reqUsed()}/800${off?` · offset ${off>=0?'+':''}${off}`:''}`;
@@ -995,6 +1010,13 @@ function renderMt5(ai,pos){
   else html+='<div class="hint" style="margin-top:8px">Tidak ada posisi terbuka.</div>';
   out.innerHTML=html+`<div class="hint">Update: ${new Date().toLocaleTimeString('id-ID')}</div>`;
 }
+/* ---------- WhatsApp notif (CallMeBot) ---------- */
+function loadWA(){try{const w=JSON.parse(localStorage.getItem('xau_wa')||'{}');if(w.phone)$('waPhone').value=w.phone;if(w.key)$('waKey').value=w.key;if(w.on)$('waOn').checked=true;}catch(e){}}
+function saveWA(){try{localStorage.setItem('xau_wa',JSON.stringify({phone:$('waPhone').value.trim(),key:$('waKey').value.trim(),on:$('waOn').checked?1:0}));}catch(e){}}
+function sendWA(text){const ph=$('waPhone').value.trim(),k=$('waKey').value.trim();if(!ph||!k)return false;
+  fetch(`https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(ph)}&text=${encodeURIComponent(text)}&apikey=${encodeURIComponent(k)}`,{mode:'no-cors'}).catch(()=>{});return true;}
+['waPhone','waKey','waOn'].forEach(id=>$(id).addEventListener('change',saveWA));
+$('waTest').addEventListener('click',()=>{saveWA();if(sendWA('✅ Test XAU PRO — WhatsApp tersambung. Sinyal akan dikirim ke sini.'))alert('Pesan test dikirim. Cek WhatsApp Anda beberapa detik lagi.\nKalau tidak masuk: pastikan sudah aktivasi CallMeBot, dan No./API key benar.');else alert('Isi No. WA + API key dulu.');});
 $('btnMt5').addEventListener('click',()=>connectMt5(false));
 $('mtAuto').addEventListener('change',saveMt5S);
 $('btnBacktest').addEventListener('click',runBacktest);
@@ -1030,7 +1052,7 @@ $('winMin').addEventListener('click',minimizeWin);
 $('winClose').addEventListener('click',minimizeWin);
 $('winMax').addEventListener('click',restoreWin);
 $('taskitem').addEventListener('click',()=>{wrapEl.classList.contains('minimized')?restoreWin():minimizeWin();});
-buildWeights();renderJournal();loadMM();renderRisk(null);loadMt5S();
+buildWeights();renderJournal();loadMM();renderRisk(null);loadMt5S();loadWA();
 ['mmBal','mmRisk','mmVpm'].forEach(id=>$(id).addEventListener('input',()=>renderRisk(lastA?lastA.a:null)));
 setupAuto();
 if($('apiKey').value.trim())run();
