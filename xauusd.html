@@ -190,34 +190,9 @@ body{padding-bottom:40px}
 .wrap{display:flex;flex-direction:column}
 #chartCard{order:1}#signalCard{order:2}#planCard{order:3}#mtfCard{order:4}#riskCard{order:5}#journalCard{order:6}#dailyCard{order:7}#backtestCard{order:8}#mt5Card{order:9}#akunCard{order:20}.disclaimer{order:30}
 .term-header{order:-1}
-/* ---------- gerbang login ---------- */
-#gate{position:fixed;inset:0;z-index:99999;background:radial-gradient(1200px 600px at 50% -10%,#182234,#0a0e14);display:flex;align-items:center;justify-content:center;padding:20px}
-#gate.hide{display:none}
-#gate .box{width:100%;max-width:340px;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 22px;box-shadow:0 20px 60px rgba(0,0,0,.5);text-align:center}
-#gate .lock{width:56px;height:56px;border-radius:50%;margin:0 auto 12px;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:26px}
-#gate h1{margin:6px 0 2px;font-size:20px;letter-spacing:.3px}
-#gate p{margin:0 0 18px;color:var(--muted);font-size:12.5px;line-height:1.5}
-#gate input{margin-bottom:10px;text-align:center;letter-spacing:2px;font-size:16px}
-#gate button{width:100%;padding:12px;font-size:15px}
-#gate .msg{min-height:16px;font-size:12px;margin-top:8px;font-weight:600}
-#gate .msg.err{color:var(--red)}#gate .msg.ok{color:var(--green2)}
-#gate .hint{margin-top:14px;font-size:11px;color:var(--muted)}
-#gate .hint a{color:var(--brass);cursor:pointer;text-decoration:underline}
 </style>
 </head>
 <body>
-<div id="gate">
-  <div class="box">
-    <div class="lock" id="gateIcon">🔒</div>
-    <h1 id="gateTitle">Scalp Pro</h1>
-    <p id="gateDesc">Masukkan kata sandi untuk membuka.</p>
-    <input type="password" id="gatePw" placeholder="Kata sandi" autocomplete="off" inputmode="text" />
-    <input type="password" id="gatePw2" placeholder="Ulangi kata sandi" autocomplete="off" style="display:none" />
-    <button id="gateBtn">Masuk</button>
-    <div class="msg" id="gateMsg"></div>
-    <div class="hint" id="gateHint"></div>
-  </div>
-</div>
 <div class="wrap">
 
   <div class="term-header">
@@ -433,63 +408,6 @@ body{padding-bottom:40px}
 
 <script>
 "use strict";
-/* ---------- GERBANG LOGIN (client-side, sesi sekali pakai) ---------- */
-(function(){
-  const G_PW='xau_pw', G_SESS='xau_authed';
-  const gate=document.getElementById('gate');
-  const pw=document.getElementById('gatePw'), pw2=document.getElementById('gatePw2');
-  const btn=document.getElementById('gateBtn'), msg=document.getElementById('gateMsg');
-  const desc=document.getElementById('gateDesc'), title=document.getElementById('gateTitle');
-  const icon=document.getElementById('gateIcon'), hint=document.getElementById('gateHint');
-  async function sha(s){
-    try{
-      const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s));
-      return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('');
-    }catch(e){ // fallback bila crypto.subtle tak tersedia (mis. http non-secure)
-      let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}return 'f'+(h>>>0).toString(16);
-    }
-  }
-  function getStored(){try{return localStorage.getItem(G_PW);}catch(e){return null;}}
-  function unlock(){try{sessionStorage.setItem(G_SESS,'1');}catch(e){} gate.classList.add('hide');}
-  // sudah login di sesi ini? (sessionStorage: hilang otomatis saat tab/browser ditutup)
-  try{ if(sessionStorage.getItem(G_SESS)==='1'){ gate.classList.add('hide'); return; } }catch(e){}
-  let setupMode=!getStored();
-  function paint(){
-    if(setupMode){
-      icon.textContent='🛡️'; title.textContent='Buat Kata Sandi';
-      desc.textContent='Akses pertama. Buat kata sandi untuk mengunci tools ini — hanya kamu yang tahu.';
-      pw.placeholder='Kata sandi baru'; pw2.style.display='block'; btn.textContent='Simpan & Masuk';
-      hint.innerHTML='';
-    }else{
-      icon.textContent='🔒'; title.textContent='Scalp Pro';
-      desc.textContent='Masukkan kata sandi untuk membuka.';
-      pw2.style.display='none'; btn.textContent='Masuk';
-      hint.innerHTML='Lupa sandi? <a id="gateReset">Reset (hapus kata sandi)</a>';
-      const r=document.getElementById('gateReset');
-      if(r)r.onclick=()=>{ if(confirm('Reset akan menghapus kata sandi tersimpan. Lanjut?')){ try{localStorage.removeItem(G_PW);}catch(e){} setupMode=true; pw.value=''; pw2.value=''; msg.textContent=''; msg.className='msg'; paint(); pw.focus(); } };
-    }
-  }
-  paint();
-  async function submit(){
-    msg.className='msg';
-    const v=pw.value;
-    if(!v){msg.className='msg err';msg.textContent='Isi kata sandi.';return;}
-    if(setupMode){
-      if(v.length<4){msg.className='msg err';msg.textContent='Minimal 4 karakter.';return;}
-      if(v!==pw2.value){msg.className='msg err';msg.textContent='Ulangan tidak sama.';return;}
-      try{localStorage.setItem(G_PW, await sha(v));}catch(e){}
-      msg.className='msg ok';msg.textContent='Tersimpan!'; setTimeout(unlock,300);
-    }else{
-      const ok=(await sha(v))===getStored();
-      if(ok){ msg.className='msg ok';msg.textContent='Berhasil.'; setTimeout(unlock,200); }
-      else{ msg.className='msg err';msg.textContent='Kata sandi salah.'; pw.value=''; pw.focus(); }
-    }
-  }
-  btn.onclick=submit;
-  pw.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
-  pw2.addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
-  setTimeout(()=>{try{pw.focus();}catch(e){}},100);
-})();
 const LS={key:'xau_api_key',auto:'xau_auto',alarm:'xau_alarm',reqDay:'xau_req_day',reqCount:'xau_req_count'};
 const $=id=>document.getElementById(id);
 try{
