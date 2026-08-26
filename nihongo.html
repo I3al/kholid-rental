@@ -228,9 +228,30 @@
   .check-list li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;font-size:14px}
   .check-list input{margin-top:3px;width:18px;height:18px;accent-color:var(--accent)}
   .muted{color:var(--muted)}
+  /* kontak admin */
+  .contact{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  .contact-ico{width:52px;height:52px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:26px;
+    background:color-mix(in srgb,var(--gold) 18%,var(--card2));flex:0 0 auto}
+  .contact-body{flex:1;min-width:180px}
+  .contact-body b{font-size:15.5px;letter-spacing:-.01em}
+  .btn-wa{display:inline-flex;align-items:center;gap:11px;text-decoration:none;flex:0 0 auto;
+    background:linear-gradient(135deg,#4ade80,#22c55e 55%,#16a34a);color:#fff;font-weight:800;font-size:15px;
+    padding:13px 20px;border-radius:var(--radius-sm);box-shadow:0 8px 20px rgba(34,197,94,.35);transition:transform .16s var(--ease),box-shadow .16s,filter .16s}
+  .btn-wa:hover{filter:brightness(1.04);box-shadow:0 12px 26px rgba(34,197,94,.45)}
+  .btn-wa:active{transform:translateY(1px) scale(.99)}
+  .btn-wa svg{width:26px;height:26px;flex:0 0 auto}
+  .btn-wa span{display:flex;flex-direction:column;line-height:1.15}
+  .btn-wa small{font-weight:600;opacity:.9;font-size:11px}
+  @media (max-width:480px){.btn-wa{width:100%;justify-content:center}}
   .foot{text-align:center;color:var(--muted);font-size:12.5px;padding:34px 16px 12px;line-height:1.8}
-  .foot .dev{display:inline-flex;align-items:center;gap:7px;margin-top:12px;padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);font-weight:700;color:var(--ink)}
-  .foot .dev b{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .foot-links{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:14px}
+  .wa-mini{display:inline-flex;align-items:center;gap:8px;text-decoration:none;font-weight:700;font-size:12.5px;color:#16a34a;
+    padding:8px 15px;border-radius:999px;background:color-mix(in srgb,#22c55e 12%,var(--card));border:1px solid color-mix(in srgb,#22c55e 30%,var(--line));box-shadow:var(--shadow);transition:transform .16s var(--ease)}
+  .wa-mini:hover{filter:brightness(1.03)}.wa-mini:active{transform:scale(.97)}
+  .wa-mini svg{width:16px;height:16px}
+  :root:not([data-theme="light"]) .wa-mini,:root[data-theme="dark"] .wa-mini{color:#4ade80}
+  .foot .dev{display:inline-flex;align-items:center;gap:7px;padding:8px 15px;border-radius:999px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow);font-weight:700;color:var(--ink)}
+  .foot .dev b{color:var(--accent)}
   .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .pill{font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:color-mix(in srgb,var(--accent) 8%,var(--card));border:1px solid var(--line);color:var(--ink);box-shadow:var(--shadow)}
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
@@ -296,6 +317,19 @@
         <li style="margin-bottom:6px"><b style="color:var(--ink)">Uji diri.</b> Main Kuis untuk cek yang sudah nempel.</li>
         <li><b style="color:var(--ink)">Praktik nulis.</b> Coba Sakubun 3–5 kalimat pakai pola yang ada.</li>
       </ol>
+    </div>
+
+    <h2><span class="k"></span> Saran &amp; Kontak Admin</h2>
+    <div class="card contact">
+      <div class="contact-ico">💡</div>
+      <div class="contact-body">
+        <b>Web akan terus berkembang sesuai kebutuhan.</b>
+        <p class="muted" style="margin:6px 0 0">Ada saran atau ingin request fitur tambahan? Silakan hubungi admin lewat WhatsApp — masukanmu bikin 星空クラス makin lengkap. 🙌</p>
+      </div>
+      <a class="btn-wa" href="https://wa.me/6287731992067?text=Halo%20admin%20%E6%98%9F%E7%A9%BA%E3%82%AF%E3%83%A9%E3%82%B9!%20Saya%20punya%20saran%2Fusulan%20fitur%20untuk%20web%20belajar%20Jepang%3A%20" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 .6C7.5.6.6 7.5.6 16c0 2.8.8 5.5 2.2 7.9L.5 31.5l7.8-2.3C10.6 30.5 13.3 31.3 16 31.3 24.5 31.3 31.4 24.4 31.4 16S24.5.6 16 .6zm0 28.1c-2.5 0-5-.7-7.1-1.9l-.5-.3-4.6 1.3 1.3-4.5-.3-.5C3.4 20.6 2.7 18.3 2.7 16 2.7 8.7 8.7 2.7 16 2.7S29.3 8.7 29.3 16 23.3 28.7 16 28.7zm7.4-9.8c-.4-.2-2.4-1.2-2.8-1.3-.4-.1-.6-.2-.9.2s-1 1.3-1.3 1.5c-.2.2-.5.3-.9.1-.4-.2-1.7-.6-3.3-2-1.2-1.1-2-2.4-2.3-2.8-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.2.2-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.9-2.1-1.2-2.9-.3-.8-.6-.7-.9-.7h-.7c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.9 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.3-.3-.7-.5z"/></svg>
+        <span>Chat Admin di WhatsApp<small>087731992067</small></span>
+      </a>
     </div>
   </section>
 
@@ -389,8 +423,11 @@
 
   <div class="foot">
     星空クラス · Nihongo N5 · alat bantu belajar mandiri · 頑張って! (ganbatte — semangat!)<br>
-    Progres &amp; catatan tersimpan lokal di browser ini saja.
-    <div><span class="dev">👨‍💻 Dikembangkan oleh <b>Holid</b></span></div>
+    Progres &amp; catatan tersimpan lokal di browser ini saja. Web akan terus berkembang sesuai kebutuhan.
+    <div class="foot-links">
+      <a class="wa-mini" href="https://wa.me/6287731992067?text=Halo%20admin%20%E6%98%9F%E7%A9%BA%E3%82%AF%E3%83%A9%E3%82%B9!%20Saya%20punya%20saran%2Fusulan%20fitur%3A%20" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 .6C7.5.6.6 7.5.6 16c0 2.8.8 5.5 2.2 7.9L.5 31.5l7.8-2.3C10.6 30.5 13.3 31.3 16 31.3 24.5 31.3 31.4 24.4 31.4 16S24.5.6 16 .6zm0 28.1c-2.5 0-5-.7-7.1-1.9l-.5-.3-4.6 1.3 1.3-4.5-.3-.5C3.4 20.6 2.7 18.3 2.7 16 2.7 8.7 8.7 2.7 16 2.7S29.3 8.7 29.3 16 23.3 28.7 16 28.7zm7.4-9.8c-.4-.2-2.4-1.2-2.8-1.3-.4-.1-.6-.2-.9.2s-1 1.3-1.3 1.5c-.2.2-.5.3-.9.1-.4-.2-1.7-.6-3.3-2-1.2-1.1-2-2.4-2.3-2.8-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.2.2-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.9-2.1-1.2-2.9-.3-.8-.6-.7-.9-.7h-.7c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.9 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.3-.3-.7-.5z"/></svg> Saran fitur → WhatsApp Admin</a>
+      <span class="dev">👨‍💻 Dikembangkan oleh <b>Holid</b></span>
+    </div>
   </div>
 </div>
 
