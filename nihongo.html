@@ -3,21 +3,22 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>Kholid · Belajar Bahasa Jepang N5</title>
+<title>星空クラス · Belajar Bahasa Jepang N5</title>
 <meta name="description" content="Belajar bahasa Jepang N5 lengkap: kana, kosakata (kotoba), flashcard SRS, kuis, sakubun, dan grammar. Gratis, tampilan bersih, cocok pemula." />
-<meta name="theme-color" content="#e0433b" />
+<meta name="theme-color" content="#40469f" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Nihongo N5" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e2483d'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3Eあ%3C/text%3E%3C/svg%3E" />
 <style>
   :root{
-    --bg:#f6f3ee; --bg2:#efe9e0; --card:#ffffff; --card2:#f3eee6; --ink:#232833; --muted:#767d8c;
-    --line:#ece5da; --accent:#e0433b; --accent2:#b5342c; --rose:#ff6f5e; --indigo:#5b5bd6; --gold:#e0a83e;
-    --green:#25a06a; --blue:#2f7fd6;
-    --grad:linear-gradient(135deg,#ff7a5c 0%,#e0433b 55%,#c0392f 100%);
-    --shadow:0 1px 2px rgba(24,28,40,.05),0 6px 16px rgba(24,28,40,.06);
-    --shadow-lg:0 6px 16px rgba(24,28,40,.09),0 24px 54px rgba(24,28,40,.14);
-    --ring:0 0 0 4px rgba(224,67,59,.14);
+    --bg:#f6f4ef; --bg2:#efece4; --card:#ffffff; --card2:#f3f0ea; --ink:#1b2130; --muted:#6d7488;
+    --line:#e8e3d9; --accent:#40469f; --accent2:#333a86; --violet:#6b5bd0; --gold:#b98a38; --gold2:#caa155;
+    --green:#2a9463; --blue:#2f6fd0;
+    --grad:linear-gradient(135deg,#4a54c4 0%,#40469f 55%,#5a4ec6 100%);
+    --grad-gold:linear-gradient(135deg,#d8b463,#b98a38);
+    --shadow:0 1px 2px rgba(20,24,40,.05),0 6px 16px rgba(20,24,40,.06);
+    --shadow-lg:0 6px 16px rgba(20,24,40,.08),0 24px 54px rgba(20,24,40,.12);
+    --ring:0 0 0 4px rgba(64,70,159,.15);
     --radius:20px; --radius-sm:14px;
     --ease:cubic-bezier(.22,.61,.36,1);
     --jp:"Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Noto Sans JP","Meiryo",sans-serif;
@@ -25,24 +26,28 @@
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#0b0f18; --bg2:#0f1421; --card:#151b28; --card2:#1c2433; --ink:#eaeef6; --muted:#98a1b4;
-      --line:#28303f; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.4);
-      --shadow-lg:0 10px 30px rgba(0,0,0,.45),0 26px 60px rgba(0,0,0,.5);
-      --ring:0 0 0 4px rgba(255,111,94,.18);
+      --bg:#080b16; --bg2:#0c1120; --card:#121829; --card2:#182036; --ink:#e9ecf7; --muted:#94a0bc;
+      --line:#232c44; --accent:#7079e8; --accent2:#5860d6; --violet:#8b7cf0; --gold:#d8b464; --gold2:#e6c880;
+      --grad:linear-gradient(135deg,#6d78ef 0%,#5860d6 55%,#8b7cf0 100%);
+      --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.45);
+      --shadow-lg:0 10px 30px rgba(0,0,0,.5),0 26px 60px rgba(0,0,0,.55);
+      --ring:0 0 0 4px rgba(112,121,232,.22);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#0b0f18; --bg2:#0f1421; --card:#151b28; --card2:#1c2433; --ink:#eaeef6; --muted:#98a1b4;
-    --line:#28303f; --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 26px rgba(0,0,0,.4);
-    --shadow-lg:0 10px 30px rgba(0,0,0,.45),0 26px 60px rgba(0,0,0,.5);
-    --ring:0 0 0 4px rgba(255,111,94,.18);
+    --bg:#080b16; --bg2:#0c1120; --card:#121829; --card2:#182036; --ink:#e9ecf7; --muted:#94a0bc;
+    --line:#232c44; --accent:#7079e8; --accent2:#5860d6; --violet:#8b7cf0; --gold:#d8b464; --gold2:#e6c880;
+    --grad:linear-gradient(135deg,#6d78ef 0%,#5860d6 55%,#8b7cf0 100%);
+    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.45);
+    --shadow-lg:0 10px 30px rgba(0,0,0,.5),0 26px 60px rgba(0,0,0,.55);
+    --ring:0 0 0 4px rgba(112,121,232,.22);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{scroll-behavior:smooth}
   html,body{margin:0}
   body{background:
       radial-gradient(1100px 500px at 100% -5%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 60%),
-      radial-gradient(900px 500px at -10% 0%,color-mix(in srgb,var(--indigo) 8%,transparent),transparent 55%),
+      radial-gradient(900px 500px at -10% 0%,color-mix(in srgb,var(--violet) 8%,transparent),transparent 55%),
       var(--bg);
     color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;letter-spacing:-.005em;
     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;padding-bottom:84px}
@@ -54,12 +59,12 @@
   header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);
     backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line)}
   .hd{display:flex;align-items:center;gap:12px;max-width:920px;margin:0 auto;padding:12px 16px}
-  .logo{width:42px;height:42px;border-radius:13px;background:var(--grad);
-    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:22px;font-family:var(--jp);flex:0 0 auto;
-    box-shadow:0 6px 16px rgba(224,67,59,.4),inset 0 1px 0 rgba(255,255,255,.35)}
-  .brand b{font-size:18px;letter-spacing:-.01em;display:block;line-height:1.05;font-weight:800;
-    background:linear-gradient(120deg,var(--ink),var(--ink) 55%,var(--accent));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-  .brand span{font-size:10.5px;color:var(--muted);letter-spacing:.7px;text-transform:uppercase;font-weight:600}
+  .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(155deg,#2b3170 0%,#171d40 60%,#0d1228 100%);
+    display:flex;align-items:center;justify-content:center;flex:0 0 auto;position:relative;overflow:hidden;
+    box-shadow:0 8px 20px rgba(16,21,50,.42),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.05)}
+  .logo svg{width:28px;height:28px;position:relative;z-index:1}
+  .brand b{font-size:20px;letter-spacing:.01em;display:block;line-height:1.05;font-weight:800;font-family:var(--jp);color:var(--ink)}
+  .brand span{font-size:10px;color:var(--muted);letter-spacing:.9px;text-transform:uppercase;font-weight:600}
   .theme-btn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
     width:42px;height:42px;border-radius:13px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;
     box-shadow:var(--shadow);transition:transform .18s var(--ease),box-shadow .18s}
@@ -153,7 +158,7 @@
   .kj-read{display:flex;gap:8px;flex-wrap:wrap;margin:5px 0}
   .kj-t{font-size:11.5px;color:var(--muted);background:var(--card2);border-radius:7px;padding:3px 8px;font-weight:600}
   .kj-t b{font-family:var(--jp);font-size:13px;font-weight:700;margin-left:2px}
-  .kj-t.kun b{color:var(--accent)} .kj-t.on b{color:var(--indigo)}
+  .kj-t.kun b{color:var(--accent)} .kj-t.on b{color:var(--violet)}
   .kj-ex{font-size:13px;color:var(--muted);margin-top:2px}
   .kj-ex .jp{font-family:var(--jp);color:var(--ink);font-size:15px;font-weight:600}
   .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card2);color:var(--muted);vertical-align:middle}
@@ -234,8 +239,20 @@
 <body>
 <header>
   <div class="hd">
-    <div class="logo jp">あ</div>
-    <div class="brand"><b>Kholid</b><span>Nihongo N5 · Belajar Jepang</span></div>
+    <div class="logo">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="starG" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#f3d98a"/><stop offset="1" stop-color="#c99a3f"/>
+          </linearGradient>
+        </defs>
+        <circle cx="12" cy="13" r="1" fill="#fff" opacity=".85"/>
+        <circle cx="37" cy="12" r="1.4" fill="#fff" opacity=".7"/>
+        <circle cx="34" cy="35" r="1" fill="#fff" opacity=".6"/>
+        <path d="M24 8 C25.6 18.8 29.2 22.4 40 24 C29.2 25.6 25.6 29.2 24 40 C22.4 29.2 18.8 25.6 8 24 C18.8 22.4 22.4 18.8 24 8 Z" fill="url(#starG)"/>
+      </svg>
+    </div>
+    <div class="brand"><b>星空クラス</b><span>Hoshizora Class · Nihongo N5</span></div>
     <button class="theme-btn" id="themeBtn" title="Ganti tema">🌗</button>
   </div>
 </header>
@@ -246,9 +263,9 @@
   <!-- HOME -->
   <section id="home" class="on">
     <div class="hero">
-      <div class="big jp">五</div>
-      <h1>ようこそ! Selamat datang di Kholid 🇯🇵</h1>
-      <p class="lead">Semua yang kamu butuh untuk mulai bahasa Jepang level <b>N5</b> — huruf, kosakata, hafalan kartu, kuis, mengarang, dan tata bahasa. Bahasa Indonesia + romaji, dirancang mudah dipahami untuk pemula.</p>
+      <div class="big jp">星</div>
+      <h1>ようこそ! Selamat datang di website 星空クラス</h1>
+      <p class="lead">Mari belajar bersama, みなさん! Semua yang kamu butuh untuk mulai bahasa Jepang level <b>N5</b> — huruf, kanji, kosakata, hafalan kartu, kuis, mengarang, dan tata bahasa. Bahasa Indonesia + romaji, dirancang mudah dipahami untuk pemula.</p>
       <div class="btn-row" style="margin-top:16px">
         <button class="btn" data-go="flash">🃏 Lanjut belajar</button>
         <button class="btn ghost" data-go="kana">🔤 Mulai dari huruf</button>
@@ -263,7 +280,7 @@
     <h2><span class="k"></span> Mulai dari mana?</h2>
     <div class="grid g2">
       <button class="tile" data-go="kana"><div class="ico">🔤</div><b>Huruf (Kana)</b><small>Hiragana &amp; Katakana + cara baca</small></button>
-      <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>94 kanji N5 + arti &amp; contoh</small></button>
+      <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>127 kanji + arti, bacaan &amp; contoh</small></button>
       <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>Kata N5 per tema + contoh</small></button>
       <button class="tile" data-go="flash"><div class="ico">🃏</div><b>Flashcard (SRS)</b><small>Hafal dengan pengulangan cerdas</small></button>
       <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Uji arti &amp; bacaan, dapat skor</small></button>
@@ -371,7 +388,7 @@
   </section>
 
   <div class="foot">
-    Kholid · Nihongo N5 · alat bantu belajar mandiri · 頑張って! (ganbatte — semangat!)<br>
+    星空クラス · Nihongo N5 · alat bantu belajar mandiri · 頑張って! (ganbatte — semangat!)<br>
     Progres &amp; catatan tersimpan lokal di browser ini saja.
     <div><span class="dev">👨‍💻 Dikembangkan oleh <b>Holid</b></span></div>
   </div>
@@ -557,7 +574,7 @@ const KANA={
 };
 
 // KANJI: [kanji, kun, on, arti(ID), contohKata, bacaanRomaji, artiContoh, kategori]
-const KCATS=[['angka','Angka'],['waktu','Waktu & Hari'],['alam','Alam'],['orang','Orang'],['tubuh','Tubuh'],['kerja','Kata Kerja'],['sifat','Sifat'],['arah','Arah & Posisi'],['tempat','Tempat & Benda']];
+const KCATS=[['angka','Angka'],['waktu','Waktu & Hari'],['alam','Alam'],['orang','Orang'],['tubuh','Tubuh'],['kerja','Kata Kerja'],['sifat','Sifat'],['arah','Arah & Posisi'],['tempat','Tempat & Benda'],['bangunan','Bangunan & Kota'],['lain','Lain-lain']];
 const KJ=[
   // angka
   ['一','ひと','イチ','satu','一つ','hitotsu','satu buah','angka'],
@@ -662,6 +679,43 @@ const KJ=[
   ['店','みせ','テン','toko','店','mise','toko','tempat'],
   ['家','いえ','カ','rumah','家','ie','rumah','tempat'],
   ['道','みち','ドウ','jalan','道','michi','jalan','tempat'],
+  // bangunan & kota
+  ['建','た','ケン','membangun','建物','tatemono','gedung / bangunan','bangunan'],
+  ['物','もの','ブツ','benda / barang','建物','tatemono','gedung / bangunan','bangunan'],
+  ['階','—','カイ','lantai / tingkat','二階','nikai','lantai 2','bangunan'],
+  ['室','—','シツ','ruangan','教室','kyōshitsu','ruang kelas','bangunan'],
+  ['館','—','カン','gedung / aula','図書館','toshokan','perpustakaan','bangunan'],
+  ['社','やしろ','シャ','perusahaan / kuil','会社','kaisha','perusahaan','bangunan'],
+  ['院','—','イン','institusi','病院','byōin','rumah sakit','bangunan'],
+  ['病','やまい','ビョウ','penyakit','病気','byōki','sakit','bangunan'],
+  ['部','—','ブ','bagian / seksi','部屋','heya','kamar','bangunan'],
+  ['屋','や','オク','toko / atap','部屋','heya','kamar','bangunan'],
+  ['場','ば','ジョウ','tempat / lokasi','場所','basho','tempat','bangunan'],
+  ['所','ところ','ショ','tempat','場所','basho','tempat','bangunan'],
+  ['町','まち','チョウ','kota kecil','町','machi','kota / kampung','bangunan'],
+  ['市','いち','シ','kota','市','shi','kota','bangunan'],
+  ['村','むら','ソン','desa','村','mura','desa','bangunan'],
+  ['地','—','チ','tanah / bumi','地図','chizu','peta','bangunan'],
+  ['図','—','ズ','peta / diagram','地図','chizu','peta','bangunan'],
+  ['銀','—','ギン','perak','銀行','ginkō','bank','bangunan'],
+  ['医','—','イ','medis / dokter','医者','isha','dokter','bangunan'],
+  ['事','こと','ジ','hal / urusan','仕事','shigoto','pekerjaan','bangunan'],
+  ['仕','—','シ','melayani / kerja','仕事','shigoto','pekerjaan','bangunan'],
+  ['京','—','キョウ','ibukota','東京','Tōkyō','Tokyo','bangunan'],
+  // arah mata angin (tambahan)
+  ['東','ひがし','トウ','timur','東口','higashiguchi','pintu timur','arah'],
+  ['西','にし','セイ','barat','西','nishi','barat','arah'],
+  ['南','みなみ','ナン','selatan','南','minami','selatan','arah'],
+  ['北','きた','ホク','utara','北','kita','utara','arah'],
+  ['外','そと','ガイ','luar','外国','gaikoku','luar negeri','arah'],
+  // waktu (tambahan)
+  ['毎','—','マイ','setiap','毎日','mainichi','setiap hari','waktu'],
+  ['週','—','シュウ','minggu (pekan)','毎週','maishū','tiap minggu','waktu'],
+  ['曜','—','ヨウ','hari (dlm minggu)','曜日','yōbi','nama hari','waktu'],
+  // lain-lain
+  ['音','おと','オン','suara / bunyi','音楽','ongaku','musik','lain'],
+  ['楽','たの','ガク','senang / musik','音楽','ongaku','musik','lain'],
+  ['番','—','バン','nomor / giliran','一番','ichiban','nomor 1 / paling','lain'],
 ];
 KJ.forEach((k,i)=>k.id=i);
 
