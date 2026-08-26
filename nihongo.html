@@ -100,17 +100,17 @@
   .chip.on{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   input[type=search],input[type=text]{width:100%;font:inherit;font-size:15px;padding:11px 14px;border:1px solid var(--line);border-radius:12px;background:var(--card);color:var(--ink);outline:none}
   input:focus{border-color:var(--accent)}
-  .vitem{display:flex;align-items:center;gap:14px;padding:14px 4px;border-bottom:1px solid var(--line)}
+  .vitem{padding:15px 2px;border-bottom:1px solid var(--line)}
   .vitem:last-child{border-bottom:none}
-  .vitem .word{flex:0 0 auto;min-width:96px}
-  .vitem .word .jp{font-family:var(--jp);font-size:23px;font-weight:600;line-height:1.15}
-  .vitem .word .kana{font-family:var(--jp);font-size:12.5px;color:var(--muted)}
-  .vitem .word .ro{font-size:11px;color:var(--accent);font-weight:600}
-  .vitem .mean{flex:1;min-width:0}
-  .vitem .mean b{font-weight:700;font-size:15px}
-  .vitem .mean .ex{font-size:12.5px;color:var(--muted);margin-top:3px}
-  .vitem .mean .ex .jp{font-family:var(--jp)}
-  .speak{flex:0 0 auto;width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:16px}
+  .vitem .top{display:flex;align-items:center;gap:12px}
+  .vitem .jp{font-family:var(--jp);font-size:25px;font-weight:600;line-height:1.2;flex:0 0 auto}
+  .vitem .rdg{font-family:var(--jp);font-size:13px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .vitem .rdg .ro{font-family:var(--sans);color:var(--accent);font-weight:600}
+  .vitem .mean{margin-top:7px}
+  .vitem .mean b{font-weight:700;font-size:16px}
+  .vitem .ex{font-size:13.5px;color:var(--muted);margin-top:6px;line-height:1.75;background:var(--card2);border-radius:10px;padding:9px 12px}
+  .vitem .ex .jp{font-family:var(--jp);color:var(--ink);font-size:15px}
+  .speak{flex:0 0 auto;width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:16px}
   .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card2);color:var(--muted);vertical-align:middle}
   .badge.n5{background:#e9f6ef;color:#1f9d63}.badge.n4{background:#eaf1fb;color:#2f7fd6}
   :root:not([data-theme="light"]) .badge.n5{background:#16301f;color:#4fd497}
@@ -619,16 +619,13 @@ function renderVocab(){
   const list=V.filter(w=>(vCat==='all'||w[7]===vCat)&&(!q||w[0].includes(q)||w[2].toLowerCase().includes(q)||w[3].toLowerCase().includes(q)||w[1].includes(q)));
   $('#vList').innerHTML=list.length?list.map(w=>`
     <div class="vitem">
-      <div class="word">
-        <div class="jp">${w[0]}</div>
-        <div class="kana jp">${w[1]}</div>
-        <div class="ro">${w[2]}</div>
+      <div class="top">
+        <span class="jp">${w[0]}</span>
+        <span class="rdg jp">${w[1]} · <span class="ro">${w[2]}</span></span>
+        <button class="speak" data-say="${w[0]}" title="Dengar">🔊</button>
       </div>
-      <div class="mean">
-        <b>${w[3]}</b> <span class="badge n5">N5</span>
-        <div class="ex"><span class="jp">${w[4]}</span><br>${w[5]} — ${w[6]}</div>
-      </div>
-      <button class="speak" data-say="${w[0]}" title="Dengar">🔊</button>
+      <div class="mean"><b>${w[3]}</b> <span class="badge n5">N5</span></div>
+      <div class="ex"><span class="jp">${w[4]}</span><br>${w[5]} — ${w[6]}</div>
     </div>`).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kata yang cocok.</p>';
   $$('#vList .speak').forEach(b=>b.onclick=()=>speak(b.dataset.say));
 }
