@@ -199,6 +199,18 @@
   .progress{height:9px;background:var(--card2);border-radius:99px;overflow:hidden;margin-bottom:16px;box-shadow:inset 0 1px 2px rgba(0,0,0,.08)}
   .progress i{display:block;height:100%;background:var(--grad);transition:width .35s var(--ease)}
 
+  /* susun kalimat */
+  .sent-answer{min-height:56px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:13px;border:1.5px dashed var(--line);border-radius:14px;background:var(--card2);margin-bottom:14px}
+  .sent-pool{display:flex;flex-wrap:wrap;gap:8px}
+  .chunk{font-family:var(--jp);font-size:18px;font-weight:600;padding:11px 15px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer;box-shadow:var(--shadow);transition:transform .14s var(--ease),background .14s}
+  .chunk:active{transform:scale(.93)}
+  .chunk.placed{background:color-mix(in srgb,var(--accent) 12%,var(--card));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+  .chunk.ok{background:color-mix(in srgb,var(--green) 18%,var(--card));border-color:var(--green);color:var(--green)}
+  .chunk.no{background:color-mix(in srgb,#e5484d 16%,var(--card));border-color:#e5484d;color:#d3453f}
+  .sent-fb{border-radius:14px;padding:14px 16px;font-size:14.5px;line-height:1.7;animation:fade .3s var(--ease)}
+  .sent-fb.good{background:color-mix(in srgb,var(--green) 12%,var(--card));border:1px solid color-mix(in srgb,var(--green) 35%,var(--line))}
+  .sent-fb.bad{background:color-mix(in srgb,#e5484d 9%,var(--card));border:1px solid color-mix(in srgb,#e5484d 28%,var(--line))}
+
   /* buttons */
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--radius-sm);font:inherit;font-weight:800;font-size:15px;padding:13px 22px;cursor:pointer;background:var(--grad);color:#fff;transition:transform .16s var(--ease),box-shadow .16s,filter .16s;box-shadow:0 6px 16px rgba(224,67,59,.32)}
   .btn:hover{filter:brightness(1.05);box-shadow:0 10px 24px rgba(224,67,59,.4)}
@@ -305,6 +317,7 @@
       <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>Kata N5 per tema + contoh</small></button>
       <button class="tile" data-go="flash"><div class="ico">🃏</div><b>Flashcard (SRS)</b><small>Hafal dengan pengulangan cerdas</small></button>
       <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Uji arti &amp; bacaan, dapat skor</small></button>
+      <button class="tile" data-go="kalimat"><div class="ico">🧩</div><b>Susun Kalimat</b><small>Latihan bikin kalimat, koreksi otomatis</small></button>
       <button class="tile" data-go="sakubun"><div class="ico">📝</div><b>Sakubun</b><small>Latihan mengarang + contoh</small></button>
       <button class="tile" data-go="grammar"><div class="ico">📐</div><b>Grammar &amp; Partikel</b><small>Pola kalimat &amp; は/が/を…</small></button>
     </div>
@@ -404,6 +417,14 @@
       <div class="muted" style="text-align:center;font-size:14px" id="qFeedback"></div>
     </div>
     <div id="quizDone" style="display:none"></div>
+  </section>
+
+  <!-- SUSUN KALIMAT -->
+  <section id="kalimat">
+    <h1>Susun Kalimat 🧩</h1>
+    <p class="lead">Diberi arti Indonesia, susun potongan kata jadi kalimat Jepang yang benar. Ketuk kata untuk menaruh/menghapus. Kalau salah, ditunjukkan bagian yang keliru + kalimat yang benar.</p>
+    <div class="grid g3" id="sentStats" style="margin-bottom:16px"></div>
+    <div class="card" id="sentCard"></div>
   </section>
 
   <!-- SAKUBUN -->
@@ -849,7 +870,7 @@ const SAKU=[
 ];
 
 /* ================= NAV ================= */
-const TABS=[['home','🏠 Beranda'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
+const TABS=[['home','🏠 Beranda'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['kalimat','🧩 Kalimat'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
 function buildNav(){$('#nav').innerHTML=TABS.map(([id,l])=>`<button data-tab="${id}">${l}</button>`).join('');
   $$('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));}
 function show(id){
@@ -1037,11 +1058,11 @@ function nextQ(){
   const others=shuffle(V.filter(x=>x.id!==w.id)).slice(0,3);
   const opts=shuffle([w,...others]);
   if(askJP){
-    $('#qQuestion').innerHTML=`<div class="qbig">${w[0]}</div><div class="muted" style="text-align:center;font-size:13px">${w[1]} · ${w[2]} <button class="speak" style="vertical-align:middle" onclick="speak('${w[0]}')">🔊</button></div>`;
+    $('#qQuestion').innerHTML=`<div class="qbig">${w[0]}</div><div class="muted" style="text-align:center;font-size:13px"><button class="speak" style="vertical-align:middle" onclick="speak('${w[0]}')">🔊 dengar</button></div>`;
     $('#qOpts').innerHTML=opts.map(o=>`<button class="opt" data-id="${o.id}">${o[3]}</button>`).join('');
   }else{
     $('#qQuestion').innerHTML=`<div style="text-align:center;font-size:22px;font-weight:800;margin:10px 0">${w[3]}</div>`;
-    $('#qOpts').innerHTML=opts.map(o=>`<button class="opt jp" data-id="${o.id}">${o[0]} <span style="font-size:13px;color:var(--muted)">${o[2]}</span></button>`).join('');
+    $('#qOpts').innerHTML=opts.map(o=>`<button class="opt jp" data-id="${o.id}">${o[0]}</button>`).join('');
   }
   $$('#qOpts .opt').forEach(b=>b.onclick=()=>answer(+b.dataset.id,w,b));
 }
@@ -1072,6 +1093,85 @@ function finishQuiz(){
     </div></div>`;
 }
 window.resetQuizView=function(){$('#quizDone').style.display='none';$('#quizPlay').style.display='none';$('#quizStart').style.display='block';};
+
+/* ================= SUSUN KALIMAT ================= */
+// {id: arti, chunks: urutan benar, romaji, note}
+const SENT=[
+  {id:'Saya makan roti.',chunks:['私は','パンを','食べます'],romaji:'Watashi wa pan o tabemasu.',note:'Objek pakai partikel を, kalimat berakhir dengan kata kerja ～ます.'},
+  {id:'Saya minum air.',chunks:['私は','水を','飲みます'],romaji:'Watashi wa mizu o nomimasu.',note:'Pola: [subjek]は [objek]を [kata kerja]ます.'},
+  {id:'Besok pergi ke sekolah.',chunks:['明日','学校へ','行きます'],romaji:'Ashita gakkō e ikimasu.',note:'Keterangan waktu (明日) di depan; arah tujuan pakai へ.'},
+  {id:'Kemarin menonton film.',chunks:['昨日','映画を','見ました'],romaji:'Kinō eiga o mimashita.',note:'Bentuk lampau: ～ました.'},
+  {id:'Ini buku saya.',chunks:['これは','私の','本です'],romaji:'Kore wa watashi no hon desu.',note:'の menyatakan kepunyaan (私の本 = buku saya).'},
+  {id:'Belajar bahasa Jepang di perpustakaan.',chunks:['図書館で','日本語を','勉強します'],romaji:'Toshokan de nihongo o benkyō shimasu.',note:'Tempat kegiatan pakai partikel で.'},
+  {id:'Di kamar ada kucing.',chunks:['部屋に','猫が','います'],romaji:'Heya ni neko ga imasu.',note:'Pola keberadaan: [tempat]に [benda hidup]が います.'},
+  {id:'Hari ini panas.',chunks:['今日は','暑い','です'],romaji:'Kyō wa atsui desu.',note:'Kata sifat-i langsung diikuti です.'},
+  {id:'Saya suka musik.',chunks:['私は','音楽が','好きです'],romaji:'Watashi wa ongaku ga suki desu.',note:'好き memakai partikel が, bukan を.'},
+  {id:'Ayo makan bersama.',chunks:['一緒に','ご飯を','食べましょう'],romaji:'Issho ni gohan o tabemashō.',note:'～ましょう = ajakan "ayo …".'},
+  {id:'Saya ingin pergi ke Jepang.',chunks:['私は','日本へ','行きたいです'],romaji:'Watashi wa Nihon e ikitai desu.',note:'～たいです = ingin melakukan.'},
+  {id:'Karena dingin, saya di rumah.',chunks:['寒いから','家に','います'],romaji:'Samui kara, ie ni imasu.',note:'～から = karena (alasan di depan).'},
+  {id:'Membeli roti dan susu.',chunks:['パンと','牛乳を','買います'],romaji:'Pan to gyūnyū o kaimasu.',note:'と = "dan" untuk menyambung kata benda.'},
+  {id:'Setiap pagi bangun jam enam.',chunks:['毎朝','六時に','起きます'],romaji:'Maiasa roku-ji ni okimasu.',note:'Titik waktu (jam) pakai partikel に.'},
+  {id:'Pergi ke stasiun naik mobil.',chunks:['車で','駅へ','行きます'],romaji:'Kuruma de eki e ikimasu.',note:'Alat/kendaraan pakai で; arah pakai へ.'},
+];
+let sCur=null,sPlaced=[],sPool=[],sAnswered=false;
+function sentStats(){return store.get('sentStat',{done:0,correct:0});}
+function renderSentStats(){const s=sentStats();
+  $('#sentStats').innerHTML=`
+    <div class="stat"><div class="v">${s.done}</div><div class="n">Dikerjakan</div></div>
+    <div class="stat"><div class="v" style="color:var(--green)">${s.correct}</div><div class="n">Benar</div></div>
+    <div class="stat"><div class="v">${s.done?Math.round(s.correct/s.done*100):0}%</div><div class="n">Akurasi</div></div>`;
+}
+function newSentence(){
+  sCur=SENT[Math.floor(Math.random()*SENT.length)];sPlaced=[];sAnswered=false;
+  sPool=sCur.chunks.map((c,i)=>({c,i})); // {chunk, originalIndex}
+  // acak sampai tidak sama urutan aslinya
+  let g=0;do{sPool=shuffle(sPool);g++;}while(g<20&&sPool.every((p,i)=>p.i===i)&&sCur.chunks.length>1);
+  drawSentence();
+}
+function drawSentence(){
+  const built=sPlaced.map(p=>`<button class="chunk placed jp" data-p="${p.i}">${p.c}</button>`).join('')||'<span class="muted" style="font-size:13px">Ketuk kata di bawah untuk menyusun…</span>';
+  const pool=sPool.filter(p=>!sPlaced.some(x=>x.i===p.i)).map(p=>`<button class="chunk jp" data-pool="${p.i}">${p.c}</button>`).join('');
+  $('#sentCard').innerHTML=`
+    <div class="muted" style="font-size:12.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Arti (Indonesia)</div>
+    <div style="font-size:18px;font-weight:800;margin:4px 0 14px">${sCur.id}</div>
+    <div class="sent-answer" id="sentAns">${built}</div>
+    <div class="sent-pool">${pool}</div>
+    <div class="btn-row" style="margin-top:16px">
+      <button class="btn" id="sentCheck"${sPlaced.length!==sCur.chunks.length?' disabled':''}>Periksa ✓</button>
+      <button class="btn ghost" id="sentReset">Ulangi</button>
+      <button class="btn ghost" id="sentSkip">Soal lain</button>
+    </div>
+    <div id="sentFb" style="margin-top:14px"></div>`;
+  $$('#sentCard .chunk[data-pool]').forEach(b=>b.onclick=()=>{if(sAnswered)return;sPlaced.push(sPool.find(p=>p.i==b.dataset.pool));drawSentence();});
+  $$('#sentCard .chunk.placed').forEach(b=>b.onclick=()=>{if(sAnswered)return;sPlaced=sPlaced.filter(p=>p.i!=b.dataset.p);drawSentence();});
+  $('#sentCheck').onclick=checkSentence;
+  $('#sentReset').onclick=()=>{if(sAnswered)return;sPlaced=[];drawSentence();};
+  $('#sentSkip').onclick=newSentence;
+}
+function checkSentence(){
+  if(sPlaced.length!==sCur.chunks.length)return;
+  sAnswered=true;
+  const correct=sCur.chunks, user=sPlaced.map(p=>p.c);
+  const ok=user.every((c,i)=>c===correct[i]);
+  const s=sentStats();s.done++;if(ok)s.correct++;store.set('sentStat',s);renderSentStats();
+  // tandai tiap slot benar/salah
+  $('#sentAns').innerHTML=user.map((c,i)=>`<button class="chunk placed jp ${c===correct[i]?'ok':'no'}">${c}</button>`).join('');
+  const correctStr=correct.join('');
+  if(ok){
+    speak(correctStr);
+    $('#sentFb').innerHTML=`<div class="sent-fb good"><b>正解! Benar! 🎉</b><br><span class="jp" style="font-size:16px">${correctStr}</span> · ${sCur.romaji}</div>`;
+  }else{
+    $('#sentFb').innerHTML=`<div class="sent-fb bad"><b>❌ Belum tepat.</b> Kata yang <span style="color:var(--green)">hijau</span> sudah pas, yang <span style="color:#d3453f">merah</span> salah posisi.<br>
+      <div style="margin-top:8px"><b>Yang benar:</b><br><span class="jp" style="font-size:18px;font-weight:700">${correctStr}</span> <button class="speak" style="vertical-align:middle;width:30px;height:30px" onclick="speak('${correctStr}')">🔊</button><br>
+      <span class="muted" style="font-size:13px">${sCur.romaji} — ${sCur.id}</span></div>
+      <div class="muted" style="font-size:12.5px;margin-top:8px">💡 ${sCur.note}</div></div>`;
+  }
+  // ubah tombol utama jadi lanjut
+  $('#sentCheck').outerHTML=`<button class="btn" id="sentNext">Soal berikutnya →</button>`;
+  $('#sentNext').onclick=newSentence;
+  $('#sentReset').disabled=true;
+}
+function initSentence(){renderSentStats();newSentence();}
 
 /* ================= SAKUBUN ================= */
 function renderSaku(){
@@ -1127,7 +1227,7 @@ function initTheme(){
 }
 
 /* ================= INIT ================= */
-buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
+buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
 {const t=store.get('tab','home');show(TABS.some(x=>x[0]===t)?t:'home');}
 </script>
 </body>
