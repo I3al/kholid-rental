@@ -8,7 +8,10 @@
 <meta name="theme-color" content="#40469f" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Nihongo N5" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e2483d'/%3E%3Ctext x='16' y='23' font-size='19' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='bold'%3Eあ%3C/text%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23222a5c'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23e6c37a' font-family='serif' font-weight='bold'%3E星%3C/text%3E%3C/svg%3E" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
     --bg:#f6f4ef; --bg2:#efece4; --card:#ffffff; --card2:#f3f0ea; --ink:#1b2130; --muted:#6d7488;
@@ -21,8 +24,9 @@
     --ring:0 0 0 4px rgba(64,70,159,.15);
     --radius:20px; --radius-sm:14px;
     --ease:cubic-bezier(.22,.61,.36,1);
-    --jp:"Hiragino Kaku Gothic ProN","Yu Gothic","YuGothic","Noto Sans JP","Meiryo",sans-serif;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    --display:"Shippori Mincho","Hiragino Mincho ProN",Georgia,"Times New Roman",serif;
+    --jp:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
+    --sans:"Zen Kaku Gothic New",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
@@ -63,7 +67,7 @@
     display:flex;align-items:center;justify-content:center;flex:0 0 auto;position:relative;overflow:hidden;
     box-shadow:0 8px 20px rgba(16,21,50,.42),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.05)}
   .logo svg{width:28px;height:28px;position:relative;z-index:1}
-  .brand b{font-size:20px;letter-spacing:.01em;display:block;line-height:1.05;font-weight:800;font-family:var(--jp);color:var(--ink)}
+  .brand b{font-size:20px;letter-spacing:.02em;display:block;line-height:1.05;font-weight:800;font-family:var(--display);color:var(--ink)}
   .brand span{font-size:10px;color:var(--muted);letter-spacing:.9px;text-transform:uppercase;font-weight:600}
   .theme-btn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
     width:42px;height:42px;border-radius:13px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;
@@ -84,18 +88,30 @@
   section.on{display:block;animation:fade .4s var(--ease)}
   @keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
-  h1{font-size:26px;margin:0 0 4px;letter-spacing:-.02em;font-weight:800}
-  h2{font-size:16px;margin:28px 0 13px;display:flex;align-items:center;gap:9px;font-weight:800;letter-spacing:-.01em}
+  h1{font-family:var(--display);font-size:28px;margin:0 0 4px;letter-spacing:0;font-weight:800}
+  h2{font-family:var(--display);font-size:18px;margin:28px 0 13px;display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:0}
   h2 .k{width:5px;height:19px;border-radius:3px;background:var(--grad)}
   .lead{color:var(--muted);font-size:14.5px;margin:0 0 8px}
 
   .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px;margin-bottom:16px}
-  .hero{background:
-      radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--accent) 20%,transparent),transparent 55%),
-      linear-gradient(135deg,var(--card),var(--card2));
-    border:1px solid var(--line);border-radius:24px;padding:26px 24px;margin-bottom:20px;position:relative;overflow:hidden;box-shadow:var(--shadow-lg)}
-  .hero h1{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-size:27px}
-  .hero .big{font-family:var(--jp);position:absolute;right:-14px;top:-26px;font-size:140px;opacity:.07;font-weight:800;color:var(--accent)}
+  /* fuji hero */
+  .fuji-hero{position:relative;border-radius:24px;overflow:hidden;margin-bottom:22px;min-height:430px;
+    box-shadow:var(--shadow-lg);border:1px solid var(--line);display:flex}
+  .fuji-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+  .fuji-hero::after{content:"";position:absolute;inset:0;z-index:1;
+    background:linear-gradient(180deg,rgba(8,10,26,.12) 0%,rgba(8,10,26,.05) 34%,rgba(8,10,26,.55) 74%,rgba(8,10,26,.86) 100%)}
+  .hero-content{position:relative;z-index:2;align-self:flex-end;width:100%;padding:26px 24px 24px;color:#fff}
+  .hero-kicker{font-size:11.5px;letter-spacing:2.5px;text-transform:uppercase;font-weight:700;color:#f0cf8f;margin:0 0 8px;
+    text-shadow:0 1px 8px rgba(0,0,0,.5)}
+  .hero-content h1{font-family:var(--display);font-size:38px;line-height:1.08;margin:0 0 8px;color:#fff;font-weight:800;
+    text-shadow:0 2px 18px rgba(0,0,0,.45);letter-spacing:0}
+  .hero-welcome{font-family:var(--display);font-size:17px;line-height:1.5;margin:0 0 8px;color:#fff;text-shadow:0 1px 10px rgba(0,0,0,.5)}
+  .hero-welcome b{color:#f4d99a}
+  .hero-lead{font-size:13.5px;line-height:1.6;margin:0 0 16px;color:rgba(255,255,255,.82);text-shadow:0 1px 8px rgba(0,0,0,.5);max-width:560px}
+  .hero-content .pill{background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.25);color:#fff;backdrop-filter:blur(4px);box-shadow:none}
+  .btn.ghost.light{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.4);color:#fff;backdrop-filter:blur(4px)}
+  .btn.ghost.light:hover{background:rgba(255,255,255,.22)}
+  @media (min-width:560px){.fuji-hero{min-height:480px}.hero-content h1{font-size:46px}.hero-content{padding:34px 34px 30px}}
 
   .grid{display:grid;gap:12px}
   .g2{grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
@@ -295,16 +311,45 @@
 
   <!-- HOME -->
   <section id="home" class="on">
-    <div class="hero">
-      <div class="big jp">星</div>
-      <h1>ようこそ! Selamat datang di website 星空クラス</h1>
-      <p class="lead">Mari belajar bersama, みなさん! Semua yang kamu butuh untuk mulai bahasa Jepang level <b>N5</b> — huruf, kanji, kosakata, hafalan kartu, kuis, mengarang, dan tata bahasa. Bahasa Indonesia + romaji, dirancang mudah dipahami untuk pemula.</p>
-      <div class="btn-row" style="margin-top:16px">
-        <button class="btn" data-go="flash">🃏 Lanjut belajar</button>
-        <button class="btn ghost" data-go="kana">🔤 Mulai dari huruf</button>
-      </div>
-      <div class="pill-row">
-        <span class="pill">✍️ Belajar mandiri</span><span class="pill">📴 Bisa offline</span><span class="pill">💾 Progres tersimpan</span>
+    <div class="fuji-hero">
+      <svg class="fuji-scene" viewBox="0 0 1200 620" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#0e1130"/><stop offset=".38" stop-color="#29305f"/>
+            <stop offset=".62" stop-color="#6a4a82"/><stop offset=".82" stop-color="#c56f74"/><stop offset="1" stop-color="#f0aa72"/>
+          </linearGradient>
+          <linearGradient id="fuji" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#485085"/><stop offset="1" stop-color="#2a2f5c"/></linearGradient>
+          <linearGradient id="snow" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#d9e2f4"/></linearGradient>
+          <radialGradient id="sun"><stop offset="0" stop-color="#fbe7ad" stop-opacity=".9"/><stop offset="1" stop-color="#fbd68a" stop-opacity="0"/></radialGradient>
+        </defs>
+        <rect width="1200" height="620" fill="url(#sky)"/>
+        <g fill="#fff">
+          <circle cx="120" cy="60" r="1.6" opacity=".9"/><circle cx="220" cy="110" r="1.1" opacity=".7"/><circle cx="80" cy="150" r="1.2" opacity=".8"/>
+          <circle cx="320" cy="70" r="1.5" opacity=".85"/><circle cx="420" cy="130" r="1" opacity=".6"/><circle cx="180" cy="210" r="1.1" opacity=".55"/>
+          <circle cx="500" cy="80" r="1.3" opacity=".8"/><circle cx="620" cy="120" r="1" opacity=".55"/><circle cx="720" cy="70" r="1.4" opacity=".8"/>
+          <circle cx="60" cy="90" r="1" opacity=".6"/><circle cx="260" cy="170" r="1" opacity=".5"/><circle cx="400" cy="200" r="1" opacity=".45"/>
+        </g>
+        <circle cx="930" cy="135" r="150" fill="url(#sun)"/>
+        <circle cx="930" cy="135" r="44" fill="#f8dd97"/>
+        <ellipse cx="330" cy="320" rx="150" ry="16" fill="#fff" opacity=".08"/>
+        <ellipse cx="820" cy="360" rx="180" ry="18" fill="#fff" opacity=".07"/>
+        <path d="M90,566 C300,470 470,255 600,212 C730,255 900,470 1110,566 Z" fill="url(#fuji)"/>
+        <path d="M600,212 C662,252 704,292 726,330 C708,322 700,336 684,326 C668,340 660,324 644,334 C628,322 618,338 600,330 C582,338 572,322 556,334 C540,324 532,340 516,326 C500,336 492,322 474,330 C496,292 538,252 600,212 Z" fill="url(#snow)"/>
+        <path d="M0,545 C220,515 400,552 620,536 C820,522 1010,556 1200,540 L1200,620 L0,620 Z" fill="#232a58"/>
+        <path d="M0,590 C260,565 430,602 700,584 C930,572 1060,606 1200,592 L1200,620 L0,620 Z" fill="#131735"/>
+      </svg>
+      <div class="hero-content">
+        <p class="hero-kicker">星空クラス · Hoshizora Class</p>
+        <h1>ようこそ！</h1>
+        <p class="hero-welcome">Selamat datang di website <b>星空クラス</b> — mari belajar bersama, みなさん!</p>
+        <p class="hero-lead">Semua yang kamu butuh untuk mulai bahasa Jepang <b>N5</b>: huruf, kanji, kosakata, flashcard, kuis, susun kalimat, mengarang &amp; tata bahasa. Bahasa Indonesia + romaji.</p>
+        <div class="btn-row">
+          <button class="btn" data-go="flash">🃏 Lanjut belajar</button>
+          <button class="btn ghost light" data-go="kana">🔤 Mulai dari huruf</button>
+        </div>
+        <div class="pill-row">
+          <span class="pill">✍️ Belajar mandiri</span><span class="pill">📴 Bisa offline</span><span class="pill">💾 Progres tersimpan</span>
+        </div>
       </div>
     </div>
 
