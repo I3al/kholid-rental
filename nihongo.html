@@ -142,6 +142,20 @@
   .speak{flex:0 0 auto;width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card2);cursor:pointer;font-size:16px;transition:transform .16s var(--ease),background .16s}
   .speak:hover{background:color-mix(in srgb,var(--accent) 14%,var(--card2))}
   .speak:active{transform:scale(.88)}
+  /* kanji list */
+  .kj{display:flex;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid var(--line)}
+  .kj:last-child{border-bottom:none}
+  .kj-char{flex:0 0 auto;width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--jp);font-size:40px;font-weight:700;line-height:1;
+    background:color-mix(in srgb,var(--accent) 11%,var(--card2));color:var(--ink);box-shadow:var(--shadow)}
+  .kj-body{flex:1;min-width:0}
+  .kj-mean b{font-weight:800;font-size:16px}
+  .kj-read{display:flex;gap:8px;flex-wrap:wrap;margin:5px 0}
+  .kj-t{font-size:11.5px;color:var(--muted);background:var(--card2);border-radius:7px;padding:3px 8px;font-weight:600}
+  .kj-t b{font-family:var(--jp);font-size:13px;font-weight:700;margin-left:2px}
+  .kj-t.kun b{color:var(--accent)} .kj-t.on b{color:var(--indigo)}
+  .kj-ex{font-size:13px;color:var(--muted);margin-top:2px}
+  .kj-ex .jp{font-family:var(--jp);color:var(--ink);font-size:15px;font-weight:600}
   .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card2);color:var(--muted);vertical-align:middle}
   .badge.n5{background:#e9f6ef;color:#1f9d63}.badge.n4{background:#eaf1fb;color:#2f7fd6}
   :root:not([data-theme="light"]) .badge.n5{background:#16301f;color:#4fd497}
@@ -249,6 +263,7 @@
     <h2><span class="k"></span> Mulai dari mana?</h2>
     <div class="grid g2">
       <button class="tile" data-go="kana"><div class="ico">🔤</div><b>Huruf (Kana)</b><small>Hiragana &amp; Katakana + cara baca</small></button>
+      <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>94 kanji N5 + arti &amp; contoh</small></button>
       <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>Kata N5 per tema + contoh</small></button>
       <button class="tile" data-go="flash"><div class="ico">🃏</div><b>Flashcard (SRS)</b><small>Hafal dengan pengulangan cerdas</small></button>
       <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Uji arti &amp; bacaan, dapat skor</small></button>
@@ -277,6 +292,18 @@
     </div>
     <div class="kana" id="kanaGrid"></div>
     <p class="muted" style="font-size:13px;margin-top:14px">💡 Baca berurutan: a-i-u-e-o, ka-ki-ku-ke-ko, … Latih tiap baris sampai lancar sebelum lanjut.</p>
+  </section>
+
+  <!-- KANJI -->
+  <section id="kanji">
+    <h1>Kanji 漢字</h1>
+    <p class="lead">Huruf kanji penting level N5, dikelompokkan per tema biar cepat hafal. Tiap kanji ada <b>arti</b>, cara baca <b>kun</b> (asli Jepang) &amp; <b>on</b> (serapan Cina), dan contoh kata. Ketuk 🔊 untuk dengar.</p>
+    <div class="card" style="padding:14px 16px;margin-bottom:14px">
+      <div style="font-size:13.5px;line-height:1.7"><b>Cara baca tanda:</b> <span class="kj-t kun">訓 kun</span> = bacaan Jepang asli (biasa berdiri sendiri) · <span class="kj-t on">音 on</span> = bacaan serapan (biasa dalam gabungan kata). Fokus hafal <b>arti + 1 contoh kata</b> dulu, bacaan menyusul alami.</div>
+    </div>
+    <input type="search" id="kSearch" placeholder="🔎 Cari kanji (arti Indonesia, romaji, atau 漢字)…" style="margin-bottom:12px">
+    <div class="filters" id="kCats"></div>
+    <div class="card" id="kList" style="padding:6px 18px"></div>
   </section>
 
   <!-- KOTOBA -->
@@ -529,6 +556,115 @@ const KANA={
     ['ン','n'],null,null,null,null]
 };
 
+// KANJI: [kanji, kun, on, arti(ID), contohKata, bacaanRomaji, artiContoh, kategori]
+const KCATS=[['angka','Angka'],['waktu','Waktu & Hari'],['alam','Alam'],['orang','Orang'],['tubuh','Tubuh'],['kerja','Kata Kerja'],['sifat','Sifat'],['arah','Arah & Posisi'],['tempat','Tempat & Benda']];
+const KJ=[
+  // angka
+  ['一','ひと','イチ','satu','一つ','hitotsu','satu buah','angka'],
+  ['二','ふた','ニ','dua','二人','futari','dua orang','angka'],
+  ['三','みっ','サン','tiga','三月','sangatsu','Maret','angka'],
+  ['四','よっ','シ','empat','四時','yoji','jam 4','angka'],
+  ['五','いつ','ゴ','lima','五時','goji','jam 5','angka'],
+  ['六','むっ','ロク','enam','六月','rokugatsu','Juni','angka'],
+  ['七','なな','シチ','tujuh','七日','nanoka','tanggal 7','angka'],
+  ['八','やっ','ハチ','delapan','八日','yōka','tanggal 8','angka'],
+  ['九','ここの','キュウ','sembilan','九時','kuji','jam 9','angka'],
+  ['十','とお','ジュウ','sepuluh','十日','tōka','tanggal 10','angka'],
+  ['百','—','ヒャク','seratus','百円','hyaku en','100 yen','angka'],
+  ['千','ち','セン','seribu','千円','sen en','1000 yen','angka'],
+  ['万','—','マン','sepuluh ribu','一万','ichiman','10.000','angka'],
+  ['円','まる','エン','yen / bulat','百円','hyaku en','100 yen','angka'],
+  // waktu & hari
+  ['日','ひ','ニチ','hari / matahari','日曜日','nichiyōbi','Minggu','waktu'],
+  ['月','つき','ゲツ','bulan','月曜日','getsuyōbi','Senin','waktu'],
+  ['火','ひ','カ','api / Selasa','火曜日','kayōbi','Selasa','waktu'],
+  ['水','みず','スイ','air / Rabu','水曜日','suiyōbi','Rabu','waktu'],
+  ['木','き','モク','pohon / Kamis','木曜日','mokuyōbi','Kamis','waktu'],
+  ['金','かね','キン','emas·uang / Jumat','金曜日','kin\'yōbi','Jumat','waktu'],
+  ['土','つち','ド','tanah / Sabtu','土曜日','doyōbi','Sabtu','waktu'],
+  ['年','とし','ネン','tahun','今年','kotoshi','tahun ini','waktu'],
+  ['時','とき','ジ','waktu / jam','三時','sanji','jam 3','waktu'],
+  ['分','わ','フン','menit / membagi','五分','gofun','5 menit','waktu'],
+  ['半','なか','ハン','setengah','半分','hanbun','setengah','waktu'],
+  ['今','いま','コン','sekarang','今日','kyō','hari ini','waktu'],
+  ['何','なに','カ','apa','何時','nanji','jam berapa','waktu'],
+  // alam
+  ['山','やま','サン','gunung','富士山','Fujisan','Gunung Fuji','alam'],
+  ['川','かわ','セン','sungai','川','kawa','sungai','alam'],
+  ['天','—','テン','langit / surga','天気','tenki','cuaca','alam'],
+  ['気','—','キ','udara / semangat','元気','genki','sehat & semangat','alam'],
+  ['雨','あめ','ウ','hujan','雨','ame','hujan','alam'],
+  ['空','そら','クウ','langit / kosong','空','sora','langit','alam'],
+  // orang
+  ['人','ひと','ジン','orang','日本人','nihonjin','orang Jepang','orang'],
+  ['男','おとこ','ダン','laki-laki','男の人','otoko no hito','pria','orang'],
+  ['女','おんな','ジョ','perempuan','女の人','onna no hito','wanita','orang'],
+  ['子','こ','シ','anak','子供','kodomo','anak','orang'],
+  ['父','ちち','フ','ayah','お父さん','otōsan','ayah','orang'],
+  ['母','はは','ボ','ibu','お母さん','okāsan','ibu','orang'],
+  ['友','とも','ユウ','teman','友達','tomodachi','teman','orang'],
+  ['名','な','メイ','nama','名前','namae','nama','orang'],
+  ['私','わたし','シ','saya','私','watashi','saya','orang'],
+  // tubuh
+  ['目','め','モク','mata','目','me','mata','tubuh'],
+  ['口','くち','コウ','mulut','入口','iriguchi','pintu masuk','tubuh'],
+  ['耳','みみ','ジ','telinga','耳','mimi','telinga','tubuh'],
+  ['手','て','シュ','tangan','手紙','tegami','surat','tubuh'],
+  ['足','あし','ソク','kaki','足','ashi','kaki','tubuh'],
+  ['力','ちから','リョク','tenaga / kekuatan','力','chikara','tenaga','tubuh'],
+  // kata kerja
+  ['行','い','コウ','pergi','行きます','ikimasu','pergi','kerja'],
+  ['来','く','ライ','datang','来ます','kimasu','datang','kerja'],
+  ['見','み','ケン','melihat','見ます','mimasu','melihat','kerja'],
+  ['聞','き','ブン','mendengar','聞きます','kikimasu','mendengar','kerja'],
+  ['食','た','ショク','makan','食べます','tabemasu','makan','kerja'],
+  ['飲','の','イン','minum','飲みます','nomimasu','minum','kerja'],
+  ['読','よ','ドク','membaca','読みます','yomimasu','membaca','kerja'],
+  ['書','か','ショ','menulis','書きます','kakimasu','menulis','kerja'],
+  ['話','はな','ワ','berbicara','話します','hanashimasu','berbicara','kerja'],
+  ['買','か','バイ','membeli','買います','kaimasu','membeli','kerja'],
+  ['立','た','リツ','berdiri','立ちます','tachimasu','berdiri','kerja'],
+  ['休','やす','キュウ','istirahat / libur','休みます','yasumimasu','istirahat','kerja'],
+  ['出','で','シュツ','keluar','出ます','demasu','keluar','kerja'],
+  ['入','はい','ニュウ','masuk','入ります','hairimasu','masuk','kerja'],
+  ['会','あ','カイ','bertemu','会います','aimasu','bertemu','kerja'],
+  ['言','い','ゲン','berkata','言います','iimasu','berkata','kerja'],
+  // sifat
+  ['大','おお','ダイ','besar','大きい','ōkii','besar','sifat'],
+  ['小','ちい','ショウ','kecil','小さい','chiisai','kecil','sifat'],
+  ['高','たか','コウ','tinggi / mahal','高い','takai','mahal','sifat'],
+  ['安','やす','アン','murah / tenang','安い','yasui','murah','sifat'],
+  ['新','あたら','シン','baru','新しい','atarashii','baru','sifat'],
+  ['古','ふる','コ','lama / tua','古い','furui','lama','sifat'],
+  ['多','おお','タ','banyak','多い','ōi','banyak','sifat'],
+  ['少','すく','ショウ','sedikit','少ない','sukunai','sedikit','sifat'],
+  ['長','なが','チョウ','panjang','長い','nagai','panjang','sifat'],
+  ['白','しろ','ハク','putih','白い','shiroi','putih','sifat'],
+  // arah & posisi
+  ['上','うえ','ジョウ','atas','上','ue','atas','arah'],
+  ['下','した','カ','bawah','下','shita','bawah','arah'],
+  ['中','なか','チュウ','tengah / dalam','中','naka','dalam','arah'],
+  ['前','まえ','ゼン','depan / sebelum','前','mae','depan','arah'],
+  ['後','うし','ゴ','belakang / sesudah','後ろ','ushiro','belakang','arah'],
+  ['右','みぎ','ウ','kanan','右','migi','kanan','arah'],
+  ['左','ひだり','サ','kiri','左','hidari','kiri','arah'],
+  // tempat & benda
+  ['本','もと','ホン','buku / asal','本','hon','buku','tempat'],
+  ['車','くるま','シャ','mobil','電車','densha','kereta','tempat'],
+  ['学','まな','ガク','belajar','学生','gakusei','pelajar','tempat'],
+  ['校','—','コウ','sekolah','学校','gakkō','sekolah','tempat'],
+  ['生','い','セイ','hidup / lahir','学生','gakusei','pelajar','tempat'],
+  ['先','さき','セン','dulu / lebih dulu','先生','sensei','guru','tempat'],
+  ['国','くに','コク','negara','国','kuni','negara','tempat'],
+  ['語','—','ゴ','bahasa','日本語','nihongo','bahasa Jepang','tempat'],
+  ['電','—','デン','listrik','電気','denki','listrik / lampu','tempat'],
+  ['駅','—','エキ','stasiun','駅','eki','stasiun','tempat'],
+  ['店','みせ','テン','toko','店','mise','toko','tempat'],
+  ['家','いえ','カ','rumah','家','ie','rumah','tempat'],
+  ['道','みち','ドウ','jalan','道','michi','jalan','tempat'],
+];
+KJ.forEach((k,i)=>k.id=i);
+
 const GRAMMAR=[
   {t:'A は B です',tag:'は',note:'Pola dasar "A adalah B". は dibaca "wa". Untuk menyangkal: じゃありません.',
     ex:[['私は学生です。','Watashi wa gakusei desu.','Saya (adalah) pelajar.'],['これは本です。','Kore wa hon desu.','Ini buku.'],['田中さんは先生じゃありません。','Tanaka-san wa sensei ja arimasen.','Tanaka bukan guru.']]},
@@ -570,6 +706,14 @@ const GRAMMAR=[
     ex:[['りんごを三つください。','Ringo o mittsu kudasai.','Minta tiga apel.'],['学生が五人います。','Gakusei ga gonin imasu.','Ada lima pelajar.']]},
   {t:'Kata tanya',tag:'問',note:'何 (apa), 誰 (siapa), どこ (di mana), いつ (kapan), いくら (berapa harga), どう (bagaimana).',
     ex:[['これは何ですか。','Kore wa nan desu ka.','Ini apa?'],['駅はどこですか。','Eki wa doko desu ka.','Stasiun di mana?'],['いくらですか。','Ikura desu ka.','Berapa harganya?']]},
+  {t:'～ね / ～よ (akhir kalimat)',tag:'ね',note:'ね = minta persetujuan/menegaskan ("ya kan"). よ = memberi info baru ke lawan bicara ("lho/kok").',
+    ex:[['いい天気ですね。','Ii tenki desu ne.','Cuaca bagus ya.'],['この店は安いですよ。','Kono mise wa yasui desu yo.','Toko ini murah lho.']]},
+  {t:'まだ / もう (belum / sudah)',tag:'時',note:'まだ = belum (+ bentuk negatif). もう = sudah (+ bentuk lampau).',
+    ex:[['まだ食べていません。','Mada tabete imasen.','Belum makan.'],['もう食べました。','Mō tabemashita.','Sudah makan.']]},
+  {t:'～だけ (hanya)',tag:'限',note:'Menyatakan batas "hanya / cuma", diletakkan setelah kata benda.',
+    ex:[['水だけください。','Mizu dake kudasai.','Minta air saja.'],['一つだけあります。','Hitotsu dake arimasu.','Ada satu saja.']]},
+  {t:'A より B のほうが (perbandingan)',tag:'比',note:'"B lebih … daripada A". より = daripada, のほうが = yang lebih.',
+    ex:[['電車より車のほうが速いです。','Densha yori kuruma no hō ga hayai desu.','Mobil lebih cepat daripada kereta.'],['どちらのほうが好きですか。','Dochira no hō ga suki desu ka.','Lebih suka yang mana?']]},
 ];
 
 const SAKU=[
@@ -614,7 +758,7 @@ const SAKU=[
 ];
 
 /* ================= NAV ================= */
-const TABS=[['home','🏠 Beranda'],['kana','🔤 Kana'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
+const TABS=[['home','🏠 Beranda'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
 function buildNav(){$('#nav').innerHTML=TABS.map(([id,l])=>`<button data-tab="${id}">${l}</button>`).join('');
   $$('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));}
 function show(id){
@@ -673,6 +817,30 @@ function renderVocab(){
   $$('#vList .speak').forEach(b=>b.onclick=()=>speak(b.dataset.say));
 }
 $('#vSearch').addEventListener('input',renderVocab);
+
+/* ================= KANJI ================= */
+let kCat='all';
+function kCatName(c){const f=KCATS.find(x=>x[0]===c);return f?f[1]:c;}
+function buildKCats(){
+  $('#kCats').innerHTML=`<button class="chip on" data-kc="all">Semua</button>`+KCATS.map(c=>`<button class="chip" data-kc="${c[0]}">${c[1]}</button>`).join('');
+  $$('#kCats button').forEach(b=>b.onclick=()=>{$$('#kCats button').forEach(x=>x.classList.remove('on'));b.classList.add('on');kCat=b.dataset.kc;renderKanji();});
+}
+function renderKanji(){
+  const q=($('#kSearch').value||'').toLowerCase().trim();
+  const list=KJ.filter(k=>(kCat==='all'||k[7]===kCat)&&(!q||k[0].includes(q)||k[3].toLowerCase().includes(q)||k[5].toLowerCase().includes(q)||k[1].includes(q)||k[6].toLowerCase().includes(q)));
+  $('#kList').innerHTML=list.length?list.map(k=>`
+    <div class="kj">
+      <div class="kj-char jp">${k[0]}</div>
+      <div class="kj-body">
+        <div class="kj-mean"><b>${k[3]}</b> <span class="badge n5">N5</span></div>
+        <div class="kj-read"><span class="kj-t kun">訓 <b class="jp">${k[1]}</b></span><span class="kj-t on">音 <b class="jp">${k[2]}</b></span></div>
+        <div class="kj-ex"><span class="jp">${k[4]}</span> · ${k[5]} — ${k[6]}</div>
+      </div>
+      <button class="speak" data-say="${k[4]}" title="Dengar">🔊</button>
+    </div>`).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kanji yang cocok.</p>';
+  $$('#kList .speak').forEach(b=>b.onclick=()=>speak(b.dataset.say));
+}
+$('#kSearch').addEventListener('input',renderKanji);
 
 /* ================= FLASHCARD SRS ================= */
 // box: 0..4, interval days [0,1,3,7,16]; due = timestamp
@@ -868,7 +1036,7 @@ function initTheme(){
 }
 
 /* ================= INIT ================= */
-buildNav();buildVCats();renderVocab();buildQuizCats();renderQuizStats();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
+buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
 {const t=store.get('tab','home');show(TABS.some(x=>x[0]===t)?t:'home');}
 </script>
 </body>
