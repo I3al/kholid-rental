@@ -14,15 +14,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#f6f4ef; --bg2:#efece4; --card:#ffffff; --card2:#f3f0ea; --ink:#1b2130; --muted:#6d7488;
-    --line:#e8e3d9; --accent:#40469f; --accent2:#333a86; --violet:#6b5bd0; --gold:#b98a38; --gold2:#caa155;
-    --green:#2a9463; --blue:#2f6fd0;
-    --grad:linear-gradient(135deg,#4a54c4 0%,#40469f 55%,#5a4ec6 100%);
-    --grad-gold:linear-gradient(135deg,#d8b463,#b98a38);
-    --shadow:0 1px 2px rgba(20,24,40,.05),0 6px 16px rgba(20,24,40,.06);
-    --shadow-lg:0 6px 16px rgba(20,24,40,.08),0 24px 54px rgba(20,24,40,.12);
-    --ring:0 0 0 4px rgba(64,70,159,.15);
-    --radius:20px; --radius-sm:14px;
+    --bg:#f7f5f0; --bg2:#f1eee6; --card:#fffdf9; --card2:#f5f2ec; --ink:#2a3040; --muted:#7a8194;
+    --line:#eee9df; --accent:#5860bf; --accent2:#474fb0; --violet:#8175d6; --gold:#c0994c; --gold2:#d2b06a;
+    --green:#3a9d70; --blue:#4b7bcf;
+    --grad:linear-gradient(135deg,#6d75d2 0%,#5860bf 58%,#8175d6 100%);
+    --grad-gold:linear-gradient(135deg,#dcbb6e,#c0994c);
+    --shadow:0 1px 2px rgba(35,40,60,.035),0 8px 22px rgba(35,40,60,.05);
+    --shadow-lg:0 8px 22px rgba(35,40,60,.06),0 26px 54px rgba(35,40,60,.09);
+    --ring:0 0 0 4px rgba(88,96,191,.15);
+    --radius:24px; --radius-sm:16px;
     --ease:cubic-bezier(.22,.61,.36,1);
     --display:"Shippori Mincho","Hiragino Mincho ProN",Georgia,"Times New Roman",serif;
     --jp:"Zen Kaku Gothic New","Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP","Meiryo",sans-serif;
@@ -30,28 +30,26 @@
   }
   @media (prefers-color-scheme: dark){
     :root:not([data-theme="light"]){
-      --bg:#080b16; --bg2:#0c1120; --card:#121829; --card2:#182036; --ink:#e9ecf7; --muted:#94a0bc;
-      --line:#232c44; --accent:#7079e8; --accent2:#5860d6; --violet:#8b7cf0; --gold:#d8b464; --gold2:#e6c880;
-      --grad:linear-gradient(135deg,#6d78ef 0%,#5860d6 55%,#8b7cf0 100%);
-      --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.45);
-      --shadow-lg:0 10px 30px rgba(0,0,0,.5),0 26px 60px rgba(0,0,0,.55);
-      --ring:0 0 0 4px rgba(112,121,232,.22);
+      --bg:#0d1220; --bg2:#111726; --card:#171e30; --card2:#1e2740; --ink:#e8ebf5; --muted:#9aa3be;
+      --line:#29324c; --accent:#8189ec; --accent2:#6f78e2; --violet:#9a8cf2; --gold:#dcbb6e; --gold2:#e8cd8a;
+      --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 24px rgba(0,0,0,.34);
+      --shadow-lg:0 10px 26px rgba(0,0,0,.4),0 26px 56px rgba(0,0,0,.44);
+      --ring:0 0 0 4px rgba(129,137,236,.22);
     }
   }
   :root[data-theme="dark"]{
-    --bg:#080b16; --bg2:#0c1120; --card:#121829; --card2:#182036; --ink:#e9ecf7; --muted:#94a0bc;
-    --line:#232c44; --accent:#7079e8; --accent2:#5860d6; --violet:#8b7cf0; --gold:#d8b464; --gold2:#e6c880;
-    --grad:linear-gradient(135deg,#6d78ef 0%,#5860d6 55%,#8b7cf0 100%);
-    --shadow:0 1px 2px rgba(0,0,0,.45),0 10px 26px rgba(0,0,0,.45);
-    --shadow-lg:0 10px 30px rgba(0,0,0,.5),0 26px 60px rgba(0,0,0,.55);
-    --ring:0 0 0 4px rgba(112,121,232,.22);
+    --bg:#0d1220; --bg2:#111726; --card:#171e30; --card2:#1e2740; --ink:#e8ebf5; --muted:#9aa3be;
+    --line:#29324c; --accent:#8189ec; --accent2:#6f78e2; --violet:#9a8cf2; --gold:#dcbb6e; --gold2:#e8cd8a;
+    --shadow:0 1px 2px rgba(0,0,0,.35),0 10px 24px rgba(0,0,0,.34);
+    --shadow-lg:0 10px 26px rgba(0,0,0,.4),0 26px 56px rgba(0,0,0,.44);
+    --ring:0 0 0 4px rgba(129,137,236,.22);
   }
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html{scroll-behavior:smooth}
   html,body{margin:0}
   body{background:
-      radial-gradient(1100px 500px at 100% -5%,color-mix(in srgb,var(--accent) 8%,transparent),transparent 60%),
-      radial-gradient(900px 500px at -10% 0%,color-mix(in srgb,var(--violet) 8%,transparent),transparent 55%),
+      radial-gradient(1200px 560px at 100% -8%,color-mix(in srgb,var(--accent) 5%,transparent),transparent 62%),
+      radial-gradient(1000px 560px at -12% 2%,color-mix(in srgb,var(--violet) 5%,transparent),transparent 58%),
       var(--bg);
     color:var(--ink);font-family:var(--sans);font-size:16px;line-height:1.6;letter-spacing:-.005em;
     -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;padding-bottom:84px}
@@ -82,7 +80,7 @@
   .nav button{border:none;background:transparent;color:var(--muted);font-family:inherit;font-size:14px;font-weight:700;
     padding:9px 15px;border-radius:12px;cursor:pointer;transition:.2s var(--ease);display:inline-flex;gap:6px;align-items:center}
   .nav button:hover{color:var(--ink);background:var(--card2)}
-  .nav button.on{color:#fff;background:var(--grad);box-shadow:0 6px 16px rgba(224,67,59,.34)}
+  .nav button.on{color:#fff;background:var(--grad);box-shadow:var(--shadow)}
 
   section{display:none;padding:24px 0 10px}
   section.on{display:block;animation:fade .4s var(--ease)}
@@ -131,6 +129,19 @@
   .stat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius-sm);padding:14px;text-align:center;box-shadow:var(--shadow)}
   .stat .v{font-size:24px;font-weight:800;line-height:1.05;letter-spacing:-.02em}
   .stat .n{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:3px;font-weight:600}
+  /* daily goal + streak */
+  .daily-card{display:flex;align-items:center;gap:18px;flex-wrap:wrap;margin-bottom:16px}
+  .ring{--p:0;width:78px;height:78px;border-radius:50%;flex:0 0 auto;position:relative;
+    background:conic-gradient(var(--accent) calc(var(--p)*1%),var(--card2) 0)}
+  .ring::after{content:"";position:absolute;inset:7px;border-radius:50%;background:var(--card)}
+  .ring .rv{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14.5px;z-index:1;font-family:var(--sans)}
+  .daily-mid{flex:1;min-width:150px}
+  .daily-mid .t{font-family:var(--display);font-size:17px;font-weight:700;letter-spacing:0}
+  .daily-mid .s{font-size:13px;color:var(--muted);margin-top:2px}
+  .streak-badge{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:16px;background:color-mix(in srgb,var(--gold) 15%,var(--card2));color:var(--gold);padding:8px 14px;border-radius:999px}
+  .goalbtns{display:flex;gap:6px;align-items:center;margin-top:9px}
+  .goalbtns button{width:30px;height:30px;border-radius:9px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-weight:800;cursor:pointer;font-size:16px;transition:transform .14s var(--ease)}
+  .goalbtns button:active{transform:scale(.9)}
 
   /* kana grid */
   .kana{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
@@ -239,8 +250,8 @@
   .sent-fb.bad{background:color-mix(in srgb,#e5484d 9%,var(--card));border:1px solid color-mix(in srgb,#e5484d 28%,var(--line))}
 
   /* buttons */
-  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--radius-sm);font:inherit;font-weight:800;font-size:15px;padding:13px 22px;cursor:pointer;background:var(--grad);color:#fff;transition:transform .16s var(--ease),box-shadow .16s,filter .16s;box-shadow:0 6px 16px rgba(224,67,59,.32)}
-  .btn:hover{filter:brightness(1.05);box-shadow:0 10px 24px rgba(224,67,59,.4)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:none;border-radius:var(--radius-sm);font:inherit;font-weight:800;font-size:15px;padding:13px 22px;cursor:pointer;background:var(--grad);color:#fff;transition:transform .16s var(--ease),box-shadow .16s,filter .16s;box-shadow:var(--shadow)}
+  .btn:hover{filter:brightness(1.05);box-shadow:var(--shadow-lg)}
   .btn:active{transform:translateY(1px) scale(.99)}
   .btn.ghost{background:var(--card);color:var(--ink);border:1px solid var(--line);box-shadow:var(--shadow)}
   .btn.ghost:hover{background:var(--card2);filter:none}
@@ -252,7 +263,7 @@
   details.acc[open]{box-shadow:var(--shadow-lg)}
   details.acc>summary{list-style:none;cursor:pointer;padding:16px 17px;font-weight:800;display:flex;align-items:center;gap:11px;letter-spacing:-.01em}
   details.acc>summary::-webkit-details-marker{display:none}
-  details.acc>summary .tag{font-family:var(--jp);font-size:16px;color:#fff;font-weight:800;background:var(--grad);width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:0 4px 10px rgba(224,67,59,.3)}
+  details.acc>summary .tag{font-family:var(--jp);font-size:16px;color:#fff;font-weight:800;background:var(--grad);width:34px;height:34px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:var(--shadow)}
   details.acc>summary .chev{margin-left:auto;color:var(--muted);transition:.25s var(--ease)}
   details.acc[open]>summary .chev{transform:rotate(180deg)}
   .acc-body{padding:2px 17px 17px;border-top:1px solid var(--line);animation:fade .3s var(--ease)}
@@ -365,6 +376,8 @@
         </div>
       </div>
     </div>
+
+    <div class="daily-card card" id="dailyCard"></div>
 
     <div class="grid g3" id="homeStats"></div>
 
@@ -1144,7 +1157,7 @@ function show(id){
     if(on){try{b.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});}catch(e){}}});
   store.set('tab',id);window.scrollTo({top:0,behavior:'smooth'});
   if(id==='flash')renderFlash();
-  if(id==='home')renderHomeStats();
+  if(id==='home'){renderHomeStats();renderDailyGoal();}
 }
 $$('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
 
@@ -1163,6 +1176,31 @@ function renderHomeStats(){
     <div class="stat"><div class="v">${V.length}</div><div class="n">Total kosakata</div></div>
     <div class="stat"><div class="v">${learned}</div><div class="n">Kata dikuasai</div></div>
     <div class="stat"><div class="v">${acc}%</div><div class="n">Akurasi kuis</div></div>`;
+}
+/* ================= TARGET HARIAN + STREAK ================= */
+function dKey(off){const d=new Date();if(off)d.setDate(d.getDate()+off);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function getDaily(){let g=store.get('daily',{date:'',count:0,goal:20});if(g.date!==dKey(0)){g={date:dKey(0),count:0,goal:g.goal||20};store.set('daily',g);}return g;}
+function logActivity(n){n=n||1;const g=getDaily();g.count+=n;store.set('daily',g);
+  const t=dKey(0);let s=store.get('streak',{count:0,last:''});
+  if(s.last!==t){s.count=(s.last===dKey(-1))?s.count+1:1;s.last=t;store.set('streak',s);}
+  renderDailyGoal();
+}
+window.setGoal=function(delta){const g=getDaily();g.goal=Math.max(5,Math.min(100,(g.goal||20)+delta));store.set('daily',g);renderDailyGoal();};
+function renderDailyGoal(){const el=$('#dailyCard');if(!el)return;
+  const g=getDaily(),s=store.get('streak',{count:0,last:''});
+  const days=(s.last===dKey(0)||s.last===dKey(-1))?s.count:0;
+  const pct=Math.min(100,Math.round(g.count/g.goal*100)),done=g.count>=g.goal;
+  el.innerHTML=`
+    <div class="ring" style="--p:${pct}"><div class="rv">${g.count}/${g.goal}</div></div>
+    <div class="daily-mid">
+      <div class="t">${done?'🎉 Target hari ini tercapai!':'Belajar hari ini'}</div>
+      <div class="s">${g.count} latihan hari ini · target ${g.goal}/hari</div>
+      <div class="goalbtns"><span class="s" style="margin:0 4px 0 0">Target:</span><button onclick="setGoal(-5)" aria-label="kurangi">−</button><button onclick="setGoal(5)" aria-label="tambah">+</button></div>
+    </div>
+    <div style="text-align:center">
+      <div class="streak-badge">🔥 ${days}</div>
+      <div class="s" style="margin-top:5px">hari beruntun</div>
+    </div>`;
 }
 
 /* ================= KANA ================= */
@@ -1288,6 +1326,7 @@ window.rate=function(score){
   if(score===0)s.box=0; else if(score===1)s.box=Math.max(0,s.box); else if(score===2)s.box=Math.min(4,s.box+1); else s.box=Math.min(4,s.box+2);
   const days=BOX_DAYS[s.box];s.due=Date.now()+days*86400000+(score===0?60000:0);
   srs[curCard.id]=s;store.set('srs',srs);
+  logActivity(1);
   renderFlash();
 };
 window.resetDue=function(){const srs=getSrs();Object.keys(srs).forEach(k=>srs[k].due=0);store.set('srs',srs);renderFlash();};
@@ -1380,7 +1419,7 @@ function renderTypeKotoba(w){
     <button class="btn" id="qTypeBtn" style="width:100%;margin-top:10px">Jawab</button>`;
   const submit=()=>{
     const inp=$('#qType');if(!inp||inp.disabled)return;const val=inp.value;if(!val.trim())return;
-    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;
+    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;logActivity(1);
     const accepts=w[2].split('/').map(normRo);
     const correct=accepts.includes(normRo(val));
     if(correct){quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';inp.style.borderColor='var(--green)';speak(w[0]);}
@@ -1397,7 +1436,7 @@ function renderTypeKana(w){
     <button class="btn" id="qTypeBtn" style="width:100%;margin-top:10px">Jawab</button>`;
   const submit=()=>{
     const inp=$('#qType');if(!inp||inp.disabled)return;const val=inp.value;if(!val.trim())return;
-    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;
+    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;logActivity(1);
     const correct=normRo(val)===normRo(w.r);
     if(correct){quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';inp.style.borderColor='var(--green)';speak(w.c);}
     else{inp.style.borderColor='#e5484d';$('#qFeedback').innerHTML=`❌ Kamu tulis "<b>${val.replace(/</g,'&lt;')}</b>". Yang benar: <b>${w.r}</b>`;}
@@ -1408,6 +1447,7 @@ function renderTypeKana(w){
   setTimeout(()=>{try{$('#qType').focus();}catch(e){}},60);
 }
 function answerKotoba(chosen,w,btn){
+  logActivity(1);
   $$('#qOpts .opt').forEach(b=>b.style.pointerEvents='none');
   const correct=chosen===w.id;
   if(correct){btn.classList.add('correct');quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';speak(w[0]);}
@@ -1416,6 +1456,7 @@ function answerKotoba(chosen,w,btn){
   setTimeout(()=>{quiz.i++;nextQ();},correct?750:1700);
 }
 function answerKana(chosen,w,btn){
+  logActivity(1);
   $$('#qOpts .opt').forEach(b=>b.style.pointerEvents='none');
   const correct=chosen===w.id;
   if(correct){btn.classList.add('correct');quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';speak(w.c);}
@@ -1500,7 +1541,7 @@ function drawSentence(){
 }
 function checkSentence(){
   if(sPlaced.length!==sCur.chunks.length)return;
-  sAnswered=true;
+  sAnswered=true;logActivity(1);
   const correct=sCur.chunks, user=sPlaced.map(p=>p.c);
   const ok=user.every((c,i)=>c===correct[i]);
   const s=sentStats();s.done++;if(ok)s.correct++;store.set('sentStat',s);renderSentStats();
@@ -1577,7 +1618,7 @@ function initTheme(){
 }
 
 /* ================= INIT ================= */
-buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();updateLvInfo();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
+buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();updateLvInfo();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();renderDailyGoal();initTheme();
 {const t=store.get('tab','home');show(TABS.some(x=>x[0]===t)?t:'home');}
 </script>
 </body>
