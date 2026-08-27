@@ -372,7 +372,7 @@
     <div class="grid g2">
       <button class="tile" data-go="kana"><div class="ico">🔤</div><b>Huruf (Kana)</b><small>Hiragana &amp; Katakana + cara baca</small></button>
       <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>127 kanji + arti, bacaan &amp; contoh</small></button>
-      <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>Kata N5 per tema + contoh</small></button>
+      <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>500+ kata N5–N4 per tema</small></button>
       <button class="tile" data-go="flash"><div class="ico">🃏</div><b>Flashcard (SRS)</b><small>Hafal dengan pengulangan cerdas</small></button>
       <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Kosakata &amp; Kana, 4 tingkat kesulitan</small></button>
       <button class="tile" data-go="kalimat"><div class="ico">🧩</div><b>Susun Kalimat</b><small>Latihan bikin kalimat, koreksi otomatis</small></button>
@@ -431,7 +431,7 @@
   <!-- KOTOBA -->
   <section id="kotoba">
     <h1>Kosakata · Kotoba (言葉)</h1>
-    <p class="lead">Kata-kata penting N5 dikelompokkan per tema. Ketuk 🔊 untuk dengar pengucapannya.</p>
+    <p class="lead">500+ kata penting <b>N5–N4</b> dikelompokkan per tema, dengan label level. Ketuk 🔊 untuk dengar pengucapannya.</p>
     <input type="search" id="vSearch" placeholder="🔎 Cari kata (Indonesia, romaji, atau kanji)…" style="margin-bottom:12px">
     <div class="filters" id="vCats"></div>
     <div class="card" id="vList" style="padding:6px 18px"></div>
@@ -545,7 +545,10 @@ const store={get(k,d){try{const v=localStorage.getItem(LS(k));return v==null?d:J
 
 /* ================= DATA ================= */
 const CATS=[['salam','Salam'],['angka','Angka'],['waktu','Waktu'],['hari','Hari & Bulan'],['keluarga','Orang & Keluarga'],
-  ['tempat','Tempat'],['makanan','Makanan'],['kerja','Kata Kerja'],['sifat','Kata Sifat'],['benda','Benda']];
+  ['tempat','Tempat'],['makanan','Makanan'],['kerja','Kata Kerja'],['sifat','Kata Sifat'],['benda','Benda'],
+  ['warna','Warna'],['tubuh','Tubuh'],['alam','Alam & Cuaca'],['hewan','Hewan'],['sekolah','Sekolah'],
+  ['transport','Transportasi'],['pakaian','Pakaian'],['rumah','Rumah'],['tanya','Kata Tanya'],
+  ['keterangan','Keterangan'],['profesi','Profesi'],['kotamodern','Kota & Umum']];
 
 // kata: [jp, kana, romaji, arti, contohJP, contohRomaji, contohID, kategori, level]
 const V=[
@@ -685,6 +688,184 @@ const V=[
   ['机','つくえ','tsukue','meja','机の上に本があります。','Tsukue no ue ni hon ga arimasu.','Di atas meja ada buku.','benda','N5'],
   ['椅子','いす','isu','kursi','椅子に座ります。','Isu ni suwarimasu.','Duduk di kursi.','benda','N5'],
 ];
+/* ===== batch kosakata tambahan (format ringkas: [jp,kana,romaji,arti,kategori,level]) ===== */
+const VX=[
+  // warna
+  ['赤','あか','aka','merah','warna','N5'],['青','あお','ao','biru','warna','N5'],['白','しろ','shiro','putih','warna','N5'],
+  ['黒','くろ','kuro','hitam','warna','N5'],['黄色','きいろ','kiiro','kuning','warna','N5'],['茶色','ちゃいろ','chairo','coklat','warna','N5'],
+  ['緑','みどり','midori','hijau','warna','N5'],['紫','むらさき','murasaki','ungu','warna','N4'],['色','いろ','iro','warna','warna','N5'],
+  ['ピンク','ぴんく','pinku','merah muda','warna','N5'],['オレンジ','おれんじ','orenji','oranye','warna','N5'],['灰色','はいいろ','haiiro','abu-abu','warna','N4'],
+  ['金色','きんいろ','kin\'iro','emas (warna)','warna','N4'],['銀色','ぎんいろ','gin\'iro','perak (warna)','warna','N4'],
+  // tubuh
+  ['頭','あたま','atama','kepala','tubuh','N5'],['顔','かお','kao','wajah','tubuh','N5'],['目','め','me','mata','tubuh','N5'],
+  ['耳','みみ','mimi','telinga','tubuh','N5'],['鼻','はな','hana','hidung','tubuh','N5'],['口','くち','kuchi','mulut','tubuh','N5'],
+  ['歯','は','ha','gigi','tubuh','N5'],['手','て','te','tangan','tubuh','N5'],['指','ゆび','yubi','jari','tubuh','N4'],
+  ['足','あし','ashi','kaki','tubuh','N5'],['髪','かみ','kami','rambut','tubuh','N4'],['首','くび','kubi','leher','tubuh','N4'],
+  ['肩','かた','kata','bahu','tubuh','N4'],['お腹','おなか','onaka','perut','tubuh','N4'],['背中','せなか','senaka','punggung','tubuh','N4'],
+  ['体','からだ','karada','tubuh/badan','tubuh','N5'],['心','こころ','kokoro','hati/jiwa','tubuh','N4'],['声','こえ','koe','suara','tubuh','N4'],
+  // alam & cuaca
+  ['空','そら','sora','langit','alam','N5'],['海','うみ','umi','laut','alam','N5'],['山','やま','yama','gunung','alam','N5'],
+  ['川','かわ','kawa','sungai','alam','N5'],['木','き','ki','pohon','alam','N5'],['花','はな','hana','bunga','alam','N5'],
+  ['石','いし','ishi','batu','alam','N4'],['火','ひ','hi','api','alam','N5'],['風','かぜ','kaze','angin','alam','N5'],
+  ['雨','あめ','ame','hujan','alam','N5'],['雪','ゆき','yuki','salju','alam','N5'],['雲','くも','kumo','awan','alam','N4'],
+  ['星','ほし','hoshi','bintang','alam','N4'],['太陽','たいよう','taiyō','matahari','alam','N4'],['天気','てんき','tenki','cuaca','alam','N5'],
+  ['晴れ','はれ','hare','cerah','alam','N5'],['曇り','くもり','kumori','berawan','alam','N4'],['地震','じしん','jishin','gempa','alam','N4'],
+  ['自然','しぜん','shizen','alam','alam','N4'],
+  // hewan
+  ['犬','いぬ','inu','anjing','hewan','N5'],['猫','ねこ','neko','kucing','hewan','N5'],['鳥','とり','tori','burung','hewan','N5'],
+  ['馬','うま','uma','kuda','hewan','N4'],['牛','うし','ushi','sapi','hewan','N4'],['豚','ぶた','buta','babi','hewan','N4'],
+  ['虫','むし','mushi','serangga','hewan','N4'],['象','ぞう','zō','gajah','hewan','N4'],['動物','どうぶつ','dōbutsu','hewan','hewan','N5'],
+  ['ペット','ぺっと','petto','peliharaan','hewan','N5'],
+  // sekolah
+  ['大学','だいがく','daigaku','universitas','sekolah','N5'],['教室','きょうしつ','kyōshitsu','ruang kelas','sekolah','N5'],
+  ['授業','じゅぎょう','jugyō','pelajaran/kelas','sekolah','N4'],['宿題','しゅくだい','shukudai','PR','sekolah','N5'],
+  ['試験','しけん','shiken','ujian','sekolah','N4'],['テスト','てすと','tesuto','tes','sekolah','N5'],['問題','もんだい','mondai','soal/masalah','sekolah','N5'],
+  ['答え','こたえ','kotae','jawaban','sekolah','N4'],['質問','しつもん','shitsumon','pertanyaan','sekolah','N5'],['言葉','ことば','kotoba','kata/bahasa','sekolah','N5'],
+  ['意味','いみ','imi','arti','sekolah','N5'],['辞書','じしょ','jisho','kamus','sekolah','N5'],['教科書','きょうかしょ','kyōkasho','buku pelajaran','sekolah','N4'],
+  ['鉛筆','えんぴつ','enpitsu','pensil','sekolah','N5'],['消しゴム','けしごむ','keshigomu','penghapus','sekolah','N5'],['紙','かみ','kami','kertas','sekolah','N5'],
+  ['名前','なまえ','namae','nama','sekolah','N5'],
+  // transportasi
+  ['自転車','じてんしゃ','jitensha','sepeda','transport','N5'],['バス','ばす','basu','bus','transport','N5'],['飛行機','ひこうき','hikōki','pesawat','transport','N5'],
+  ['船','ふね','fune','kapal','transport','N4'],['タクシー','たくしー','takushī','taksi','transport','N5'],['地下鉄','ちかてつ','chikatetsu','kereta bawah tanah','transport','N4'],
+  ['空港','くうこう','kūkō','bandara','transport','N4'],['道','みち','michi','jalan','transport','N5'],['信号','しんごう','shingō','lampu lalu lintas','transport','N4'],
+  ['切符','きっぷ','kippu','tiket','transport','N5'],['地図','ちず','chizu','peta','transport','N4'],
+  // pakaian
+  ['服','ふく','fuku','baju','pakaian','N5'],['シャツ','しゃつ','shatsu','kemeja','pakaian','N5'],['ズボン','ずぼん','zubon','celana','pakaian','N5'],
+  ['靴下','くつした','kutsushita','kaus kaki','pakaian','N4'],['帽子','ぼうし','bōshi','topi','pakaian','N5'],['眼鏡','めがね','megane','kacamata','pakaian','N5'],
+  ['傘','かさ','kasa','payung','pakaian','N5'],['財布','さいふ','saifu','dompet','pakaian','N4'],['指輪','ゆびわ','yubiwa','cincin','pakaian','N4'],
+  ['コート','こーと','kōto','mantel','pakaian','N5'],['セーター','せーたー','sētā','sweater','pakaian','N4'],
+  // rumah
+  ['台所','だいどころ','daidokoro','dapur','rumah','N5'],['お風呂','おふろ','ofuro','kamar mandi','rumah','N5'],['トイレ','といれ','toire','toilet','rumah','N5'],
+  ['庭','にわ','niwa','halaman/taman','rumah','N5'],['窓','まど','mado','jendela','rumah','N5'],['ドア','どあ','doa','pintu','rumah','N5'],
+  ['ベッド','べっど','beddo','tempat tidur','rumah','N5'],['テレビ','てれび','terebi','televisi','rumah','N5'],['冷蔵庫','れいぞうこ','reizōko','kulkas','rumah','N4'],
+  ['電話','でんわ','denwa','telepon','rumah','N5'],['鍵','かぎ','kagi','kunci','rumah','N4'],['電気','でんき','denki','listrik/lampu','rumah','N5'],['壁','かべ','kabe','dinding','rumah','N4'],
+  // kata tanya
+  ['何','なに','nani','apa','tanya','N5'],['誰','だれ','dare','siapa','tanya','N5'],['どこ','どこ','doko','di mana','tanya','N5'],
+  ['いつ','いつ','itsu','kapan','tanya','N5'],['なぜ','なぜ','naze','kenapa','tanya','N5'],['どうして','どうして','dōshite','mengapa','tanya','N5'],
+  ['どう','どう','dō','bagaimana','tanya','N5'],['どれ','どれ','dore','yang mana','tanya','N5'],['いくら','いくら','ikura','berapa (harga)','tanya','N5'],
+  ['いくつ','いくつ','ikutsu','berapa (jumlah)','tanya','N5'],['どちら','どちら','dochira','yang mana (2 pilihan)','tanya','N5'],
+  // keterangan
+  ['とても','とても','totemo','sangat','keterangan','N5'],['少し','すこし','sukoshi','sedikit','keterangan','N5'],['たくさん','たくさん','takusan','banyak','keterangan','N5'],
+  ['よく','よく','yoku','sering/dengan baik','keterangan','N5'],['時々','ときどき','tokidoki','kadang-kadang','keterangan','N5'],['いつも','いつも','itsumo','selalu','keterangan','N5'],
+  ['すぐ','すぐ','sugu','segera','keterangan','N5'],['また','また','mata','lagi','keterangan','N5'],['もっと','もっと','motto','lebih','keterangan','N5'],
+  ['ちょっと','ちょっと','chotto','sebentar/sedikit','keterangan','N5'],['一緒に','いっしょに','issho ni','bersama','keterangan','N5'],['本当に','ほんとうに','hontō ni','sungguh','keterangan','N5'],
+  ['多分','たぶん','tabun','mungkin','keterangan','N4'],['一番','いちばん','ichiban','paling / nomor satu','keterangan','N5'],['ゆっくり','ゆっくり','yukkuri','pelan-pelan','keterangan','N5'],['きっと','きっと','kitto','pasti','keterangan','N4'],
+  // profesi
+  ['医者','いしゃ','isha','dokter','profesi','N5'],['会社員','かいしゃいん','kaishain','karyawan','profesi','N5'],['店員','てんいん','ten\'in','pelayan toko','profesi','N4'],
+  ['警察官','けいさつかん','keisatsukan','polisi','profesi','N4'],['運転手','うんてんしゅ','untenshu','sopir','profesi','N4'],['歌手','かしゅ','kashu','penyanyi','profesi','N4'],
+  ['看護師','かんごし','kangoshi','perawat','profesi','N4'],['仕事','しごと','shigoto','pekerjaan','profesi','N5'],['社長','しゃちょう','shachō','direktur','profesi','N4'],
+  // kota & umum
+  ['スーパー','すーぱー','sūpā','supermarket','kotamodern','N5'],['デパート','でぱーと','depāto','mal / department store','kotamodern','N5'],['コンビニ','こんびに','konbini','minimarket','kotamodern','N5'],
+  ['公園','こうえん','kōen','taman','kotamodern','N5'],['映画館','えいがかん','eigakan','bioskop','kotamodern','N4'],['喫茶店','きっさてん','kissaten','kafe','kotamodern','N5'],
+  ['本屋','ほんや','honya','toko buku','kotamodern','N5'],['郵便局','ゆうびんきょく','yūbinkyoku','kantor pos','kotamodern','N5'],['ホテル','ほてる','hoteru','hotel','kotamodern','N5'],
+  ['橋','はし','hashi','jembatan','kotamodern','N4'],['ビル','びる','biru','gedung','kotamodern','N5'],['建物','たてもの','tatemono','bangunan','kotamodern','N4'],
+  ['町','まち','machi','kota','kotamodern','N5'],['世界','せかい','sekai','dunia','kotamodern','N4'],['国','くに','kuni','negara','kotamodern','N5'],
+  // kata kerja tambahan
+  ['作る','つくる','tsukuru','membuat','kerja','N5'],['使う','つかう','tsukau','memakai','kerja','N5'],['待つ','まつ','matsu','menunggu','kerja','N5'],
+  ['持つ','もつ','motsu','memegang/punya','kerja','N5'],['取る','とる','toru','mengambil','kerja','N5'],['売る','うる','uru','menjual','kerja','N4'],
+  ['貸す','かす','kasu','meminjamkan','kerja','N4'],['借りる','かりる','kariru','meminjam','kerja','N4'],['返す','かえす','kaesu','mengembalikan','kerja','N4'],
+  ['歩く','あるく','aruku','berjalan','kerja','N5'],['走る','はしる','hashiru','berlari','kerja','N5'],['泳ぐ','およぐ','oyogu','berenang','kerja','N5'],
+  ['遊ぶ','あそぶ','asobu','bermain','kerja','N5'],['笑う','わらう','warau','tertawa','kerja','N4'],['泣く','なく','naku','menangis','kerja','N4'],
+  ['歌う','うたう','utau','bernyanyi','kerja','N5'],['座る','すわる','suwaru','duduk','kerja','N5'],['立つ','たつ','tatsu','berdiri','kerja','N5'],
+  ['開ける','あける','akeru','membuka','kerja','N5'],['閉める','しめる','shimeru','menutup','kerja','N5'],['始める','はじめる','hajimeru','memulai','kerja','N5'],
+  ['終わる','おわる','owaru','selesai','kerja','N5'],['教える','おしえる','oshieru','mengajar/memberitahu','kerja','N5'],['習う','ならう','narau','belajar (dari guru)','kerja','N5'],
+  ['覚える','おぼえる','oboeru','menghafal','kerja','N4'],['忘れる','わすれる','wasureru','lupa','kerja','N5'],['分かる','わかる','wakaru','mengerti','kerja','N5'],
+  ['思う','おもう','omou','berpikir/merasa','kerja','N4'],['考える','かんがえる','kangaeru','memikirkan','kerja','N4'],['乗る','のる','noru','naik (kendaraan)','kerja','N5'],
+  ['降りる','おりる','oriru','turun','kerja','N4'],['着る','きる','kiru','memakai (baju)','kerja','N5'],['洗う','あらう','arau','mencuci','kerja','N5'],
+  ['掃除する','そうじする','sōji suru','membersihkan','kerja','N5'],['料理する','りょうりする','ryōri suru','memasak','kerja','N5'],['旅行する','りょこうする','ryokō suru','bepergian','kerja','N5'],
+  ['結婚する','けっこんする','kekkon suru','menikah','kerja','N4'],['住む','すむ','sumu','tinggal','kerja','N5'],['休む','やすむ','yasumu','beristirahat','kerja','N5'],
+  // kata sifat tambahan
+  ['長い','ながい','nagai','panjang','sifat','N5'],['短い','みじかい','mijikai','pendek','sifat','N5'],['広い','ひろい','hiroi','luas','sifat','N5'],
+  ['狭い','せまい','semai','sempit','sifat','N5'],['重い','おもい','omoi','berat','sifat','N5'],['軽い','かるい','karui','ringan','sifat','N5'],
+  ['強い','つよい','tsuyoi','kuat','sifat','N5'],['弱い','よわい','yowai','lemah','sifat','N5'],['早い','はやい','hayai','cepat/awal','sifat','N5'],
+  ['遅い','おそい','osoi','lambat/terlambat','sifat','N5'],['近い','ちかい','chikai','dekat','sifat','N5'],['遠い','とおい','tōi','jauh','sifat','N5'],
+  ['明るい','あかるい','akarui','terang','sifat','N5'],['暗い','くらい','kurai','gelap','sifat','N5'],['美味しい','おいしい','oishii','enak','sifat','N5'],
+  ['甘い','あまい','amai','manis','sifat','N5'],['辛い','からい','karai','pedas','sifat','N5'],['冷たい','つめたい','tsumetai','dingin (benda)','sifat','N5'],
+  ['忙しい','いそがしい','isogashii','sibuk','sifat','N5'],['楽しい','たのしい','tanoshii','menyenangkan','sifat','N5'],['嬉しい','うれしい','ureshii','senang/gembira','sifat','N4'],
+  ['悲しい','かなしい','kanashii','sedih','sifat','N4'],['痛い','いたい','itai','sakit','sifat','N5'],['可愛い','かわいい','kawaii','lucu/imut','sifat','N5'],
+  ['汚い','きたない','kitanai','kotor','sifat','N5'],['危ない','あぶない','abunai','berbahaya','sifat','N5'],['便利','べんり','benri','praktis','sifat','N5'],
+  ['大切','たいせつ','taisetsu','penting','sifat','N5'],['大丈夫','だいじょうぶ','daijōbu','tidak apa-apa','sifat','N5'],['静か','しずか','shizuka','tenang/sepi','sifat','N5'],
+  ['賑やか','にぎやか','nigiyaka','ramai','sifat','N5'],['簡単','かんたん','kantan','mudah','sifat','N5'],['親切','しんせつ','shinsetsu','ramah/baik hati','sifat','N5'],
+  ['上手','じょうず','jōzu','pandai/mahir','sifat','N5'],['下手','へた','heta','tidak mahir','sifat','N5'],
+  // makanan tambahan
+  ['朝ご飯','あさごはん','asagohan','sarapan','makanan','N5'],['昼ご飯','ひるごはん','hirugohan','makan siang','makanan','N5'],['晩ご飯','ばんごはん','bangohan','makan malam','makanan','N5'],
+  ['寿司','すし','sushi','sushi','makanan','N5'],['ラーメン','らーめん','rāmen','ramen','makanan','N5'],['うどん','うどん','udon','udon','makanan','N4'],
+  ['米','こめ','kome','beras','makanan','N4'],['塩','しお','shio','garam','makanan','N4'],['砂糖','さとう','satō','gula','makanan','N4'],
+  ['お菓子','おかし','okashi','makanan ringan','makanan','N5'],['りんご','りんご','ringo','apel','makanan','N5'],['みかん','みかん','mikan','jeruk','makanan','N5'],
+  ['バナナ','ばなな','banana','pisang','makanan','N5'],['ジュース','じゅーす','jūsu','jus','makanan','N5'],['ビール','びーる','bīru','bir','makanan','N5'],
+  // keluarga tambahan
+  ['彼','かれ','kare','dia (lk) / pacar','keluarga','N4'],['彼女','かのじょ','kanojo','dia (pr) / pacar','keluarga','N4'],['祖父','そふ','sofu','kakek','keluarga','N4'],
+  ['祖母','そぼ','sobo','nenek','keluarga','N4'],['両親','りょうしん','ryōshin','orang tua','keluarga','N4'],['大人','おとな','otona','orang dewasa','keluarga','N5'],
+  ['男','おとこ','otoko','laki-laki','keluarga','N5'],['女','おんな','onna','perempuan','keluarga','N5'],['赤ちゃん','あかちゃん','akachan','bayi','keluarga','N4'],
+  // waktu tambahan
+  ['今朝','けさ','kesa','pagi ini','waktu','N5'],['今晩','こんばん','konban','malam ini','waktu','N5'],['毎日','まいにち','mainichi','setiap hari','waktu','N5'],
+  ['毎朝','まいあさ','maiasa','setiap pagi','waktu','N5'],['毎週','まいしゅう','maishū','setiap minggu','waktu','N5'],['来週','らいしゅう','raishū','minggu depan','waktu','N5'],
+  ['先週','せんしゅう','senshū','minggu lalu','waktu','N5'],['来月','らいげつ','raigetsu','bulan depan','waktu','N5'],['先月','せんげつ','sengetsu','bulan lalu','waktu','N5'],
+  ['来年','らいねん','rainen','tahun depan','waktu','N5'],['去年','きょねん','kyonen','tahun lalu','waktu','N5'],['午前','ごぜん','gozen','pagi (AM)','waktu','N5'],
+  ['午後','ごご','gogo','siang (PM)','waktu','N5'],['夕方','ゆうがた','yūgata','sore','waktu','N4'],['最近','さいきん','saikin','akhir-akhir ini','waktu','N4'],
+  // benda tambahan
+  ['写真','しゃしん','shashin','foto','benda','N5'],['手紙','てがみ','tegami','surat','benda','N5'],['新聞','しんぶん','shinbun','koran','benda','N5'],
+  ['雑誌','ざっし','zasshi','majalah','benda','N5'],['音楽','おんがく','ongaku','musik','benda','N5'],['映画','えいが','eiga','film','benda','N5'],
+  ['絵','え','e','gambar/lukisan','benda','N5'],['プレゼント','ぷれぜんと','purezento','hadiah','benda','N4'],['荷物','にもつ','nimotsu','barang/bagasi','benda','N4'],['箱','はこ','hako','kotak','benda','N4'],
+];
+VX.forEach(v=>{ if(!V.some(w=>w[0]===v[0])) V.push([v[0],v[1],v[2],v[3],'','','',v[4],v[5]]); });
+/* ===== batch kosakata tambahan #2 ===== */
+const VX2=[
+  // kata kerja (lanjutan)
+  ['生まれる','うまれる','umareru','lahir','kerja','N4'],['変わる','かわる','kawaru','berubah','kerja','N4'],['続く','つづく','tsuzuku','berlanjut','kerja','N4'],
+  ['止まる','とまる','tomaru','berhenti','kerja','N4'],['動く','うごく','ugoku','bergerak','kerja','N4'],['選ぶ','えらぶ','erabu','memilih','kerja','N4'],
+  ['決める','きめる','kimeru','memutuskan','kerja','N4'],['探す','さがす','sagasu','mencari','kerja','N4'],['見つける','みつける','mitsukeru','menemukan','kerja','N4'],
+  ['落とす','おとす','otosu','menjatuhkan','kerja','N4'],['送る','おくる','okuru','mengirim','kerja','N4'],['届く','とどく','todoku','sampai/tiba','kerja','N4'],
+  ['運ぶ','はこぶ','hakobu','mengangkut','kerja','N4'],['押す','おす','osu','mendorong','kerja','N4'],['引く','ひく','hiku','menarik','kerja','N4'],
+  ['投げる','なげる','nageru','melempar','kerja','N4'],['切る','きる','kiru','memotong','kerja','N5'],['焼く','やく','yaku','memanggang','kerja','N4'],
+  ['数える','かぞえる','kazoeru','menghitung','kerja','N4'],['比べる','くらべる','kuraberu','membandingkan','kerja','N4'],['手伝う','てつだう','tetsudau','membantu','kerja','N5'],
+  ['困る','こまる','komaru','kesulitan','kerja','N5'],['急ぐ','いそぐ','isogu','bergegas','kerja','N5'],['頑張る','がんばる','ganbaru','berjuang/semangat','kerja','N4'],
+  ['疲れる','つかれる','tsukareru','lelah','kerja','N4'],['太る','ふとる','futoru','menjadi gemuk','kerja','N4'],['痩せる','やせる','yaseru','menjadi kurus','kerja','N4'],
+  ['慣れる','なれる','nareru','terbiasa','kerja','N4'],['続ける','つづける','tsuzukeru','melanjutkan','kerja','N4'],['止める','やめる','yameru','berhenti/menghentikan','kerja','N4'],
+  ['始まる','はじまる','hajimaru','dimulai','kerja','N4'],['起こす','おこす','okosu','membangunkan','kerja','N4'],['準備する','じゅんびする','junbi suru','menyiapkan','kerja','N4'],
+  ['案内する','あんないする','annai suru','memandu','kerja','N4'],['説明する','せつめいする','setsumei suru','menjelaskan','kerja','N4'],['紹介する','しょうかいする','shōkai suru','memperkenalkan','kerja','N4'],
+  ['相談する','そうだんする','sōdan suru','berkonsultasi','kerja','N4'],['心配する','しんぱいする','shinpai suru','khawatir','kerja','N4'],['約束する','やくそくする','yakusoku suru','berjanji','kerja','N4'],
+  // kata sifat (lanjutan)
+  ['色々','いろいろ','iroiro','bermacam-macam','sifat','N4'],['特別','とくべつ','tokubetsu','khusus','sifat','N4'],['十分','じゅうぶん','jūbun','cukup','sifat','N4'],
+  ['自由','じゆう','jiyū','bebas','sifat','N4'],['必要','ひつよう','hitsuyō','perlu','sifat','N4'],['無理','むり','muri','mustahil/memaksakan','sifat','N4'],
+  ['残念','ざんねん','zannen','sayang sekali','sifat','N4'],['危険','きけん','kiken','berbahaya','sifat','N4'],['安全','あんぜん','anzen','aman','sifat','N4'],
+  ['丁寧','ていねい','teinei','sopan/rapi','sifat','N4'],['真面目','まじめ','majime','serius/rajin','sifat','N4'],['素敵','すてき','suteki','indah/keren','sifat','N4'],
+  ['立派','りっぱ','rippa','hebat/megah','sifat','N4'],['変','へん','hen','aneh','sifat','N4'],['大変','たいへん','taihen','berat/repot','sifat','N4'],
+  ['得意','とくい','tokui','jago (di bidang)','sifat','N4'],['苦手','にがて','nigate','lemah/tidak suka','sifat','N4'],['嫌い','きらい','kirai','benci','sifat','N5'],
+  ['欲しい','ほしい','hoshii','ingin (memiliki)','sifat','N5'],['眠い','ねむい','nemui','mengantuk','sifat','N4'],['恥ずかしい','はずかしい','hazukashii','malu','sifat','N4'],
+  ['怖い','こわい','kowai','takut/seram','sifat','N4'],['珍しい','めずらしい','mezurashii','langka','sifat','N4'],['優しい','やさしい','yasashii','ramah/lembut','sifat','N5'],
+  ['厳しい','きびしい','kibishii','ketat/keras','sifat','N4'],['深い','ふかい','fukai','dalam','sifat','N4'],['浅い','あさい','asai','dangkal','sifat','N4'],
+  ['太い','ふとい','futoi','tebal/gemuk','sifat','N4'],['細い','ほそい','hosoi','tipis/kurus','sifat','N4'],['硬い','かたい','katai','keras','sifat','N4'],
+  ['柔らかい','やわらかい','yawarakai','lembut','sifat','N4'],['若い','わかい','wakai','muda','sifat','N4'],['うるさい','うるさい','urusai','berisik','sifat','N5'],
+  ['涼しい','すずしい','suzushii','sejuk','sifat','N5'],['暖かい','あたたかい','atatakai','hangat','sifat','N5'],['ひどい','ひどい','hidoi','parah/kejam','sifat','N4'],
+  ['すごい','すごい','sugoi','hebat','sifat','N4'],['素晴らしい','すばらしい','subarashii','luar biasa','sifat','N4'],
+  // makanan (lanjutan)
+  ['牛肉','ぎゅうにく','gyūniku','daging sapi','makanan','N4'],['豚肉','ぶたにく','butaniku','daging babi','makanan','N4'],['鶏肉','とりにく','toriniku','daging ayam','makanan','N4'],
+  ['スープ','すーぷ','sūpu','sup','makanan','N4'],['サラダ','さらだ','sarada','salad','makanan','N4'],['ケーキ','けーき','kēki','kue','makanan','N5'],
+  ['アイスクリーム','あいすくりーむ','aisukurīmu','es krim','makanan','N5'],['チョコレート','ちょこれーと','chokorēto','coklat','makanan','N5'],['弁当','べんとう','bentō','bekal','makanan','N4'],
+  ['飲み物','のみもの','nomimono','minuman','makanan','N5'],['食べ物','たべもの','tabemono','makanan','makanan','N5'],['料理','りょうり','ryōri','masakan','makanan','N5'],
+  ['味','あじ','aji','rasa','makanan','N4'],['匂い','におい','nioi','bau/aroma','makanan','N4'],
+  // alam (lanjutan) + musim
+  ['森','もり','mori','hutan','alam','N4'],['池','いけ','ike','kolam','alam','N4'],['湖','みずうみ','mizuumi','danau','alam','N4'],
+  ['島','しま','shima','pulau','alam','N4'],['波','なみ','nami','ombak','alam','N4'],['光','ひかり','hikari','cahaya','alam','N4'],
+  ['空気','くうき','kūki','udara','alam','N4'],['季節','きせつ','kisetsu','musim','alam','N4'],['春','はる','haru','musim semi','alam','N5'],
+  ['夏','なつ','natsu','musim panas','alam','N5'],['秋','あき','aki','musim gugur','alam','N5'],['冬','ふゆ','fuyu','musim dingin','alam','N5'],['台風','たいふう','taifū','topan','alam','N4'],
+  // tubuh & kesehatan
+  ['病気','びょうき','byōki','penyakit/sakit','tubuh','N5'],['熱','ねつ','netsu','demam','tubuh','N4'],['風邪','かぜ','kaze','flu/masuk angin','tubuh','N4'],
+  ['薬','くすり','kusuri','obat','tubuh','N5'],['けが','けが','kega','luka','tubuh','N4'],['血','ち','chi','darah','tubuh','N4'],['涙','なみだ','namida','air mata','tubuh','N4'],
+  // kota & umum / kegiatan
+  ['買い物','かいもの','kaimono','belanja','kotamodern','N5'],['値段','ねだん','nedan','harga','kotamodern','N4'],['約束','やくそく','yakusoku','janji','kotamodern','N4'],
+  ['会議','かいぎ','kaigi','rapat','kotamodern','N4'],['予定','よてい','yotei','rencana/jadwal','kotamodern','N4'],['経験','けいけん','keiken','pengalaman','kotamodern','N4'],
+  ['生活','せいかつ','seikatsu','kehidupan','kotamodern','N4'],['場所','ばしょ','basho','tempat/lokasi','kotamodern','N4'],['工場','こうじょう','kōjō','pabrik','kotamodern','N4'],
+  ['神社','じんじゃ','jinja','kuil shinto','kotamodern','N4'],['お寺','おてら','otera','kuil buddha','kotamodern','N4'],['港','みなと','minato','pelabuhan','kotamodern','N4'],
+  ['動物園','どうぶつえん','dōbutsuen','kebun binatang','kotamodern','N4'],
+  // keterangan (lanjutan)
+  ['だいたい','だいたい','daitai','kira-kira','keterangan','N4'],['ほとんど','ほとんど','hotondo','hampir semua','keterangan','N4'],['全部','ぜんぶ','zenbu','semua','keterangan','N5'],
+  ['全然','ぜんぜん','zenzen','sama sekali (tidak)','keterangan','N5'],['特に','とくに','toku ni','terutama','keterangan','N4'],['例えば','たとえば','tatoeba','misalnya','keterangan','N4'],
+  ['やっぱり','やっぱり','yappari','ternyata/memang','keterangan','N4'],['実は','じつは','jitsu wa','sebenarnya','keterangan','N4'],['最初','さいしょ','saisho','awal/pertama','keterangan','N4'],
+  ['最後','さいご','saigo','terakhir','keterangan','N4'],['次','つぎ','tsugi','berikutnya','keterangan','N5'],['もちろん','もちろん','mochiron','tentu saja','keterangan','N4'],
+];
+VX2.forEach(v=>{ if(!V.some(w=>w[0]===v[0])) V.push([v[0],v[1],v[2],v[3],'','','',v[4],v[5]]); });
 // give each a stable id
 V.forEach((w,i)=>w.id=i);
 const catName=c=>{const f=CATS.find(x=>x[0]===c);return f?f[1]:c;};
@@ -1007,8 +1188,8 @@ function renderVocab(){
         <span class="rdg jp">${w[1]} · <span class="ro">${w[2]}</span></span>
         <button class="speak" data-say="${w[0]}" title="Dengar">🔊</button>
       </div>
-      <div class="mean"><b>${w[3]}</b> <span class="badge n5">N5</span></div>
-      <div class="ex"><span class="jp">${w[4]}</span><br>${w[5]} — ${w[6]}</div>
+      <div class="mean"><b>${w[3]}</b> <span class="badge ${w[8]==='N4'?'n4':'n5'}">${w[8]||'N5'}</span></div>
+      ${w[4]?`<div class="ex"><span class="jp">${w[4]}</span><br>${w[5]} — ${w[6]}</div>`:''}
     </div>`).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kata yang cocok.</p>';
   $$('#vList .speak').forEach(b=>b.onclick=()=>speak(b.dataset.say));
 }
@@ -1088,7 +1269,7 @@ function renderFlash(){
         <div class="face back">
           <div class="kana jp">${w[1]} · <span class="ro" style="display:inline">${w[2]}</span></div>
           <div class="mean-big">${w[3]}</div>
-          <div class="ex2">${w[4]}<br><span style="color:var(--muted);font-family:var(--sans)">${w[5]}</span></div>
+          ${w[4]?`<div class="ex2">${w[4]}<br><span style="color:var(--muted);font-family:var(--sans)">${w[5]}</span></div>`:''}
           <button class="speak" style="position:absolute;top:12px;right:12px" onclick="event.stopPropagation();speak('${w[0]}')">🔊</button>
           <div class="hint">Seberapa hafal kamu?</div>
         </div>
