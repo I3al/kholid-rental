@@ -363,7 +363,7 @@
       <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>127 kanji + arti, bacaan &amp; contoh</small></button>
       <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>Kata N5 per tema + contoh</small></button>
       <button class="tile" data-go="flash"><div class="ico">🃏</div><b>Flashcard (SRS)</b><small>Hafal dengan pengulangan cerdas</small></button>
-      <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Uji arti &amp; bacaan, dapat skor</small></button>
+      <button class="tile" data-go="quiz"><div class="ico">🎯</div><b>Kuis</b><small>Kosakata &amp; Kana, 4 tingkat kesulitan</small></button>
       <button class="tile" data-go="kalimat"><div class="ico">🧩</div><b>Susun Kalimat</b><small>Latihan bikin kalimat, koreksi otomatis</small></button>
       <button class="tile" data-go="sakubun"><div class="ico">📝</div><b>Sakubun</b><small>Latihan mengarang + contoh</small></button>
       <button class="tile" data-go="grammar"><div class="ico">📐</div><b>Grammar &amp; Partikel</b><small>Pola kalimat &amp; は/が/を…</small></button>
@@ -447,10 +447,35 @@
         <div class="stat"><div class="v" id="qPlayed">0</div><div class="n">Sesi main</div></div>
         <div class="stat"><div class="v" id="qAcc">0%</div><div class="n">Akurasi</div></div>
       </div>
-      <div class="filters" id="quizCats"></div>
-      <div class="filters">
-        <button class="chip on" data-qmode="jp2id">Jepang → Arti</button>
-        <button class="chip" data-qmode="id2jp">Arti → Jepang</button>
+      <div style="font-size:11.5px;color:var(--muted);font-weight:700;margin:0 0 7px;text-transform:uppercase;letter-spacing:.6px">Sumber soal</div>
+      <div class="filters" id="quizSource">
+        <button class="chip on" data-qsrc="kotoba">📚 Kosakata</button>
+        <button class="chip" data-qsrc="kana">🔤 Kana (Hiragana &amp; Katakana)</button>
+      </div>
+      <div style="font-size:11.5px;color:var(--muted);font-weight:700;margin:14px 0 7px;text-transform:uppercase;letter-spacing:.6px">Tingkat kesulitan</div>
+      <div class="filters" id="quizLevels">
+        <button class="chip" data-qlv="mudah">🟢 Mudah</button>
+        <button class="chip on" data-qlv="sedang">🔵 Sedang</button>
+        <button class="chip" data-qlv="susah">🟠 Susah</button>
+        <button class="chip" data-qlv="ekstrem">🔴 Susah banget</button>
+      </div>
+      <div class="hint" id="qLvInfo" style="margin:-6px 0 12px"></div>
+      <div id="quizKotobaOpts">
+        <div style="font-size:11.5px;color:var(--muted);font-weight:700;margin:0 0 7px;text-transform:uppercase;letter-spacing:.6px">Arah &amp; kategori</div>
+        <div class="filters">
+          <button class="chip on" data-qmode="jp2id">Jepang → Arti</button>
+          <button class="chip" data-qmode="id2jp">Arti → Jepang</button>
+        </div>
+        <div class="filters" id="quizCats"></div>
+      </div>
+      <div id="quizKanaOpts" style="display:none">
+        <div style="font-size:11.5px;color:var(--muted);font-weight:700;margin:0 0 7px;text-transform:uppercase;letter-spacing:.6px">Jenis huruf</div>
+        <div class="filters">
+          <button class="chip on" data-qkana="both">あア Campur</button>
+          <button class="chip" data-qkana="hira">あ Hiragana</button>
+          <button class="chip" data-qkana="kata">ア Katakana</button>
+        </div>
+        <div class="hint" style="margin:-4px 0 12px">Soal: huruf kana ditampilkan, kamu jawab cara bacanya (romaji).</div>
       </div>
       <button class="btn" id="qStartBtn">Mulai Kuis (10 soal)</button>
     </div>
@@ -1075,50 +1100,134 @@ window.rate=function(score){
 window.resetDue=function(){const srs=getSrs();Object.keys(srs).forEach(k=>srs[k].due=0);store.set('srs',srs);renderFlash();};
 
 /* ================= QUIZ ================= */
-let quizCat='all',quizMode='jp2id',quiz=null;
+let quizCat='all',quizMode='jp2id',quizLevel='sedang',quizSource='kotoba',quizKanaSet='both',quiz=null;
+const LV={
+  mudah:  {label:'🟢 Mudah',      opts:4, hint:true,  info:'4 pilihan + bantuan bacaan/suara. Cocok pemula.'},
+  sedang: {label:'🔵 Sedang',     opts:4, hint:false, info:'4 pilihan, tanpa bantuan bacaan.'},
+  susah:  {label:'🟠 Susah',      opts:6, hint:false, info:'6 pilihan, tanpa bantuan. Pengecoh lebih banyak.'},
+  ekstrem:{label:'🔴 Susah banget',type:true,           info:'Tanpa pilihan — KETIK cara baca (romaji) sendiri!'}
+};
 function buildQuizCats(){
   $('#quizCats').innerHTML=`<button class="chip on" data-qc="all">Semua</button>`+CATS.map(c=>`<button class="chip" data-qc="${c[0]}">${c[1]}</button>`).join('');
   $$('#quizCats button').forEach(b=>b.onclick=()=>{$$('#quizCats button').forEach(x=>x.classList.remove('on'));b.classList.add('on');quizCat=b.dataset.qc;});
 }
 $$('[data-qmode]').forEach(b=>b.onclick=()=>{$$('[data-qmode]').forEach(x=>x.classList.remove('on'));b.classList.add('on');quizMode=b.dataset.qmode;});
+$$('[data-qsrc]').forEach(b=>b.onclick=()=>{$$('[data-qsrc]').forEach(x=>x.classList.remove('on'));b.classList.add('on');quizSource=b.dataset.qsrc;
+  const ko=$('#quizKotobaOpts'),ka=$('#quizKanaOpts');if(ko)ko.style.display=quizSource==='kotoba'?'':'none';if(ka)ka.style.display=quizSource==='kana'?'':'none';});
+$$('[data-qkana]').forEach(b=>b.onclick=()=>{$$('[data-qkana]').forEach(x=>x.classList.remove('on'));b.classList.add('on');quizKanaSet=b.dataset.qkana;});
+function updateLvInfo(){const el=$('#qLvInfo');if(el)el.textContent='ℹ️ '+LV[quizLevel].info;}
+$$('[data-qlv]').forEach(b=>b.onclick=()=>{$$('[data-qlv]').forEach(x=>x.classList.remove('on'));b.classList.add('on');quizLevel=b.dataset.qlv;updateLvInfo();});
 function renderQuizStats(){
   const q=store.get('quizStat',{played:0,correct:0,total:0,best:0});
   $('#qBest').textContent=q.best;$('#qPlayed').textContent=q.played;
   $('#qAcc').textContent=(q.total?Math.round(q.correct/q.total*100):0)+'%';
 }
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function normRo(s){return (s||'').toLowerCase().trim().replace(/[ōô]/g,'o').replace(/[ūû]/g,'u').replace(/[āâ]/g,'a').replace(/[īî]/g,'i').replace(/[ēê]/g,'e').replace(/[\s'’\-]/g,'');}
+function buildKanaPool(set){
+  const rows=[];
+  if(set==='both'||set==='hira')KANA.hira.forEach((k,i)=>{if(k)rows.push({id:'h'+i,c:k[0],r:k[1]});});
+  if(set==='both'||set==='kata')KANA.kata.forEach((k,i)=>{if(k)rows.push({id:'k'+i,c:k[0],r:k[1]});});
+  return rows;
+}
 $('#qStartBtn').onclick=function(){
-  const pool=V.filter(w=>quizCat==='all'||w[7]===quizCat);
-  if(pool.length<4){alert('Kategori ini kata-katanya sedikit. Pilih "Semua" atau kategori lain.');return;}
-  quiz={qs:shuffle(pool).slice(0,10),i:0,correct:0};
+  const lv=LV[quizLevel],need=lv.opts||1;
+  if(quizSource==='kana'){
+    const pool=buildKanaPool(quizKanaSet);
+    if(pool.length<need){alert('Set kana ini kurang untuk level ini. Pilih set lain (mis. Campur).');return;}
+    quiz={qs:shuffle(pool).slice(0,10),i:0,correct:0,level:quizLevel,source:'kana'};
+  }else{
+    const pool=V.filter(w=>quizCat==='all'||w[7]===quizCat);
+    if(pool.length<need){alert('Kategori ini kata-katanya kurang untuk level ini. Pilih "Semua" atau kategori lain.');return;}
+    quiz={qs:shuffle(pool).slice(0,10),i:0,correct:0,level:quizLevel,source:'kotoba'};
+  }
   $('#quizStart').style.display='none';$('#quizDone').style.display='none';$('#quizPlay').style.display='block';
   nextQ();
 };
 function nextQ(){
   if(quiz.i>=quiz.qs.length)return finishQuiz();
-  const w=quiz.qs[quiz.i];
+  const lv=LV[quiz.level];
   $('#qProg').style.width=(quiz.i/quiz.qs.length*100)+'%';
-  $('#qCount').textContent=`Soal ${quiz.i+1} dari ${quiz.qs.length}`;
+  $('#qCount').textContent=`Soal ${quiz.i+1} dari ${quiz.qs.length} · ${lv.label}`;
   $('#qFeedback').textContent='';
+  if(quiz.source==='kana')return nextQKana(lv);
+  return nextQKotoba(lv);
+}
+function nextQKotoba(lv){
+  const w=quiz.qs[quiz.i];
+  if(lv.type)return renderTypeKotoba(w);
   const askJP=quizMode==='jp2id';
-  // build options
-  const others=shuffle(V.filter(x=>x.id!==w.id)).slice(0,3);
+  const others=shuffle(V.filter(x=>x.id!==w.id)).slice(0,(lv.opts||4)-1);
   const opts=shuffle([w,...others]);
   if(askJP){
-    $('#qQuestion').innerHTML=`<div class="qbig">${w[0]}</div><div class="muted" style="text-align:center;font-size:13px"><button class="speak" style="vertical-align:middle" onclick="speak('${w[0]}')">🔊 dengar</button></div>`;
+    const hint=lv.hint?`<div class="muted" style="text-align:center;font-size:13px" class="jp">${w[1]} <button class="speak" style="vertical-align:middle" onclick="speak('${w[0]}')">🔊</button></div>`
+      :`<div class="muted" style="text-align:center;font-size:13px"><button class="speak" style="vertical-align:middle" onclick="speak('${w[0]}')">🔊 dengar</button></div>`;
+    $('#qQuestion').innerHTML=`<div class="qbig">${w[0]}</div>${hint}`;
     $('#qOpts').innerHTML=opts.map(o=>`<button class="opt" data-id="${o.id}">${o[3]}</button>`).join('');
   }else{
     $('#qQuestion').innerHTML=`<div style="text-align:center;font-size:22px;font-weight:800;margin:10px 0">${w[3]}</div>`;
-    $('#qOpts').innerHTML=opts.map(o=>`<button class="opt jp" data-id="${o.id}">${o[0]}</button>`).join('');
+    $('#qOpts').innerHTML=opts.map(o=>`<button class="opt jp" data-id="${o.id}">${o[0]}${lv.hint?` <span style="font-size:12px;color:var(--muted)">${o[2]}</span>`:''}</button>`).join('');
   }
-  $$('#qOpts .opt').forEach(b=>b.onclick=()=>answer(+b.dataset.id,w,b));
+  $$('#qOpts .opt').forEach(b=>b.onclick=()=>answerKotoba(+b.dataset.id,w,b));
 }
-function answer(chosen,w,btn){
+function nextQKana(lv){
+  const w=quiz.qs[quiz.i];
+  if(lv.type)return renderTypeKana(w);
+  const others=shuffle(buildKanaPool(quizKanaSet).filter(x=>x.id!==w.id)).slice(0,(lv.opts||4)-1);
+  const opts=shuffle([w,...others]);
+  const hint=lv.hint?`<div class="muted" style="text-align:center;font-size:13px"><button class="speak" style="vertical-align:middle" onclick="speak('${w.c}')">🔊</button> baris ${w.id[0]==='h'?'あ':'ア'}</div>`
+    :`<div class="muted" style="text-align:center;font-size:13px"><button class="speak" style="vertical-align:middle" onclick="speak('${w.c}')">🔊 dengar</button></div>`;
+  $('#qQuestion').innerHTML=`<div class="qbig">${w.c}</div>${hint}`;
+  $('#qOpts').innerHTML=opts.map(o=>`<button class="opt" data-id="${o.id}">${o.r}</button>`).join('');
+  $$('#qOpts .opt').forEach(b=>b.onclick=()=>answerKana(b.dataset.id,w,b));
+}
+function renderTypeKotoba(w){
+  $('#qQuestion').innerHTML=`<div class="qbig">${w[0]}</div><div class="muted" style="text-align:center;font-size:13px">Ketik cara baca (romaji) — arti: <b>${w[3]}</b></div>`;
+  $('#qOpts').innerHTML=`<input type="text" id="qType" placeholder="mis. tabemasu…" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="text-align:center;font-size:18px">
+    <button class="btn" id="qTypeBtn" style="width:100%;margin-top:10px">Jawab</button>`;
+  const submit=()=>{
+    const inp=$('#qType');if(!inp||inp.disabled)return;const val=inp.value;if(!val.trim())return;
+    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;
+    const accepts=w[2].split('/').map(normRo);
+    const correct=accepts.includes(normRo(val));
+    if(correct){quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';inp.style.borderColor='var(--green)';speak(w[0]);}
+    else{inp.style.borderColor='#e5484d';$('#qFeedback').innerHTML=`❌ Kamu tulis "<b>${val.replace(/</g,'&lt;')}</b>". Yang benar: <b>${w[2]}</b> (${w[3]})`;}
+    setTimeout(()=>{quiz.i++;nextQ();},correct?900:2300);
+  };
+  $('#qTypeBtn').onclick=submit;
+  $('#qType').addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
+  setTimeout(()=>{try{$('#qType').focus();}catch(e){}},60);
+}
+function renderTypeKana(w){
+  $('#qQuestion').innerHTML=`<div class="qbig">${w.c}</div><div class="muted" style="text-align:center;font-size:13px">Ketik cara baca (romaji) huruf ini</div>`;
+  $('#qOpts').innerHTML=`<input type="text" id="qType" placeholder="mis. ka…" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" style="text-align:center;font-size:18px">
+    <button class="btn" id="qTypeBtn" style="width:100%;margin-top:10px">Jawab</button>`;
+  const submit=()=>{
+    const inp=$('#qType');if(!inp||inp.disabled)return;const val=inp.value;if(!val.trim())return;
+    inp.disabled=true;const tb=$('#qTypeBtn');if(tb)tb.disabled=true;
+    const correct=normRo(val)===normRo(w.r);
+    if(correct){quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';inp.style.borderColor='var(--green)';speak(w.c);}
+    else{inp.style.borderColor='#e5484d';$('#qFeedback').innerHTML=`❌ Kamu tulis "<b>${val.replace(/</g,'&lt;')}</b>". Yang benar: <b>${w.r}</b>`;}
+    setTimeout(()=>{quiz.i++;nextQ();},correct?900:2300);
+  };
+  $('#qTypeBtn').onclick=submit;
+  $('#qType').addEventListener('keydown',e=>{if(e.key==='Enter')submit();});
+  setTimeout(()=>{try{$('#qType').focus();}catch(e){}},60);
+}
+function answerKotoba(chosen,w,btn){
   $$('#qOpts .opt').forEach(b=>b.style.pointerEvents='none');
   const correct=chosen===w.id;
   if(correct){btn.classList.add('correct');quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';speak(w[0]);}
   else{btn.classList.add('wrong');$$('#qOpts .opt').forEach(b=>{if(+b.dataset.id===w.id)b.classList.add('correct');});
     $('#qFeedback').innerHTML=`❌ Jawaban benar: <b>${quizMode==='jp2id'?w[3]:w[0]+' ('+w[2]+')'}</b>`;}
+  setTimeout(()=>{quiz.i++;nextQ();},correct?750:1700);
+}
+function answerKana(chosen,w,btn){
+  $$('#qOpts .opt').forEach(b=>b.style.pointerEvents='none');
+  const correct=chosen===w.id;
+  if(correct){btn.classList.add('correct');quiz.correct++;$('#qFeedback').innerHTML='✅ Benar!';speak(w.c);}
+  else{btn.classList.add('wrong');$$('#qOpts .opt').forEach(b=>{if(b.dataset.id===w.id)b.classList.add('correct');});
+    $('#qFeedback').innerHTML=`❌ Jawaban benar: <b>${w.r}</b>`;}
   setTimeout(()=>{quiz.i++;nextQ();},correct?750:1700);
 }
 function finishQuiz(){
@@ -1132,6 +1241,7 @@ function finishQuiz(){
   $('#quizDone').style.display='block';
   $('#quizDone').innerHTML=`<div class="card" style="text-align:center;padding:30px 20px">
     <div style="font-size:46px">${pct>=70?'🎉':'📚'}</div>
+    <div class="muted" style="font-size:12.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:700">Level ${LV[quiz.level].label}</div>
     <h2 style="justify-content:center"><span class="k"></span> ${quiz.correct} / ${quiz.qs.length} benar (${pct}%)</h2>
     <p class="lead" style="text-align:center">${msg}</p>
     <div class="btn-row" style="justify-content:center">
@@ -1274,7 +1384,7 @@ function initTheme(){
 }
 
 /* ================= INIT ================= */
-buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
+buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();updateLvInfo();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();initTheme();
 {const t=store.get('tab','home');show(TABS.some(x=>x[0]===t)?t:'home');}
 </script>
 </body>
