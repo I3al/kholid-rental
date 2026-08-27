@@ -417,6 +417,13 @@
     </div>
   </section>
 
+  <!-- LATIHAN HARI INI -->
+  <section id="latihan">
+    <h1>Latihan Hari Ini 🎯</h1>
+    <p class="lead">Sesi campur — kosakata, kana &amp; kanji dalam satu latihan. Fokus ke kata yang perlu diulang, dan tiap jawaban menambah streak-mu 🔥.</p>
+    <div id="latArea"></div>
+  </section>
+
   <!-- KANA -->
   <section id="kana">
     <h1>Huruf Jepang (Kana)</h1>
@@ -1158,6 +1165,7 @@ function show(id){
   store.set('tab',id);window.scrollTo({top:0,behavior:'smooth'});
   if(id==='flash')renderFlash();
   if(id==='home'){renderHomeStats();renderDailyGoal();}
+  if(id==='latihan'&&!lat){const el=$('#latArea');if(el)el.innerHTML='<div class="card" style="text-align:center;padding:26px 20px"><p class="lead" style="text-align:center">Siap latihan campur hari ini? Kosakata + kana + kanji dalam satu sesi.</p><button class="btn" onclick="startLatihan()">▶ Mulai Latihan</button></div>';}
 }
 $$('[data-go]').forEach(b=>b.onclick=()=>show(b.dataset.go));
 
@@ -1200,7 +1208,8 @@ function renderDailyGoal(){const el=$('#dailyCard');if(!el)return;
     <div style="text-align:center">
       <div class="streak-badge">🔥 ${days}</div>
       <div class="s" style="margin-top:5px">hari beruntun</div>
-    </div>`;
+    </div>
+    <button class="btn" style="flex:1 1 100%;margin-top:4px" onclick="startLatihan()">▶ Mulai Latihan Hari Ini</button>`;
 }
 
 /* ================= KANA ================= */
@@ -1484,6 +1493,64 @@ function finishQuiz(){
     </div></div>`;
 }
 window.resetQuizView=function(){$('#quizDone').style.display='none';$('#quizPlay').style.display='none';$('#quizStart').style.display='block';};
+
+/* ================= LATIHAN HARI INI (campur SRS) ================= */
+let lat=null;
+function mkKotoba(w){const o=shuffle(V.filter(x=>x.id!==w.id)).slice(0,3);return {type:'kotoba',srcId:w.id,q:w[0],sub:'kosakata',ans:w[3],opts:shuffle([w[3],...o.map(x=>x[3])]),speak:w[0]};}
+function mkKana(k){const o=shuffle(buildKanaPool('both').filter(x=>x.id!==k.id)).slice(0,3);return {type:'kana',q:k.c,sub:'kana',ans:k.r,opts:shuffle([k.r,...o.map(x=>x.r)]),speak:k.c};}
+function mkKanji(k){const o=shuffle(KJ.filter(x=>x.id!==k.id)).slice(0,3);return {type:'kanji',q:k[0],sub:'kanji',ans:k[3],opts:shuffle([k[3],...o.map(x=>x[3])]),speak:k[4]||k[0]};}
+function buildLatQueue(count){
+  count=count||15;const items=[];const srs=store.get('srs',{}),now=Date.now();
+  const due=V.filter(w=>{const s=srs[w.id];return s&&(s.due||0)<=now;});
+  const koPool=shuffle(due.length>=Math.round(count*0.5)?due:V.concat(due));
+  const nk=Math.round(count*0.5),nkana=Math.round(count*0.25),nkanji=count-nk-nkana;
+  const seen=new Set();
+  koPool.forEach(w=>{if(items.filter(x=>x.type==='kotoba').length<nk&&!seen.has('k'+w.id)){seen.add('k'+w.id);items.push(mkKotoba(w));}});
+  shuffle(buildKanaPool('both')).slice(0,nkana).forEach(k=>items.push(mkKana(k)));
+  shuffle(KJ).slice(0,nkanji).forEach(k=>items.push(mkKanji(k)));
+  return shuffle(items);
+}
+window.startLatihan=function(){
+  const g=getDaily();const remain=g.goal-g.count;const n=Math.max(10,Math.min(20,remain>0?remain:15));
+  lat={q:buildLatQueue(n),i:0,correct:0};
+  show('latihan');latNext();
+};
+function latNext(){
+  const el=$('#latArea');if(!el)return;
+  if(!lat||lat.i>=lat.q.length)return latDone();
+  const it=lat.q[lat.i],badge={kosakata:'📚 kosakata',kana:'🔤 kana',kanji:'🈶 kanji'}[it.sub];
+  el.innerHTML=`
+    <div class="qtop"><span class="qcount-pill">${lat.i+1}/${lat.q.length} · ${badge}</span></div>
+    <div class="progress"><i style="width:${lat.i/lat.q.length*100}%"></i></div>
+    <div class="card qcard">
+      <div class="qbig">${it.q}</div>
+      <div style="text-align:center"><button class="speak" onclick="speak('${it.speak}')">🔊 dengar</button></div>
+      <div class="qdivider"></div>
+      <div id="latOpts">${it.opts.map((o,i)=>`<button class="opt" data-o="${encodeURIComponent(o)}"><span class="opt-key">${'ABCD'[i]}</span><span class="opt-txt">${o}</span></button>`).join('')}</div>
+    </div>
+    <div id="latFb" style="text-align:center;font-weight:600;min-height:22px;margin-top:14px"></div>`;
+  $$('#latOpts .opt').forEach(b=>b.onclick=()=>latAnswer(decodeURIComponent(b.dataset.o),it,b));
+}
+function latAnswer(chosen,it,btn){
+  $$('#latOpts .opt').forEach(b=>b.style.pointerEvents='none');
+  const ok=chosen===it.ans;logActivity(1);
+  if(ok){btn.classList.add('correct');lat.correct++;$('#latFb').innerHTML='✅ Benar!';speak(it.speak);}
+  else{btn.classList.add('wrong');$$('#latOpts .opt').forEach(b=>{if(decodeURIComponent(b.dataset.o)===it.ans)b.classList.add('correct');});$('#latFb').innerHTML=`❌ Jawaban benar: <b>${it.ans}</b>`;}
+  if(it.type==='kotoba'){const srs=store.get('srs',{});const s=srs[it.srcId]||{box:0};s.box=ok?Math.min(4,s.box+1):0;s.due=Date.now()+BOX_DAYS[s.box]*86400000;srs[it.srcId]=s;store.set('srs',srs);}
+  setTimeout(()=>{lat.i++;latNext();},ok?750:1600);
+}
+function latDone(){
+  const pct=lat?Math.round(lat.correct/lat.q.length*100):0;
+  $('#latArea').innerHTML=`<div class="card" style="text-align:center;padding:30px 20px">
+    <div style="font-size:46px">${pct>=70?'🎉':'📚'}</div>
+    <h2 style="justify-content:center"><span class="k"></span> Selesai! ${lat?lat.correct:0}/${lat?lat.q.length:0} benar (${pct}%)</h2>
+    <p class="lead" style="text-align:center">Streak-mu bertambah 🔥 — kembali lagi besok biar apinya ga padam!</p>
+    <div class="btn-row" style="justify-content:center">
+      <button class="btn" onclick="startLatihan()">Latihan lagi</button>
+      <button class="btn ghost" onclick="show('home')">Beranda</button>
+    </div></div>`;
+  lat=null;
+}
 
 /* ================= SUSUN KALIMAT ================= */
 // {id: arti, chunks: urutan benar, romaji, note}
