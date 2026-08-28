@@ -304,6 +304,19 @@
   .foot .dev b{color:var(--accent)}
   .pill-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
   .pill{font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:color-mix(in srgb,var(--accent) 8%,var(--card));border:1px solid var(--line);color:var(--ink);box-shadow:var(--shadow)}
+  /* AI Sensei chat */
+  #aiChat{min-height:220px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:16px}
+  .ai-msg{max-width:88%;padding:11px 14px;border-radius:16px;margin:6px 0;font-size:14.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .ai-msg.user{background:var(--grad);color:#fff;align-self:flex-end;border-bottom-right-radius:5px}
+  .ai-msg.bot{background:var(--card2);color:var(--ink);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:5px}
+  .ai-empty{color:var(--muted);text-align:center;font-size:13.5px;margin:auto;padding:20px}
+  .ai-typing{align-self:flex-start;display:inline-flex;gap:4px;padding:13px 15px;background:var(--card2);border:1px solid var(--line);border-radius:16px;border-bottom-left-radius:5px;margin:6px 0}
+  .ai-typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:aiblink 1.2s infinite}
+  .ai-typing i:nth-child(2){animation-delay:.2s}.ai-typing i:nth-child(3){animation-delay:.4s}
+  @keyframes aiblink{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  .ai-input-row{display:flex;gap:8px;margin-top:12px;align-items:flex-end}
+  .ai-input-row textarea{min-height:48px;max-height:140px;flex:1;min-width:0}
+  .ai-input-row .btn{flex:0 0 auto}
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -383,6 +396,7 @@
 
     <h2><span class="k"></span> Mulai dari mana?</h2>
     <div class="grid g2">
+      <button class="tile" data-go="sensei"><div class="ico">🤖</div><b>AI Sensei</b><small>Chat, koreksi karangan &amp; bikin soal</small></button>
       <button class="tile" data-go="kana"><div class="ico">🔤</div><b>Huruf (Kana)</b><small>Hiragana &amp; Katakana + cara baca</small></button>
       <button class="tile" data-go="kanji"><div class="ico">🈶</div><b>Kanji 漢字</b><small>127 kanji + arti, bacaan &amp; contoh</small></button>
       <button class="tile" data-go="kotoba"><div class="ico">📚</div><b>Kosakata (Kotoba)</b><small>500+ kata N5–N4 per tema</small></button>
@@ -422,6 +436,40 @@
     <h1>Latihan Hari Ini 🎯</h1>
     <p class="lead">Sesi campur — kosakata, kana &amp; kanji dalam satu latihan. Fokus ke kata yang perlu diulang, dan tiap jawaban menambah streak-mu 🔥.</p>
     <div id="latArea"></div>
+  </section>
+
+  <!-- AI SENSEI -->
+  <section id="sensei">
+    <h1>AI Sensei 🤖</h1>
+    <p class="lead">Guru AI serba bisa: tanya grammar, minta contoh, <b>koreksi karangan</b>, atau <b>bikin soal</b>. Butuh API key sendiri (gratis lewat Google Gemini).</p>
+    <details class="acc" id="aiSettings">
+      <summary><span class="tag">🔑</span> Pengaturan AI (masukkan API key)<span class="chev">▾</span></summary>
+      <div class="acc-body">
+        <div style="font-size:11.5px;color:var(--muted);font-weight:700;margin:12px 0 7px;text-transform:uppercase;letter-spacing:.5px">Penyedia AI</div>
+        <div class="filters" id="aiProv">
+          <button class="chip on" data-aiprov="gemini">🆓 Google Gemini</button>
+          <button class="chip" data-aiprov="openai">OpenAI / Groq</button>
+        </div>
+        <label style="margin-top:6px">API key</label>
+        <input type="password" id="aiKey" placeholder="Tempel API key kamu di sini" autocomplete="off">
+        <label style="margin-top:10px">Model</label>
+        <input type="text" id="aiModel" placeholder="gemini-2.0-flash">
+        <div id="aiBaseWrap" style="display:none"><label style="margin-top:10px">Base URL (untuk Groq/OpenRouter)</label><input type="text" id="aiBase" placeholder="https://api.openai.com/v1"></div>
+        <div class="hint" id="aiKeyHint" style="margin-top:8px"></div>
+        <button class="btn" id="aiSave" style="margin-top:12px">💾 Simpan</button>
+      </div>
+    </details>
+    <div class="filters" style="margin-top:6px">
+      <button class="chip" data-aiquick="koreksi">✍️ Koreksi sakubun</button>
+      <button class="chip" data-aiquick="soal">📝 Buatkan 5 soal N5</button>
+      <button class="chip" data-aiquick="grammar">📐 Jelaskan grammar</button>
+      <button class="chip" data-aiquick="clear">🗑️ Bersihkan chat</button>
+    </div>
+    <div class="card" id="aiChat"></div>
+    <div class="ai-input-row">
+      <textarea id="aiInput" placeholder="Tulis pertanyaan atau kalimat Jepang… (Enter = kirim)"></textarea>
+      <button class="btn" id="aiSendBtn">Kirim</button>
+    </div>
   </section>
 
   <!-- KANA -->
@@ -1155,7 +1203,7 @@ const SAKU=[
 ];
 
 /* ================= NAV ================= */
-const TABS=[['home','🏠 Beranda'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['kalimat','🧩 Kalimat'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
+const TABS=[['home','🏠 Beranda'],['sensei','🤖 Sensei AI'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['kalimat','🧩 Kalimat'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
 function buildNav(){$('#nav').innerHTML=TABS.map(([id,l])=>`<button data-tab="${id}">${l}</button>`).join('');
   $$('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));}
 function show(id){
@@ -1685,7 +1733,81 @@ function initTheme(){
 }
 
 /* ================= INIT ================= */
-buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();updateLvInfo();initSentence();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();renderDailyGoal();initTheme();
+/* ================= AI SENSEI ================= */
+const AI_SYS="Kamu adalah 'Sensei', guru bahasa Jepang yang ramah, sabar, dan menyemangati untuk pelajar Indonesia tingkat pemula (JLPT N5–N4). Aturan: (1) Jawab dalam Bahasa Indonesia yang jelas dan singkat, tidak bertele-tele. (2) Setiap kata atau kalimat Jepang WAJIB kamu tulis lengkap: tulisan Jepang, cara baca (romaji), lalu artinya. (3) Kalau diminta mengoreksi karangan, tunjukkan bagian yang salah, tulis versi yang BENAR, dan beri alasan singkat yang mudah dipahami. (4) Kalau diminta membuat soal, buat sesuai level N5 dan sertakan kunci jawaban. (5) Gunakan contoh sederhana. Jangan memberi info yang kamu ragukan kebenarannya.";
+const AI_DEF={gemini:{model:'gemini-2.0-flash',hint:'🆓 <b>Cara dapat key gratis:</b> buka <b>aistudio.google.com</b> → \"Get API key\" → Create API key → salin & tempel di sini. Gratis untuk pemakaian pribadi.'},openai:{model:'gpt-4o-mini',hint:'Key dari platform.openai.com (berbayar). <b>Mau gratis?</b> Pakai <b>Groq</b>: daftar di console.groq.com, ambil key, lalu isi <b>Base URL</b> = <code>https://api.groq.com/openai/v1</code> dan Model = <code>llama-3.3-70b-versatile</code>.'}};
+let aiHist=[],aiBusy=false;
+function aiCfg(){return store.get('ai_cfg',{provider:'gemini',key:'',model:'',base:''});}
+function saveAiCfg(c){store.set('ai_cfg',c);}
+const aiEsc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function renderChat(typing){
+  const el=$('#aiChat');if(!el)return;
+  let h=aiHist.length?aiHist.map(m=>`<div class="ai-msg ${m.role==='user'?'user':'bot'}">${aiEsc(m.text)}</div>`).join(''):'<div class="ai-empty">👋 Halo! Aku Sensei AI-mu. Tanya apa saja soal bahasa Jepang, minta contoh kalimat, koreksi karanganmu, atau minta dibuatkan soal. Isi API key dulu di "Pengaturan AI" di atas ya.</div>';
+  if(typing)h+='<div class="ai-typing"><i></i><i></i><i></i></div>';
+  el.innerHTML=h;el.scrollTop=el.scrollHeight;
+}
+async function aiCall(history){
+  const c=aiCfg();
+  if(!c.key)throw new Error('Isi API key dulu di "Pengaturan AI" (buka bagian 🔑 di atas).');
+  if(c.provider==='gemini'){
+    const model=c.model||AI_DEF.gemini.model;
+    const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(c.key)}`;
+    const body={system_instruction:{parts:[{text:AI_SYS}]},contents:history.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]}))};
+    const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error((j.error&&j.error.message)||('Gagal ('+r.status+'). Cek API key/model.'));
+    const cand=j.candidates&&j.candidates[0];
+    const t=cand&&cand.content&&cand.content.parts&&cand.content.parts.map(p=>p.text||'').join('').trim();
+    if(!t)throw new Error('Balasan kosong. Kemungkinan diblokir filter keamanan atau nama model salah.');
+    return t;
+  } else {
+    const base=(c.base||'https://api.openai.com/v1').replace(/\/+$/,'');
+    const r=await fetch(base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
+      body:JSON.stringify({model:c.model||AI_DEF.openai.model,temperature:0.6,messages:[{role:'system',content:AI_SYS},...history.map(m=>({role:m.role,content:m.text}))]})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error((j.error&&j.error.message)||('Gagal ('+r.status+'). Cek API key/model/Base URL.'));
+    const t=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
+    if(!t)throw new Error('Balasan kosong dari server.');
+    return t.trim();
+  }
+}
+async function aiSend(text){
+  if(aiBusy)return;
+  const inp=$('#aiInput');text=(text!=null?text:(inp?inp.value:'')).trim();if(!text)return;
+  if(inp)inp.value='';
+  aiHist.push({role:'user',text});renderChat(true);aiBusy=true;
+  try{const reply=await aiCall(aiHist.slice(-12));aiHist.push({role:'assistant',text:reply});logActivity(1);}
+  catch(e){aiHist.push({role:'assistant',text:'⚠️ '+e.message});}
+  aiBusy=false;renderChat(false);
+}
+function aiSetProvider(p){
+  const c=aiCfg();c.provider=p;saveAiCfg(c);
+  $$('#aiProv button').forEach(b=>b.classList.toggle('on',b.dataset.aiprov===p));
+  $('#aiBaseWrap').style.display=p==='openai'?'':'none';
+  $('#aiModel').placeholder=AI_DEF[p].model;
+  $('#aiKeyHint').innerHTML=AI_DEF[p].hint;
+}
+function initSensei(){
+  const c=aiCfg();
+  $('#aiKey').value=c.key||'';$('#aiModel').value=c.model||'';$('#aiBase').value=c.base||'';
+  aiSetProvider(c.provider||'gemini');
+  renderChat(false);
+}
+$$('#aiProv button').forEach(b=>b.onclick=()=>aiSetProvider(b.dataset.aiprov));
+$('#aiSave').onclick=()=>{const c=aiCfg();c.key=$('#aiKey').value.trim();c.model=$('#aiModel').value.trim();c.base=$('#aiBase').value.trim();saveAiCfg(c);
+  const s=$('#aiSettings');if(s)s.open=false;
+  aiHist.push({role:'assistant',text:'✅ Pengaturan tersimpan. Silakan mulai bertanya!'});renderChat(false);};
+$('#aiSendBtn').onclick=()=>aiSend();
+$('#aiInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}});
+$$('[data-aiquick]').forEach(b=>b.onclick=()=>{
+  const q=b.dataset.aiquick,inp=$('#aiInput');
+  if(q==='clear'){aiHist=[];renderChat(false);return;}
+  if(q==='soal'){aiSend('Buatkan 5 soal kuis kosakata bahasa Jepang level N5 (pilihan ganda A–D) beserta kunci jawabannya.');return;}
+  if(q==='koreksi'){inp.value='Tolong koreksi karangan bahasa Jepang saya ini:\n';inp.focus();return;}
+  if(q==='grammar'){inp.value='Tolong jelaskan pola grammar: ';inp.focus();return;}
+});
+
+buildNav();buildVCats();renderVocab();buildKCats();renderKanji();buildQuizCats();renderQuizStats();updateLvInfo();initSentence();initSensei();renderKana('hira');renderSaku();renderGrammar();renderHomeStats();renderDailyGoal();initTheme();
 {const t=store.get('tab','home');show(TABS.some(x=>x[0]===t)?t:'home');}
 </script>
 </body>
