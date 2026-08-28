@@ -311,9 +311,22 @@
   .pill{font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;background:color-mix(in srgb,var(--accent) 8%,var(--card));border:1px solid var(--line);color:var(--ink);box-shadow:var(--shadow)}
   /* AI Sensei chat */
   #aiChat{min-height:220px;max-height:60vh;overflow-y:auto;display:flex;flex-direction:column;gap:2px;padding:16px}
-  .ai-msg{max-width:88%;padding:11px 14px;border-radius:16px;margin:6px 0;font-size:14.5px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+  .ai-msg{max-width:88%;padding:12px 15px;border-radius:16px;margin:6px 0;font-size:14.5px;line-height:1.68;word-break:break-word}
   .ai-msg.user{background:var(--grad);color:#fff;align-self:flex-end;border-bottom-right-radius:5px}
   .ai-msg.bot{background:var(--card2);color:var(--ink);border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:5px}
+  /* rendered markdown inside bot replies */
+  .ai-msg p{margin:0 0 9px}.ai-msg>*:last-child{margin-bottom:0}
+  .ai-msg strong{font-weight:800;color:var(--ink)}.ai-msg.user strong{color:#fff}
+  .ai-msg em{font-style:italic}
+  .ai-msg .md-h{font-family:var(--display);font-weight:800;line-height:1.3;margin:12px 0 7px;letter-spacing:0}
+  .ai-msg .md-h:first-child{margin-top:2px}
+  .ai-msg .md-h1{font-size:17px}.ai-msg .md-h2{font-size:15.5px}.ai-msg .md-h3,.ai-msg .md-h4{font-size:14.5px;color:var(--accent)}
+  .ai-msg ul,.ai-msg ol{margin:7px 0 9px;padding-left:21px}
+  .ai-msg li{margin:4px 0;padding-left:2px}.ai-msg li::marker{color:var(--accent);font-weight:700}
+  .ai-msg hr{border:none;border-top:1px solid var(--line);margin:11px 0}.ai-msg.user hr{border-color:rgba(255,255,255,.3)}
+  .ai-msg code{background:color-mix(in srgb,var(--accent) 10%,var(--card));border:1px solid var(--line);padding:1px 6px;border-radius:6px;font-family:ui-monospace,"SF Mono",Menlo,Consolas,monospace;font-size:.88em}
+  .ai-msg.user code{background:rgba(255,255,255,.18);border-color:rgba(255,255,255,.28);color:#fff}
+  .ai-msg .jpline{font-family:var(--jp)}
   .ai-empty{color:var(--muted);text-align:center;font-size:13.5px;margin:auto;padding:20px}
   .ai-typing{align-self:flex-start;display:inline-flex;gap:4px;padding:13px 15px;background:var(--card2);border:1px solid var(--line);border-radius:16px;border-bottom-left-radius:5px;margin:6px 0}
   .ai-typing i{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:aiblink 1.2s infinite}
@@ -1765,9 +1778,34 @@ let aiHist=[],aiBusy=false,aiPendingImg=null;
 function aiCfg(){return store.get('ai_cfg',{provider:'gemini',key:'',model:'',base:''});}
 function saveAiCfg(c){store.set('ai_cfg',c);}
 const aiEsc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+// lightweight, XSS-safe markdown → HTML (escape first, then format the escaped text)
+function aiInline(t){
+  return t
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*\w])\*(?!\s)([^*\n]+?)\*(?!\*)/g,'$1<em>$2</em>')
+    .replace(/(^|[^_\w])__([^_]+?)__(?![_\w])/g,'$1<strong>$2</strong>');
+}
+function aiMd(src){
+  const lines=aiEsc(src||'').split('\n');let html='',list=null;
+  const close=()=>{if(list){html+='</'+list+'>';list=null;}};
+  for(const raw of lines){
+    const line=raw.trim();let m;
+    if(!line){close();continue;}
+    if(/^(-{3,}|\*{3,}|_{3,})$/.test(line)){close();html+='<hr>';continue;}
+    if(m=line.match(/^(#{1,6})\s+(.*)$/)){close();const lv=Math.min(m[1].length,4);html+=`<div class="md-h md-h${lv}">${aiInline(m[2])}</div>`;continue;}
+    if(m=line.match(/^[-*+]\s+(.*)$/)){if(list!=='ul'){close();html+='<ul>';list='ul';}html+=`<li>${aiInline(m[1])}</li>`;continue;}
+    if(m=line.match(/^\d+[.)]\s+(.*)$/)){if(list!=='ol'){close();html+='<ol>';list='ol';}html+=`<li>${aiInline(m[1])}</li>`;continue;}
+    close();html+=`<p>${aiInline(line)}</p>`;
+  }
+  close();return html;
+}
 function renderChat(typing){
   const el=$('#aiChat');if(!el)return;
-  let h=aiHist.length?aiHist.map(m=>`<div class="ai-msg ${m.role==='user'?'user':'bot'}">${m.img?`<img src="${m.img.dataUrl}" alt="foto">`:''}${m.text?aiEsc(m.text):''}</div>`).join(''):'<div class="ai-empty">👋 Halo! Aku Sensei AI-mu. Tanya apa saja soal bahasa Jepang, minta contoh kalimat, koreksi karanganmu, minta dibuatkan soal, atau <b>kirim 📷 foto</b> tulisan Jepang untuk dibaca &amp; diterjemahkan. Isi API key dulu di "Pengaturan AI" di atas ya.</div>';
+  let h=aiHist.length?aiHist.map(m=>{
+    const body=m.text?(m.role==='user'?aiEsc(m.text).replace(/\n/g,'<br>'):aiMd(m.text)):'';
+    return `<div class="ai-msg ${m.role==='user'?'user':'bot'}">${m.img?`<img src="${m.img.dataUrl}" alt="foto">`:''}${body}</div>`;
+  }).join(''):'<div class="ai-empty">👋 Halo! Aku Sensei AI-mu. Tanya apa saja soal bahasa Jepang, minta contoh kalimat, koreksi karanganmu, minta dibuatkan soal, atau <b>kirim 📷 foto</b> tulisan Jepang untuk dibaca &amp; diterjemahkan. Isi API key dulu di "Pengaturan AI" di atas ya.</div>';
   if(typing)h+='<div class="ai-typing"><i></i><i></i><i></i></div>';
   el.innerHTML=h;el.scrollTop=el.scrollHeight;
 }
