@@ -86,6 +86,12 @@
     padding:9px 15px;border-radius:12px;cursor:pointer;transition:.2s var(--ease);display:inline-flex;gap:6px;align-items:center}
   .nav button:hover{color:var(--ink);background:var(--card2)}
   .nav button.on{color:#fff;background:var(--grad);box-shadow:var(--shadow)}
+  .nav button .tico{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;flex:0 0 auto}
+  .nav button .tico svg{width:17px;height:17px;display:block}
+  .nav button .tico .tglyph{font-family:var(--jp);font-weight:800;font-size:15px;line-height:1}
+  .btn svg.bico,.btn .tglyph{flex:0 0 auto}
+  .btn svg.bico{width:18px;height:18px;display:block}
+  .btn .tglyph{font-family:var(--jp);font-weight:800;font-size:17px;line-height:1}
 
   section{display:none;padding:24px 0 10px}
   section.on{display:block;animation:fade .4s var(--ease)}
@@ -416,8 +422,8 @@
         <p class="hero-welcome">Selamat datang di website <b>星空クラス</b> — mari belajar bersama, みなさん!</p>
         <p class="hero-lead">Semua yang kamu butuh untuk mulai bahasa Jepang <b>N5</b>: huruf, kanji, kosakata, flashcard, kuis, susun kalimat, mengarang &amp; tata bahasa. Bahasa Indonesia + romaji.</p>
         <div class="btn-row">
-          <button class="btn" data-go="flash">🃏 Lanjut belajar</button>
-          <button class="btn ghost light" data-go="kana">🔤 Mulai dari huruf</button>
+          <button class="btn" data-go="flash"><svg class="bico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="8.2" y="4.5" width="11.3" height="15" rx="2.4"/><path d="M5.6 7.6v9.9a2 2 0 0 0 2 2h7.6"/><path d="M11.6 9.6h5M11.6 12.6h3.2"/></svg> Lanjut belajar</button>
+          <button class="btn ghost light" data-go="kana"><span class="tglyph">あ</span> Mulai dari huruf</button>
         </div>
         <div class="pill-row">
           <span class="pill">✍️ Belajar mandiri</span><span class="pill">📴 Bisa offline</span><span class="pill">💾 Progres tersimpan</span>
@@ -1245,8 +1251,21 @@ const SAKU=[
 ];
 
 /* ================= NAV ================= */
-const TABS=[['home','🏠 Beranda'],['sensei','🤖 Sensei AI'],['kana','🔤 Kana'],['kanji','🈶 Kanji'],['kotoba','📚 Kotoba'],['flash','🃏 Flashcard'],['quiz','🎯 Kuis'],['kalimat','🧩 Kalimat'],['sakubun','📝 Sakubun'],['grammar','📐 Grammar']];
-function buildNav(){$('#nav').innerHTML=TABS.map(([id,l])=>`<button data-tab="${id}">${l}</button>`).join('');
+const TABS=[['home','Beranda'],['sensei','Sensei AI'],['kana','Kana'],['kanji','Kanji'],['kotoba','Kotoba'],['flash','Flashcard'],['quiz','Kuis'],['kalimat','Kalimat'],['sakubun','Sakubun'],['grammar','Grammar']];
+const SV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">';
+const ICONS={
+  home:SV+'<path d="M4 11.2 12 4.5l8 6.7"/><path d="M6 10v9.5h4.2v-5h3.6v5H18V10"/></svg>',
+  sensei:SV+'<rect x="4.5" y="8" width="15" height="10.5" rx="3"/><path d="M12 4.9V8"/><circle cx="12" cy="3.7" r="1.1" fill="currentColor" stroke="none"/><circle cx="9.3" cy="13" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.7" cy="13" r="1.2" fill="currentColor" stroke="none"/><path d="M9.8 16h4.4"/><path d="M4.5 12.3H2.9M19.5 12.3h1.6"/></svg>',
+  kana:'<span class="tglyph">あ</span>',
+  kanji:'<span class="tglyph">字</span>',
+  kotoba:SV+'<path d="M12 6.6C10.4 5.3 8.3 4.9 5.8 5.3v11.9c2.5-.4 4.6 0 6.2 1.3 1.6-1.3 3.7-1.7 6.2-1.3V5.3c-2.5-.4-4.6 0-6.2 1.3Z"/><path d="M12 6.6v11.9"/></svg>',
+  flash:SV+'<rect x="8.2" y="4.5" width="11.3" height="15" rx="2.4"/><path d="M5.6 7.6v9.9a2 2 0 0 0 2 2h7.6"/><path d="M11.6 9.6h5M11.6 12.6h3.2"/></svg>',
+  quiz:SV+'<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.3"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/></svg>',
+  kalimat:SV+'<path d="M9.2 5H6.4a1.4 1.4 0 0 0-1.4 1.4v2.8a1.6 1.6 0 0 1 0 3.1v2.8A1.4 1.4 0 0 0 6.4 18.5H9.2a1.6 1.6 0 0 0 3.1 0h2.8a1.4 1.4 0 0 0 1.4-1.4v-2.8a1.6 1.6 0 0 1 0-3.1V6.4A1.4 1.4 0 0 0 15.1 5h-2.8a1.6 1.6 0 0 0-3.1 0Z"/></svg>',
+  sakubun:SV+'<path d="M4.5 19.5l1-4.2L15.4 5.4a1.9 1.9 0 0 1 2.7 2.7L8.2 18l-3.7 1.5Z"/><path d="M13.6 7.2l3.2 3.2"/></svg>',
+  grammar:SV+'<rect x="4.5" y="5" width="15" height="4" rx="1.4"/><rect x="4.5" y="11" width="8.5" height="4" rx="1.4"/><rect x="15.3" y="11" width="4.2" height="8" rx="1.4"/><rect x="4.5" y="17" width="8.5" height="2" rx="1"/></svg>'
+};
+function buildNav(){$('#nav').innerHTML=TABS.map(([id,l])=>`<button data-tab="${id}"><span class="tico">${ICONS[id]||''}</span>${l}</button>`).join('');
   $$('#nav button').forEach(b=>b.onclick=()=>show(b.dataset.tab));}
 function show(id){
   $$('section').forEach(s=>s.classList.toggle('on',s.id===id));
