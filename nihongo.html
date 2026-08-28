@@ -8,7 +8,7 @@
 <meta name="theme-color" content="#40469f" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-title" content="Nihongo N5" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23222a5c'/%3E%3Ctext x='16' y='23' font-size='18' text-anchor='middle' fill='%23e6c37a' font-family='serif' font-weight='bold'%3E星%3C/text%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='b' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%233a4088'/%3E%3Cstop offset='1' stop-color='%230c1026'/%3E%3C/linearGradient%3E%3ClinearGradient id='f' x1='0' y1='0' x2='0' y2='1'%3E%3Cstop offset='0' stop-color='%23eef2ff'/%3E%3Cstop offset='1' stop-color='%238fa0cf'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='8' fill='url(%23b)'/%3E%3Cpath d='M25 6a3 3 0 1 0 1.6 4.4A2.4 2.4 0 0 1 25 6Z' fill='%23e6c37a'/%3E%3Ccircle cx='9' cy='8' r='.9' fill='%23fff'/%3E%3Ccircle cx='14' cy='6' r='.6' fill='%23fff'/%3E%3Cpath d='M6 25 C11 20 14 14 17 12.5 C20 14 23 20 28 25 Z' fill='url(%23f)'/%3E%3Cpath d='M17 12.5c1.4.8 2.4 1.9 3.1 3.1-.8-.4-1.2.3-2 0-.7.5-1.2-.3-2 .1-.8-.4-1.2.3-2 0-.4.2-.7.1-1.1.2.7-1.2 1.8-2.5 4-3.4Z' fill='%23fff'/%3E%3Cpath d='M4 25 C10 23 14 26.5 17 25.2 C21 23.5 26 26.5 30 25 L30 28 L4 28 Z' fill='%23232a58'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho:wght@600;700;800&family=Zen+Kaku+Gothic+New:wght@500;700;900&display=swap" rel="stylesheet">
@@ -61,12 +61,17 @@
   header{position:sticky;top:0;z-index:50;background:color-mix(in srgb,var(--bg) 82%,transparent);
     backdrop-filter:saturate(160%) blur(14px);-webkit-backdrop-filter:saturate(160%) blur(14px);border-bottom:1px solid var(--line)}
   .hd{display:flex;align-items:center;gap:12px;max-width:920px;margin:0 auto;padding:12px 16px}
-  .logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(155deg,#2b3170 0%,#171d40 60%,#0d1228 100%);
+  .logo{width:48px;height:48px;border-radius:15px;background:linear-gradient(160deg,#3a4088 0%,#1a2050 55%,#0c1026 100%);
     display:flex;align-items:center;justify-content:center;flex:0 0 auto;position:relative;overflow:hidden;
-    box-shadow:0 8px 20px rgba(16,21,50,.42),inset 0 1px 0 rgba(255,255,255,.14),inset 0 0 0 1px rgba(255,255,255,.05)}
-  .logo svg{width:28px;height:28px;position:relative;z-index:1}
-  .brand b{font-size:20px;letter-spacing:.02em;display:block;line-height:1.05;font-weight:800;font-family:var(--display);color:var(--ink)}
-  .brand span{font-size:10px;color:var(--muted);letter-spacing:.9px;text-transform:uppercase;font-weight:600}
+    box-shadow:0 10px 22px rgba(16,21,50,.45),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 0 1px rgba(230,195,122,.30)}
+  .logo::before{content:"";position:absolute;top:-40%;left:-30%;width:70%;height:180%;transform:rotate(18deg);
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);pointer-events:none}
+  .logo svg{width:30px;height:30px;position:relative;z-index:1}
+  .brand b{font-size:20px;letter-spacing:.01em;display:block;line-height:1.05;font-weight:800;font-family:var(--display);color:var(--ink)}
+  .brand span{font-size:9.5px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;font-weight:700}
+  .brand .badge-n5{display:inline-block;font-family:var(--sans);font-size:8.5px;font-weight:800;letter-spacing:.5px;color:var(--gold);
+    background:color-mix(in srgb,var(--gold) 16%,transparent);border:1px solid color-mix(in srgb,var(--gold) 30%,var(--line));
+    padding:1px 6px;border-radius:999px;margin-left:6px;vertical-align:middle;text-transform:none}
   .theme-btn{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);
     width:42px;height:42px;border-radius:13px;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;
     box-shadow:var(--shadow);transition:transform .18s var(--ease),box-shadow .18s}
@@ -317,6 +322,18 @@
   .ai-input-row{display:flex;gap:8px;margin-top:12px;align-items:flex-end}
   .ai-input-row textarea{min-height:48px;max-height:140px;flex:1;min-width:0}
   .ai-input-row .btn{flex:0 0 auto}
+  .ai-attach{flex:0 0 auto;width:48px;height:48px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--ink);
+    font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:transform .16s var(--ease),background .16s}
+  .ai-attach:hover{background:var(--card2)}.ai-attach:active{transform:scale(.9)}
+  .ai-preview{display:none;align-items:center;gap:12px;margin-top:10px;padding:9px 12px;background:var(--card2);border:1px solid var(--line);border-radius:14px}
+  .ai-preview.show{display:flex}
+  .ai-preview img{width:52px;height:52px;object-fit:cover;border-radius:10px;flex:0 0 auto;box-shadow:var(--shadow)}
+  .ai-preview .pv-t{flex:1;min-width:0;font-size:13px;color:var(--muted)}
+  .ai-preview .pv-t b{color:var(--ink);display:block;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ai-preview .pv-x{flex:0 0 auto;width:32px;height:32px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--muted);cursor:pointer;font-size:16px;font-weight:800;transition:transform .14s var(--ease)}
+  .ai-preview .pv-x:active{transform:scale(.9)}
+  .ai-msg img{max-width:220px;max-height:220px;width:auto;border-radius:12px;display:block;margin-bottom:7px}
+  .ai-msg.user img{border:1px solid rgba(255,255,255,.35)}
   @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -327,18 +344,19 @@
       <svg viewBox="0 0 48 48" aria-hidden="true">
         <defs>
           <linearGradient id="lgGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f7e3a9"/><stop offset=".5" stop-color="#e6c37a"/><stop offset="1" stop-color="#b98a38"/></linearGradient>
-          <linearGradient id="lgFuji" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#9aa9d4"/></linearGradient>
+          <linearGradient id="lgFuji" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef2ff"/><stop offset="1" stop-color="#8fa0cf"/></linearGradient>
         </defs>
-        <circle cx="12.5" cy="15" r=".9" fill="#fff" opacity=".75"/>
-        <circle cx="19" cy="10" r=".7" fill="#fff" opacity=".6"/>
-        <circle cx="38" cy="30" r=".8" fill="#fff" opacity=".55"/>
-        <path d="M34 9.5c.55 2.9 1.35 3.7 4.25 4.25c-2.9.55-3.7 1.35-4.25 4.25c-.55-2.9-1.35-3.7-4.25-4.25c2.9-.55 3.7-1.35 4.25-4.25Z" fill="url(#lgGold)"/>
-        <path d="M7 37.5 C15 30.5 19.5 22 24 19.5 C28.5 22 33 30.5 41 37.5 Z" fill="url(#lgFuji)"/>
-        <path d="M24 19.5c2.1 1.15 3.6 2.75 4.7 4.55c-1.15-.55-1.85.5-3-.05c-1.1.75-1.8-.35-2.95.15c-1.15-.55-1.85.5-3-.05c-.65.35-1.1.15-1.75.35c1.05-1.85 2.7-3.75 5.999-4.9Z" fill="#fff"/>
-        <path d="M4 37.5 C13 34 20 39 24 37.2 C29 35 36 39.5 44 37.2 L44 42 L4 42 Z" fill="#28305f" opacity=".9"/>
+        <path d="M39.4 8.8a4.6 4.6 0 1 0 2.3 6.5 3.6 3.6 0 0 1-2.3-6.5Z" fill="url(#lgGold)"/>
+        <circle cx="11" cy="12" r="1.05" fill="#fff" opacity=".85"/>
+        <circle cx="17" cy="8" r=".75" fill="#fff" opacity=".65"/>
+        <circle cx="30.5" cy="20.5" r=".7" fill="#fff" opacity=".6"/>
+        <path d="M14 20c.5 2.6 1.2 3.3 3.8 3.8-2.6.5-3.3 1.2-3.8 3.8-.5-2.6-1.2-3.3-3.8-3.8 2.6-.5 3.3-1.2 3.8-3.8Z" fill="url(#lgGold)"/>
+        <path d="M8 38 C16 30 20.5 22 25 19.5 C29.5 22 34 30 42 38 Z" fill="url(#lgFuji)"/>
+        <path d="M25 19.5c2.1 1.15 3.6 2.75 4.7 4.55c-1.15-.55-1.85.5-3-.05c-1.1.75-1.8-.35-2.95.15c-1.15-.55-1.85.5-3-.05c-.65.35-1.1.15-1.75.35c1.05-1.85 2.7-3.75 6-4.9Z" fill="#fff"/>
+        <path d="M5 38 C14 34.5 21 39.5 25 37.7 C30 35.5 37 40 45 37.7 L45 42 L5 42 Z" fill="#232a58" opacity=".92"/>
       </svg>
     </div>
-    <div class="brand"><b>星空クラス</b><span>Hoshizora Class · Nihongo N5</span></div>
+    <div class="brand"><b>星空クラス</b><span>Hoshizora Class<span class="badge-n5">JLPT N5</span></span></div>
     <button class="theme-btn" id="themeBtn" title="Ganti tema">🌗</button>
   </div>
 </header>
@@ -441,7 +459,7 @@
   <!-- AI SENSEI -->
   <section id="sensei">
     <h1>AI Sensei 🤖</h1>
-    <p class="lead">Guru AI serba bisa: tanya grammar, minta contoh, <b>koreksi karangan</b>, atau <b>bikin soal</b>. Butuh API key sendiri (gratis lewat Google Gemini).</p>
+    <p class="lead">Guru AI serba bisa: tanya grammar, minta contoh, <b>koreksi karangan</b>, <b>bikin soal</b>, atau <b>kirim 📷 foto</b> (tulisan/menu/manga Jepang) untuk dibaca &amp; diterjemahkan. Butuh API key sendiri (gratis lewat Google Gemini).</p>
     <details class="acc" id="aiSettings">
       <summary><span class="tag">🔑</span> Pengaturan AI (masukkan API key)<span class="chev">▾</span></summary>
       <div class="acc-body">
@@ -466,8 +484,15 @@
       <button class="chip" data-aiquick="clear">🗑️ Bersihkan chat</button>
     </div>
     <div class="card" id="aiChat"></div>
+    <div class="ai-preview" id="aiPreview">
+      <img id="aiPreviewImg" alt="">
+      <div class="pv-t"><b id="aiPreviewName">foto.jpg</b>Foto siap dikirim — tulis pertanyaan lalu Kirim.</div>
+      <button class="pv-x" id="aiPreviewX" title="Hapus foto">✕</button>
+    </div>
     <div class="ai-input-row">
-      <textarea id="aiInput" placeholder="Tulis pertanyaan atau kalimat Jepang… (Enter = kirim)"></textarea>
+      <input type="file" id="aiFile" accept="image/*" style="display:none">
+      <button class="ai-attach" id="aiAttach" title="Kirim foto">📷</button>
+      <textarea id="aiInput" placeholder="Tulis pertanyaan / kalimat, atau kirim 📷 foto… (Enter = kirim)"></textarea>
       <button class="btn" id="aiSendBtn">Kirim</button>
     </div>
   </section>
@@ -1734,15 +1759,15 @@ function initTheme(){
 
 /* ================= INIT ================= */
 /* ================= AI SENSEI ================= */
-const AI_SYS="Kamu adalah 'Sensei', guru bahasa Jepang yang ramah, sabar, dan menyemangati untuk pelajar Indonesia tingkat pemula (JLPT N5–N4). Aturan: (1) Jawab dalam Bahasa Indonesia yang jelas dan singkat, tidak bertele-tele. (2) Setiap kata atau kalimat Jepang WAJIB kamu tulis lengkap: tulisan Jepang, cara baca (romaji), lalu artinya. (3) Kalau diminta mengoreksi karangan, tunjukkan bagian yang salah, tulis versi yang BENAR, dan beri alasan singkat yang mudah dipahami. (4) Kalau diminta membuat soal, buat sesuai level N5 dan sertakan kunci jawaban. (5) Gunakan contoh sederhana. Jangan memberi info yang kamu ragukan kebenarannya.";
+const AI_SYS="Kamu adalah 'Sensei', guru bahasa Jepang yang ramah, sabar, dan menyemangati untuk pelajar Indonesia tingkat pemula (JLPT N5–N4). Aturan: (1) Jawab dalam Bahasa Indonesia yang jelas dan singkat, tidak bertele-tele. (2) Setiap kata atau kalimat Jepang WAJIB kamu tulis lengkap: tulisan Jepang, cara baca (romaji), lalu artinya. (3) Kalau diminta mengoreksi karangan, tunjukkan bagian yang salah, tulis versi yang BENAR, dan beri alasan singkat yang mudah dipahami. (4) Kalau diminta membuat soal, buat sesuai level N5 dan sertakan kunci jawaban. (5) Gunakan contoh sederhana. Jangan memberi info yang kamu ragukan kebenarannya. (6) Kalau pengguna mengirim FOTO/gambar: baca semua tulisan Jepang di dalamnya, tulis ulang (Jepang + romaji), terjemahkan ke Bahasa Indonesia, dan jelaskan singkat bila perlu. Kalau gambar tidak berisi teks Jepang, jelaskan apa isinya dan kaitkan dengan pelajaran bila relevan.";
 const AI_DEF={gemini:{model:'gemini-3.6-flash',hint:'🆓 <b>Cara dapat key gratis:</b> buka <b>aistudio.google.com</b> → \"Get API key\" → Create API key → salin & tempel di sini. Gratis untuk pemakaian pribadi. Kalau muncul pesan \"model no longer available\", ganti kolom Model ke nama yang disarankan Google (mis. <code>gemini-flash-latest</code>).'},openai:{model:'gpt-4o-mini',hint:'Key dari platform.openai.com (berbayar). <b>Mau gratis?</b> Pakai <b>Groq</b>: daftar di console.groq.com, ambil key, lalu isi <b>Base URL</b> = <code>https://api.groq.com/openai/v1</code> dan Model = <code>llama-3.3-70b-versatile</code>.'}};
-let aiHist=[],aiBusy=false;
+let aiHist=[],aiBusy=false,aiPendingImg=null;
 function aiCfg(){return store.get('ai_cfg',{provider:'gemini',key:'',model:'',base:''});}
 function saveAiCfg(c){store.set('ai_cfg',c);}
 const aiEsc=s=>(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function renderChat(typing){
   const el=$('#aiChat');if(!el)return;
-  let h=aiHist.length?aiHist.map(m=>`<div class="ai-msg ${m.role==='user'?'user':'bot'}">${aiEsc(m.text)}</div>`).join(''):'<div class="ai-empty">👋 Halo! Aku Sensei AI-mu. Tanya apa saja soal bahasa Jepang, minta contoh kalimat, koreksi karanganmu, atau minta dibuatkan soal. Isi API key dulu di "Pengaturan AI" di atas ya.</div>';
+  let h=aiHist.length?aiHist.map(m=>`<div class="ai-msg ${m.role==='user'?'user':'bot'}">${m.img?`<img src="${m.img.dataUrl}" alt="foto">`:''}${m.text?aiEsc(m.text):''}</div>`).join(''):'<div class="ai-empty">👋 Halo! Aku Sensei AI-mu. Tanya apa saja soal bahasa Jepang, minta contoh kalimat, koreksi karanganmu, minta dibuatkan soal, atau <b>kirim 📷 foto</b> tulisan Jepang untuk dibaca &amp; diterjemahkan. Isi API key dulu di "Pengaturan AI" di atas ya.</div>';
   if(typing)h+='<div class="ai-typing"><i></i><i></i><i></i></div>';
   el.innerHTML=h;el.scrollTop=el.scrollHeight;
 }
@@ -1752,7 +1777,13 @@ async function aiCall(history){
   if(c.provider==='gemini'){
     const model=c.model||AI_DEF.gemini.model;
     const url=`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(c.key)}`;
-    const body={system_instruction:{parts:[{text:AI_SYS}]},contents:history.map(m=>({role:m.role==='user'?'user':'model',parts:[{text:m.text}]}))};
+    const body={system_instruction:{parts:[{text:AI_SYS}]},contents:history.map(m=>{
+      const parts=[];
+      if(m.img)parts.push({inline_data:{mime_type:m.img.mime,data:m.img.b64}});
+      if(m.text)parts.push({text:m.text});
+      if(!parts.length)parts.push({text:''});
+      return {role:m.role==='user'?'user':'model',parts};
+    })};
     const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error((j.error&&j.error.message)||('Gagal ('+r.status+'). Cek API key/model.'));
@@ -1763,7 +1794,10 @@ async function aiCall(history){
   } else {
     const base=(c.base||'https://api.openai.com/v1').replace(/\/+$/,'');
     const r=await fetch(base+'/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+c.key},
-      body:JSON.stringify({model:c.model||AI_DEF.openai.model,temperature:0.6,messages:[{role:'system',content:AI_SYS},...history.map(m=>({role:m.role,content:m.text}))]})});
+      body:JSON.stringify({model:c.model||AI_DEF.openai.model,temperature:0.6,messages:[{role:'system',content:AI_SYS},...history.map(m=>{
+        if(m.img&&m.role==='user'){const arr=[];if(m.text)arr.push({type:'text',text:m.text});arr.push({type:'image_url',image_url:{url:m.img.dataUrl}});return {role:m.role,content:arr};}
+        return {role:m.role,content:m.text};
+      })]})});
     const j=await r.json().catch(()=>({}));
     if(!r.ok)throw new Error((j.error&&j.error.message)||('Gagal ('+r.status+'). Cek API key/model/Base URL.'));
     const t=j.choices&&j.choices[0]&&j.choices[0].message&&j.choices[0].message.content;
@@ -1773,12 +1807,27 @@ async function aiCall(history){
 }
 async function aiSend(text){
   if(aiBusy)return;
-  const inp=$('#aiInput');text=(text!=null?text:(inp?inp.value:'')).trim();if(!text)return;
+  const inp=$('#aiInput');text=(text!=null?text:(inp?inp.value:'')).trim();
+  const img=aiPendingImg;
+  if(!text&&!img)return;
+  if(img&&!text)text='Tolong baca & terjemahkan tulisan Jepang di foto ini.';
   if(inp)inp.value='';
-  aiHist.push({role:'user',text});renderChat(true);aiBusy=true;
+  clearAiPreview();
+  aiHist.push({role:'user',text,img});renderChat(true);aiBusy=true;
   try{const reply=await aiCall(aiHist.slice(-12));aiHist.push({role:'assistant',text:reply});logActivity(1);}
   catch(e){aiHist.push({role:'assistant',text:'⚠️ '+e.message});}
   aiBusy=false;renderChat(false);
+}
+function clearAiPreview(){aiPendingImg=null;const p=$('#aiPreview');if(p)p.classList.remove('show');const f=$('#aiFile');if(f)f.value='';}
+function aiPickImage(file){
+  if(!file)return;
+  if(!/^image\//.test(file.type)){alert('File harus berupa gambar (JPG/PNG).');return;}
+  if(file.size>6*1024*1024){alert('Foto terlalu besar (maks 6 MB). Coba foto yang lebih kecil.');return;}
+  const rd=new FileReader();
+  rd.onload=()=>{const dataUrl=rd.result;aiPendingImg={dataUrl,mime:file.type,b64:String(dataUrl).split(',')[1]||''};
+    const p=$('#aiPreview');if(p){$('#aiPreviewImg').src=dataUrl;$('#aiPreviewName').textContent=file.name||'foto';p.classList.add('show');}
+    const inp=$('#aiInput');if(inp)inp.focus();};
+  rd.readAsDataURL(file);
 }
 function aiSetProvider(p){
   const c=aiCfg();c.provider=p;saveAiCfg(c);
@@ -1799,9 +1848,13 @@ $('#aiSave').onclick=()=>{const c=aiCfg();c.key=$('#aiKey').value.trim();c.model
   aiHist.push({role:'assistant',text:'✅ Pengaturan tersimpan. Silakan mulai bertanya!'});renderChat(false);};
 $('#aiSendBtn').onclick=()=>aiSend();
 $('#aiInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}});
+$('#aiAttach').onclick=()=>$('#aiFile').click();
+$('#aiFile').addEventListener('change',e=>aiPickImage(e.target.files&&e.target.files[0]));
+$('#aiPreviewX').onclick=clearAiPreview;
+$('#aiInput').addEventListener('paste',e=>{const it=e.clipboardData&&e.clipboardData.items;if(!it)return;for(const i of it){if(i.type&&i.type.indexOf('image')===0){const f=i.getAsFile();if(f){aiPickImage(f);e.preventDefault();break;}}}});
 $$('[data-aiquick]').forEach(b=>b.onclick=()=>{
   const q=b.dataset.aiquick,inp=$('#aiInput');
-  if(q==='clear'){aiHist=[];renderChat(false);return;}
+  if(q==='clear'){aiHist=[];clearAiPreview();renderChat(false);return;}
   if(q==='soal'){aiSend('Buatkan 5 soal kuis kosakata bahasa Jepang level N5 (pilihan ganda A–D) beserta kunci jawabannya.');return;}
   if(q==='koreksi'){inp.value='Tolong koreksi karangan bahasa Jepang saya ini:\n';inp.focus();return;}
   if(q==='grammar'){inp.value='Tolong jelaskan pola grammar: ';inp.focus();return;}
