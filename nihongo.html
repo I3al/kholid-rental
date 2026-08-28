@@ -453,7 +453,7 @@
         <label style="margin-top:6px">API key</label>
         <input type="password" id="aiKey" placeholder="Tempel API key kamu di sini" autocomplete="off">
         <label style="margin-top:10px">Model</label>
-        <input type="text" id="aiModel" placeholder="gemini-2.0-flash">
+        <input type="text" id="aiModel" placeholder="gemini-3.6-flash">
         <div id="aiBaseWrap" style="display:none"><label style="margin-top:10px">Base URL (untuk Groq/OpenRouter)</label><input type="text" id="aiBase" placeholder="https://api.openai.com/v1"></div>
         <div class="hint" id="aiKeyHint" style="margin-top:8px"></div>
         <button class="btn" id="aiSave" style="margin-top:12px">💾 Simpan</button>
@@ -1735,7 +1735,7 @@ function initTheme(){
 /* ================= INIT ================= */
 /* ================= AI SENSEI ================= */
 const AI_SYS="Kamu adalah 'Sensei', guru bahasa Jepang yang ramah, sabar, dan menyemangati untuk pelajar Indonesia tingkat pemula (JLPT N5–N4). Aturan: (1) Jawab dalam Bahasa Indonesia yang jelas dan singkat, tidak bertele-tele. (2) Setiap kata atau kalimat Jepang WAJIB kamu tulis lengkap: tulisan Jepang, cara baca (romaji), lalu artinya. (3) Kalau diminta mengoreksi karangan, tunjukkan bagian yang salah, tulis versi yang BENAR, dan beri alasan singkat yang mudah dipahami. (4) Kalau diminta membuat soal, buat sesuai level N5 dan sertakan kunci jawaban. (5) Gunakan contoh sederhana. Jangan memberi info yang kamu ragukan kebenarannya.";
-const AI_DEF={gemini:{model:'gemini-2.0-flash',hint:'🆓 <b>Cara dapat key gratis:</b> buka <b>aistudio.google.com</b> → \"Get API key\" → Create API key → salin & tempel di sini. Gratis untuk pemakaian pribadi.'},openai:{model:'gpt-4o-mini',hint:'Key dari platform.openai.com (berbayar). <b>Mau gratis?</b> Pakai <b>Groq</b>: daftar di console.groq.com, ambil key, lalu isi <b>Base URL</b> = <code>https://api.groq.com/openai/v1</code> dan Model = <code>llama-3.3-70b-versatile</code>.'}};
+const AI_DEF={gemini:{model:'gemini-3.6-flash',hint:'🆓 <b>Cara dapat key gratis:</b> buka <b>aistudio.google.com</b> → \"Get API key\" → Create API key → salin & tempel di sini. Gratis untuk pemakaian pribadi. Kalau muncul pesan \"model no longer available\", ganti kolom Model ke nama yang disarankan Google (mis. <code>gemini-flash-latest</code>).'},openai:{model:'gpt-4o-mini',hint:'Key dari platform.openai.com (berbayar). <b>Mau gratis?</b> Pakai <b>Groq</b>: daftar di console.groq.com, ambil key, lalu isi <b>Base URL</b> = <code>https://api.groq.com/openai/v1</code> dan Model = <code>llama-3.3-70b-versatile</code>.'}};
 let aiHist=[],aiBusy=false;
 function aiCfg(){return store.get('ai_cfg',{provider:'gemini',key:'',model:'',base:''});}
 function saveAiCfg(c){store.set('ai_cfg',c);}
