@@ -5,6 +5,13 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# HTML harus selalu revalidasi supaya deploy terbaru langsung terpakai
+# (mencegah HP/CDN menyajikan versi lama yang ter-cache)
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
 # Cache headers untuk file statis
 [[headers]]
   for = "/images/*"
@@ -24,7 +31,7 @@
 [[headers]]
   for = "/"
   [headers.values]
-    Cache-Control = "public, max-age=604800"
+    Cache-Control = "public, max-age=0, must-revalidate"
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "strict-origin-when-cross-origin"
