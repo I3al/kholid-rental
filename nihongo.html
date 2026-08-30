@@ -203,6 +203,14 @@
   .kj-t.kun b{color:var(--accent)} .kj-t.on b{color:var(--violet)}
   .kj-ex{font-size:13px;color:var(--muted);margin-top:2px}
   .kj-ex .jp{font-family:var(--jp);color:var(--ink);font-size:15px;font-weight:600}
+  .kj-story{font-size:13px;color:var(--muted);margin-top:8px;line-height:1.6;
+    background:color-mix(in srgb,var(--gold) 9%,var(--card2));border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:8px 12px}
+  .kj-story .ks-lb{color:var(--gold);font-weight:800;font-size:11.5px;margin-right:5px}
+  .vitem .vk{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:7px}
+  .vitem .vk .vk-lb{font-family:var(--jp);font-size:10.5px;font-weight:800;letter-spacing:.5px;color:var(--accent);
+    background:color-mix(in srgb,var(--accent) 12%,var(--card2));padding:2px 8px;border-radius:6px}
+  .vitem .vk .vk-i{font-size:12.5px;color:var(--muted);background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:3px 9px}
+  .vitem .vk .vk-i b{font-family:var(--jp);color:var(--ink);font-weight:700;font-size:14.5px;margin-right:3px}
   .badge{display:inline-block;font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:6px;background:var(--card2);color:var(--muted);vertical-align:middle}
   .badge.n5{background:#e9f6ef;color:#1f9d63}.badge.n4{background:#eaf1fb;color:#2f7fd6}
   :root:not([data-theme="light"]) .badge.n5{background:#16301f;color:#4fd497}
@@ -649,7 +657,7 @@
     <div class="foot-links">
       <a class="wa-mini" href="https://wa.me/6287731992067?text=Halo%20admin%20%E6%98%9F%E7%A9%BA%E3%82%AF%E3%83%A9%E3%82%B9!%20Saya%20punya%20saran%2Fusulan%20fitur%3A%20" target="_blank" rel="noopener noreferrer"><svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 .6C7.5.6.6 7.5.6 16c0 2.8.8 5.5 2.2 7.9L.5 31.5l7.8-2.3C10.6 30.5 13.3 31.3 16 31.3 24.5 31.3 31.4 24.4 31.4 16S24.5.6 16 .6zm0 28.1c-2.5 0-5-.7-7.1-1.9l-.5-.3-4.6 1.3 1.3-4.5-.3-.5C3.4 20.6 2.7 18.3 2.7 16 2.7 8.7 8.7 2.7 16 2.7S29.3 8.7 29.3 16 23.3 28.7 16 28.7zm7.4-9.8c-.4-.2-2.4-1.2-2.8-1.3-.4-.1-.6-.2-.9.2s-1 1.3-1.3 1.5c-.2.2-.5.3-.9.1-.4-.2-1.7-.6-3.3-2-1.2-1.1-2-2.4-2.3-2.8-.2-.4 0-.6.2-.8.2-.2.4-.5.6-.7.2-.2.2-.4.4-.6.1-.3 0-.5 0-.7-.1-.2-.9-2.1-1.2-2.9-.3-.8-.6-.7-.9-.7h-.7c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9s1.2 3.4 1.4 3.6c.2.2 2.4 3.7 5.9 5.2.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 2.1-.9 2.4-1.7.3-.8.3-1.6.2-1.7-.1-.2-.3-.3-.7-.5z"/></svg> Saran fitur → WhatsApp Admin</a>
       <span class="dev">👨‍💻 Dikembangkan oleh <b>Holid</b></span>
-      <span class="ver">versi 25 · 29 Agu 2026 · ikon custom</span>
+      <span class="ver">versi 26 · 30 Agu 2026 · cerita memori kanji</span>
     </div>
   </div>
 </div>
@@ -1158,7 +1166,140 @@ const KJ=[
   ['楽','たの','ガク','senang / musik','音楽','ongaku','musik','lain'],
   ['番','—','バン','nomor / giliran','一番','ichiban','nomor 1 / paling','lain'],
 ];
-KJ.forEach((k,i)=>k.id=i);
+// Cerita memori (mnemonic) per kanji — bantu menghafal lewat bentuk/komponennya
+const KSTORY={
+  '一':'Satu garis mendatar = angka 1.',
+  '二':'Dua garis mendatar = angka 2.',
+  '三':'Tiga garis mendatar = angka 3.',
+  '四':'Kotak berisi dua kaki — bayangkan jendela bersegi empat.',
+  '五':'Garis menyilang di antara atas–bawah, seperti tangan menghitung 5.',
+  '六':'Topi dengan dua kaki di bawahnya = angka 6.',
+  '七':'Mirip pisau melintang / angka 7 terbalik.',
+  '八':'Dua garis membuka ke bawah seperti kaki mengangkang = 8.',
+  '九':'Bentuk melengkung seperti pancing / angka 9.',
+  '十':'Tanda tambah (+) = sepuluh.',
+  '百':'一 (satu) di atas 白 (putih) → satu "ratus".',
+  '千':'十 (sepuluh) diberi coretan di atas → naik ke ribuan.',
+  '万':'Satu simbol ringkas untuk jumlah sangat besar (10.000).',
+  '円':'Kotak berisi yang membulat — mata uang yen yang bundar.',
+  '日':'Kotak dengan garis di tengah = matahari; matahari menandai satu hari.',
+  '月':'Bentuk bulan sabit — juga berarti bulan pada kalender.',
+  '火':'Sosok dengan percikan di kiri-kanan seperti kobaran api.',
+  '水':'Aliran memancar dari tengah ke samping = air.',
+  '木':'Batang dengan cabang dan akar = pohon.',
+  '金':'Atap menaungi dua butir logam → emas / uang.',
+  '土':'Salib tertancap di tanah = tanah.',
+  '年':'Padi yang dipanen sekali dalam setahun = tahun.',
+  '時':'日 (matahari) + 寺 (kuil) → matahari di kuil menunjukkan waktu.',
+  '分':'八 (membagi) + 刀 (pisau) → memotong waktu jadi menit.',
+  '半':'Membagi (八) sesuatu jadi dua bagian = setengah.',
+  '今':'Atap menaungi "saat ini" = sekarang.',
+  '何':'人 (orang) yang bertanya "apa?" = 何.',
+  '山':'Tiga puncak menjulang = gunung.',
+  '川':'Tiga garis mengalir sejajar = sungai.',
+  '天':'Orang (大) dengan garis di atas kepala = langit.',
+  '気':'Uap/napas yang mengepul = udara & semangat.',
+  '雨':'Tetes-tetes air di dalam bingkai langit = hujan.',
+  '空':'穴 (lubang) + 工 → ruang kosong membentang di langit.',
+  '人':'Dua kaki melangkah = orang.',
+  '男':'田 (sawah) + 力 (tenaga) → yang bertenaga di sawah = laki-laki.',
+  '女':'Bentuk orang duduk anggun = perempuan.',
+  '子':'Bayi dengan tangan terbuka dan kaki dibedong = anak.',
+  '父':'Tangan menyilang memegang alat kerja = ayah.',
+  '母':'女 (wanita) dengan dua titik → ibu yang menyusui.',
+  '友':'Dua tangan saling menggenggam = teman.',
+  '名':'夕 (senja) + 口 (mulut) → menyebut nama saat gelap = nama.',
+  '私':'禾 (padi) + 厶 (milik) → hasil milikku sendiri = saya.',
+  '目':'Kotak bergaris (mata versi tegak) = mata.',
+  '口':'Kotak terbuka = mulut.',
+  '耳':'Bentuk daun telinga = telinga.',
+  '手':'Jari-jari tangan terentang = tangan.',
+  '足':'口 (lutut) di atas bentuk kaki melangkah = kaki.',
+  '力':'Otot lengan yang menekuk = tenaga.',
+  '行':'Persimpangan jalan — tempat melangkah pergi.',
+  '来':'Pohon dengan orang menuju kemari = datang.',
+  '見':'目 (mata) di atas kaki (人) → mata berjalan melihat.',
+  '聞':'耳 (telinga) di dalam 門 (pintu) → menguping = mendengar.',
+  '食':'Atap menaungi nasi = makanan / makan.',
+  '飲':'食 (makan) + 欠 (mulut menganga) → menenggak = minum.',
+  '読':'言 (kata) + 売 → menyuarakan kata = membaca.',
+  '書':'Tangan memegang kuas menulis di atas 曰 = menulis.',
+  '話':'言 (kata) + 舌 (lidah) → lidah berkata = berbicara.',
+  '買':'网 (jaring) + 貝 (uang kerang) → menjaring dengan uang = membeli.',
+  '立':'Orang berdiri tegak di atas garis tanah = berdiri.',
+  '休':'人 (orang) bersandar pada 木 (pohon) = istirahat.',
+  '出':'Tunas menyembul bertingkat ke atas = keluar.',
+  '入':'Ujung panah menukik ke dalam = masuk.',
+  '会':'Atap menaungi orang-orang berkumpul = bertemu.',
+  '言':'Mulut (口) mengeluarkan garis-garis kata = berkata.',
+  '大':'Orang merentangkan kedua tangan lebar = besar.',
+  '小':'Tiga titik kecil = kecil.',
+  '高':'Menara bertingkat menjulang = tinggi / mahal.',
+  '安':'女 (wanita) di bawah atap → tenang, dan murah.',
+  '新':'立 + 木 + 斤 (kapak) → menebang pohon untuk sesuatu yang baru.',
+  '古':'十 (sepuluh) + 口 (mulut) → cerita turun 10 generasi = lama.',
+  '多':'Dua 夕 (malam) bertumpuk → banyak malam = banyak.',
+  '少':'小 (kecil) dengan satu coretan → makin sedikit.',
+  '長':'Rambut panjang yang tergerai = panjang.',
+  '白':'Seberkas sinar matahari (日) → cerah, putih.',
+  '上':'Garis di atas garis dasar = atas.',
+  '下':'Garis di bawah garis dasar = bawah.',
+  '中':'Garis menembus kotak tepat di tengah = tengah / dalam.',
+  '前':'Sisi yang menghadap ke muka = depan.',
+  '後':'Langkah kecil yang tertinggal = belakang / sesudah.',
+  '右':'Tangan (ナ) + 口 (mulut) → tangan menyuap = kanan.',
+  '左':'Tangan (ナ) + 工 (alat) → tangan memegang alat = kiri.',
+  '本':'木 (pohon) dengan garis di pangkal akar → asal / sumber, juga buku.',
+  '車':'Gambar gerobak dilihat dari atas = kendaraan.',
+  '学':'Atap sekolah menaungi anak (子) = belajar.',
+  '校':'木 (bangunan) + 交 (bertemu) → tempat berkumpul belajar = sekolah.',
+  '生':'Tunas tumbuh dari tanah = hidup / lahir.',
+  '先':'Kaki yang melangkah lebih dulu = duluan.',
+  '国':'Kotak batas berisi harta (玉) = negara.',
+  '語':'言 (kata) + 吾 (aku) → susunan kata = bahasa.',
+  '電':'雨 (langit) + kilat menyambar = listrik.',
+  '駅':'馬 (kuda) + 尺 → tempat berganti kuda dulu = stasiun.',
+  '店':'广 (bangunan) menaungi barang dagangan = toko.',
+  '家':'Atap menaungi 豕 (ternak) → rumah keluarga.',
+  '道':'首 (kepala) berjalan (辶) menyusuri = jalan.',
+  '建':'廴 (melangkah) + 聿 (pena/rencana) → mendirikan = membangun.',
+  '物':'牛 (sapi) + 勿 → wujud benda nyata = barang.',
+  '階':'阝 (undakan bukit) + 皆 → tangga bertingkat = lantai.',
+  '室':'Atap menaungi 至 (sampai) → ruang tempat singgah.',
+  '館':'食 + 官 → gedung besar (aula, hotel, perpustakaan).',
+  '社':'示 (altar) + 土 → tempat orang berkumpul (kuil / perusahaan).',
+  '院':'阝 + 完 → bangunan berpagar (rumah sakit / institusi).',
+  '病':'疒 (ranjang sakit) + 丙 → sedang berbaring = penyakit.',
+  '部':'Membagi wilayah menjadi seksi / bagian.',
+  '屋':'尸 (atap) + 至 → bangunan beratap = toko / kamar.',
+  '場':'土 (tanah) + 昜 (matahari terbit) → lapangan terbuka = tempat.',
+  '所':'戸 (pintu) + 斤 → titik lokasi = tempat.',
+  '町':'田 (sawah) + 丁 → petak sawah menjadi kampung.',
+  '市':'Tempat pasar ramai berkumpul = kota.',
+  '村':'木 (pohon) + 寸 → kumpulan pohon & rumah = desa.',
+  '地':'土 (tanah) + 也 → permukaan bumi = tanah.',
+  '図':'Kotak berisi rencana bergaris = peta / diagram.',
+  '銀':'金 (logam) + 艮 → logam putih = perak.',
+  '医':'Kotak menyimpan panah (obat) → mengobati = medis.',
+  '事':'Tangan memegang pena mengurus perkara = hal / urusan.',
+  '仕':'人 (orang) + 士 (pengabdi) → mengabdi = melayani / kerja.',
+  '京':'Menara tinggi di pusat = ibukota.',
+  '東':'Matahari (日) tampak di balik pohon (木) → terbit di timur.',
+  '西':'Bentuk sarang burung di senja → matahari terbenam di barat.',
+  '南':'Tanaman menghadap ke arah hangat = selatan.',
+  '北':'Dua orang saling membelakangi menghindari dingin = utara.',
+  '外':'夕 (senja) + 卜 (ramal) → meramal di luar = luar.',
+  '毎':'母 (ibu) yang selalu hadir tiap hari = setiap.',
+  '週':'辶 (jalan) + 周 (putaran) → siklus 7 hari = pekan.',
+  '曜':'日 (matahari) + sayap bersinar → menandai nama hari.',
+  '音':'立 + 日 → mulut mengeluarkan bunyi = suara.',
+  '楽':'Pohon dihiasi lonceng → musik yang menyenangkan.',
+  '番':'采 + 田 → membagi sawah menjadi urutan bernomor = giliran.'
+};
+KJ.forEach((k,i)=>{k.id=i;k[8]=KSTORY[k[0]]||'';});
+// Peta arti tiap kanji (untuk rincian "kanji per kotoba")
+const KMAP={};KJ.forEach(k=>{if(!KMAP[k[0]])KMAP[k[0]]=k[3];});
+function kanjiBreak(s){const out=[],seen={};for(const ch of (s||'')){if(KMAP[ch]&&!seen[ch]){seen[ch]=1;out.push([ch,KMAP[ch]]);}}return out;}
 
 const GRAMMAR=[
   {t:'A は B です',tag:'は',note:'Pola dasar "A adalah B". は dibaca "wa". Untuk menyangkal: じゃありません.',
@@ -1339,7 +1480,10 @@ function buildVCats(){
 function renderVocab(){
   const q=($('#vSearch').value||'').toLowerCase().trim();
   const list=V.filter(w=>(vCat==='all'||w[7]===vCat)&&(!q||w[0].includes(q)||w[2].toLowerCase().includes(q)||w[3].toLowerCase().includes(q)||w[1].includes(q)));
-  $('#vList').innerHTML=list.length?list.map(w=>`
+  $('#vList').innerHTML=list.length?list.map(w=>{
+    const kb=(w[0]&&w[0].length>=2)?kanjiBreak(w[0]):[];
+    const kbHtml=kb.length?`<div class="vk"><span class="vk-lb">漢字</span>${kb.map(x=>`<span class="vk-i"><b class="jp">${x[0]}</b> ${x[1]}</span>`).join('')}</div>`:'';
+    return `
     <div class="vitem">
       <div class="top">
         <span class="jp">${w[0]}</span>
@@ -1347,8 +1491,9 @@ function renderVocab(){
         <button class="speak" data-say="${w[0]}" title="Dengar">🔊</button>
       </div>
       <div class="mean"><b>${w[3]}</b> <span class="badge ${w[8]==='N4'?'n4':'n5'}">${w[8]||'N5'}</span></div>
+      ${kbHtml}
       ${w[4]?`<div class="ex"><span class="jp">${w[4]}</span><br>${w[5]} — ${w[6]}</div>`:''}
-    </div>`).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kata yang cocok.</p>';
+    </div>`;}).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kata yang cocok.</p>';
   $$('#vList .speak').forEach(b=>b.onclick=()=>speak(b.dataset.say));
 }
 $('#vSearch').addEventListener('input',renderVocab);
@@ -1370,6 +1515,7 @@ function renderKanji(){
         <div class="kj-mean"><b>${k[3]}</b> <span class="badge n5">N5</span></div>
         <div class="kj-read"><span class="kj-t kun">訓 <b class="jp">${k[1]}</b></span><span class="kj-t on">音 <b class="jp">${k[2]}</b></span></div>
         <div class="kj-ex"><span class="jp">${k[4]}</span> · ${k[5]} — ${k[6]}</div>
+        ${k[8]?`<div class="kj-story"><b class="ks-lb">💡 Cara ingat</b> ${k[8]}</div>`:''}
       </div>
       <button class="speak" data-say="${k[4]}" title="Dengar">🔊</button>
     </div>`).join(''):'<p class="muted" style="padding:16px 0">Tidak ada kanji yang cocok.</p>';
