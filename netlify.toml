@@ -3,7 +3,7 @@
   command = "node scripts/generate-sitemap.js"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "22.23.3"
 
 # HTML harus selalu revalidasi supaya deploy terbaru langsung terpakai
 # (mencegah HP/CDN menyajikan versi lama yang ter-cache)
